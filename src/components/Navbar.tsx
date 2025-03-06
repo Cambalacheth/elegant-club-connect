@@ -46,8 +46,8 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   // Handle auth or profile navigation
   const handleAuthOrProfile = () => {
     if (user) {
-      // If logged in, go to profile
-      navigate(`/user/${user.email?.split('@')[0]}`);
+      // If logged in, go to profile using /me path
+      navigate('/user/me');
     } else {
       // If not logged in, go to auth page
       navigate('/auth');
