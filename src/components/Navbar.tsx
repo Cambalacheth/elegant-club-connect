@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Menu, X, User, CheckCircle, ShieldAlert, ShieldCheck, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -29,13 +28,10 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Check for authenticated user
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
-        // In a real app, you would fetch the user role from the database
-        // For demonstration purposes, we'll just set a default role
         if (session?.user) {
           fetchUserRole(session.user.id);
         } else {
@@ -44,7 +40,6 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
       }
     );
 
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.user) {
@@ -55,7 +50,6 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user role from Supabase
   const fetchUserRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -70,7 +64,6 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
         return;
       }
 
-      // Map Supabase level to UserRole
       if (data?.level === "Verificado") {
         setUserRole("verified");
       } else if (data?.level === "Moderador") {
@@ -86,18 +79,14 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     }
   };
 
-  // Handle auth or profile navigation
   const handleAuthOrProfile = () => {
     if (user) {
-      // If logged in, go to profile using /me path
       navigate('/user/me');
     } else {
-      // If not logged in, go to auth page
       navigate('/auth');
     }
   };
 
-  // Render role icon based on user role
   const renderRoleIcon = () => {
     if (!user) return null;
     
@@ -113,10 +102,6 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     }
   };
 
-  // Determine text based on language
-  const aboutText = currentLanguage === "en" ? "About Us" : "Sobre Nosotros";
-  const verticalsText = currentLanguage === "en" ? "Verticals" : "Verticales";
-  const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
   const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
   const membersText = currentLanguage === "en" ? "Members" : "Miembros";
   const forumText = currentLanguage === "en" ? "Forum" : "Foro";
@@ -132,23 +117,13 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
       }`}
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
-        <Link to="/" className="flex items-center">
+        <Link to="/home" className="flex items-center">
           <span className="font-serif text-2xl font-semibold text-club-brown">
-            Club Exclusivo
+            Terreta Hub
           </span>
         </Link>
 
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a href="#about" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
-            {aboutText}
-          </a>
-          <a href="#verticals" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
-            {verticalsText}
-          </a>
-          <a href="#events" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
-            {eventsText}
-          </a>
           <Link 
             to="/projects"
             className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
@@ -188,7 +163,6 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
           </button>
         </nav>
 
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden text-club-brown"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -197,31 +171,9 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-club-beige/95 backdrop-blur-md shadow-lg py-4 animate-fade-in">
           <nav className="flex flex-col space-y-4 px-6">
-            <a 
-              href="#about" 
-              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {aboutText}
-            </a>
-            <a 
-              href="#verticals" 
-              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {verticalsText}
-            </a>
-            <a 
-              href="#events" 
-              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {eventsText}
-            </a>
             <Link 
               to="/projects"
               className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
