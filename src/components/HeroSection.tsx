@@ -1,14 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import LanguageSelectionModal from "./LanguageSelectionModal";
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  const handleIngresar = () => {
+    setIsLanguageModalOpen(true);
+  };
 
   return (
     <section className="min-h-screen relative flex flex-col items-center justify-center overflow-hidden">
@@ -40,13 +45,13 @@ const HeroSection = () => {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
-            <Link 
-              to="/home" 
-              className="inline-flex items-center gap-2 bg-club-orange text-club-white px-8 py-4 rounded-full text-lg font-medium btn-hover-effect"
+            <button 
+              onClick={handleIngresar}
+              className="inline-flex items-center gap-2 bg-club-orange text-club-white px-8 py-4 rounded-full text-lg font-medium btn-hover-effect hover:bg-club-terracota transition-colors"
             >
               Ingresar
               <ArrowRight size={20} />
-            </Link>
+            </button>
           </div>
           
           <div 
@@ -60,6 +65,11 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
+
+      <LanguageSelectionModal 
+        isOpen={isLanguageModalOpen}
+        onClose={() => setIsLanguageModalOpen(false)}
+      />
     </section>
   );
 };
