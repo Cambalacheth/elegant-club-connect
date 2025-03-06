@@ -8,9 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 interface LanguageSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onAuthRedirect?: () => void;
 }
 
-const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps) => {
+const LanguageSelectionModal = ({ isOpen, onClose, onAuthRedirect }: LanguageSelectionModalProps) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customLanguage, setCustomLanguage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +23,14 @@ const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps
   const handleLanguageSelect = (language: string) => {
     // In a real app, we would set the language in context/localStorage
     // For now, we'll just navigate to home with a query param
-    navigate(`/home?lang=${language}`);
+    if (onAuthRedirect) {
+      // First save the language preference
+      localStorage.setItem("preferredLanguage", language);
+      // Then redirect to auth
+      onAuthRedirect();
+    } else {
+      navigate(`/home?lang=${language}`);
+    }
   };
 
   const handleCustomLanguageSubmit = async (e: React.FormEvent) => {
@@ -53,8 +61,13 @@ const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps
         setCustomLanguage("");
         setShowCustomInput(false);
         
-        // For now, redirect to Spanish as fallback
-        navigate(`/home?lang=es`);
+        // For now, store Spanish as fallback and redirect to auth
+        localStorage.setItem("preferredLanguage", "es");
+        if (onAuthRedirect) {
+          onAuthRedirect();
+        } else {
+          navigate(`/home?lang=es`);
+        }
       } catch (error) {
         // Show error toast
         toast({

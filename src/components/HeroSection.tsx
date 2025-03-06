@@ -1,11 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import LanguageSelectionModal from "./LanguageSelectionModal";
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(true);
@@ -69,6 +71,7 @@ const HeroSection = () => {
       <LanguageSelectionModal 
         isOpen={isLanguageModalOpen}
         onClose={() => setIsLanguageModalOpen(false)}
+        onAuthRedirect={() => navigate("/auth")}
       />
     </section>
   );
