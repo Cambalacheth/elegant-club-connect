@@ -1,9 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Calendar, MapPin, Clock, Users, ExternalLink } from "lucide-react";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
 interface Event {
   id: string;
@@ -24,7 +22,6 @@ const Events = () => {
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    // Extract language from URL query parameters
     const searchParams = new URLSearchParams(location.search);
     const langParam = searchParams.get("lang");
     if (langParam && (langParam === "es" || langParam === "en")) {
@@ -34,8 +31,6 @@ const Events = () => {
   }, [location]);
 
   useEffect(() => {
-    // In a real app, you would fetch events from your database
-    // Here we're using sample data
     const sampleEvents: Event[] = [
       {
         id: "1",
@@ -89,7 +84,6 @@ const Events = () => {
       },
     ];
 
-    // Split events into upcoming and past based on date
     const now = new Date();
     const upcoming: Event[] = [];
     const past: Event[] = [];
@@ -103,17 +97,14 @@ const Events = () => {
       }
     });
 
-    // Sort upcoming events by date (closest first)
     upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
-    // Sort past events by date (most recent first)
     past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     setUpcomingEvents(upcoming);
     setPastEvents(past);
   }, [language]);
 
-  // Text based on selected language
   const eventsTitle = language === "en" ? "Community Events" : "Eventos de la Comunidad";
   const upcomingEventsText = language === "en" ? "Upcoming Events" : "Próximos Eventos";
   const pastEventsText = language === "en" ? "Past Events" : "Eventos Pasados";
@@ -225,8 +216,6 @@ const Events = () => {
           </section>
         )}
       </div>
-      
-      <Footer />
     </main>
   );
 };
