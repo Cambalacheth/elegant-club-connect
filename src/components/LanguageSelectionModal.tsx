@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Globe, Languages } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LanguageSelectionModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface LanguageSelectionModalProps {
 const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customLanguage, setCustomLanguage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -23,16 +25,46 @@ const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps
     navigate(`/home?lang=${language}`);
   };
 
-  const handleCustomLanguageSubmit = (e: React.FormEvent) => {
+  const handleCustomLanguageSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (customLanguage.trim()) {
-      toast({
-        title: "Idioma no disponible",
-        description: `Lo sentimos, "${customLanguage}" no está configurado todavía. Por favor, elija español o inglés.`,
-        variant: "destructive",
-      });
-      setCustomLanguage("");
-      setShowCustomInput(false);
+      setIsSubmitting(true);
+      
+      try {
+        // Store the custom language request in Supabase
+        const { error } = await supabase
+          .from('otros_idiomas')
+          .insert([{ idioma: customLanguage.trim() }]);
+          
+        if (error) {
+          console.error("Error saving language request:", error);
+          throw error;
+        }
+        
+        // Show success toast
+        toast({
+          title: "Solicitud recibida",
+          description: `Gracias por tu interés en "${customLanguage}". Lo tendremos en cuenta para futuras actualizaciones.`,
+          variant: "default",
+        });
+        
+        // Reset and close custom input
+        setCustomLanguage("");
+        setShowCustomInput(false);
+        
+        // For now, redirect to Spanish as fallback
+        navigate(`/home?lang=es`);
+      } catch (error) {
+        // Show error toast
+        toast({
+          title: "Error al guardar",
+          description: "Ha ocurrido un error al guardar tu solicitud. Por favor, inténtalo de nuevo.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -91,6 +123,7 @@ const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps
                 className="w-full rounded-md border border-club-olive bg-white px-4 py-2 focus:border-club-orange focus:outline-none"
                 placeholder="Ej: Français, Deutsch, Italiano..."
                 autoFocus
+                disabled={isSubmitting}
               />
             </div>
             
@@ -99,14 +132,16 @@ const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps
                 type="button"
                 onClick={() => setShowCustomInput(false)}
                 className="flex-1 rounded-md border border-club-olive bg-white px-4 py-2 text-club-brown transition hover:bg-club-beige-dark"
+                disabled={isSubmitting}
               >
                 Volver
               </button>
               <button
                 type="submit"
-                className="flex-1 rounded-md bg-club-orange px-4 py-2 text-white transition hover:bg-club-terracota"
+                className="flex-1 rounded-md bg-club-orange px-4 py-2 text-white transition hover:bg-club-terracota disabled:opacity-70"
+                disabled={isSubmitting}
               >
-                Enviar
+                {isSubmitting ? "Enviando..." : "Enviar"}
               </button>
             </div>
           </form>
