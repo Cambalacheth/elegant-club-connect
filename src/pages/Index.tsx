@@ -1,6 +1,7 @@
 
 import { useEffect } from "react";
 import HeroSection from "../components/HeroSection";
+import Navbar from "../components/Navbar";
 
 const Index = () => {
   // Smooth scroll functionality for anchor links
@@ -28,6 +29,7 @@ const Index = () => {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden">
+      <Navbar />
       <HeroSection />
     </main>
   );

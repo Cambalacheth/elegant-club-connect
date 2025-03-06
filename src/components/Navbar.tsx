@@ -59,6 +59,7 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   const verticalsText = currentLanguage === "en" ? "Verticals" : "Verticales";
   const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
   const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
+  const membersText = currentLanguage === "en" ? "Members" : "Miembros";
   const enterClubText = currentLanguage === "en" 
     ? (user ? "My Profile" : "Enter the Club") 
     : (user ? "Mi Perfil" : "Ingresar al Club");
@@ -70,11 +71,11 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
       }`}
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
-        <a href="#" className="flex items-center">
+        <Link to="/" className="flex items-center">
           <span className="font-serif text-2xl font-semibold text-club-brown">
             Club Exclusivo
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
@@ -88,10 +89,16 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
             {eventsText}
           </a>
           <Link 
-            to={`/projects?lang=${currentLanguage}`}
+            to="/projects"
             className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
           >
             {projectsText}
+          </Link>
+          <Link 
+            to="/members"
+            className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
+          >
+            {membersText}
           </Link>
           <button 
             onClick={handleAuthOrProfile}
@@ -137,11 +144,18 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
               {eventsText}
             </a>
             <Link 
-              to={`/projects?lang=${currentLanguage}`}
+              to="/projects"
               className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
               onClick={() => setMobileMenuOpen(false)}
             >
               {projectsText}
+            </Link>
+            <Link 
+              to="/members"
+              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {membersText}
             </Link>
             <button 
               onClick={() => {
