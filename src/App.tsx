@@ -13,6 +13,8 @@ import UserProfile from "./pages/UserProfile";
 import MeRedirect from "./components/MeRedirect";
 import NotFound from "./pages/NotFound";
 import Members from "./pages/Members";
+import ForumPage from "./pages/ForumPage";
+import DebateDetailPage from "./pages/DebateDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,8 @@ const App = () => (
           <Route path="/user/me" element={<MeRedirect />} />
           <Route path="/user/:username" element={<UserProfile />} />
           <Route path="/members" element={<Members />} />
+          <Route path="/forum" element={<ForumPage />} />
+          <Route path="/forum/:id" element={<DebateDetailPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

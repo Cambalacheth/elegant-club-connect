@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, CheckCircle, ShieldAlert, ShieldCheck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +12,7 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string>("registered");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,16 +33,40 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
+        // In a real app, you would fetch the user role from the database
+        // For demonstration purposes, we'll just set a default role
+        if (session?.user) {
+          fetchUserRole(session.user.id);
+        } else {
+          setUserRole("registered");
+        }
       }
     );
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
+      if (session?.user) {
+        fetchUserRole(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Mock function to fetch user role - in a real app, this would come from your database
+  const fetchUserRole = async (userId: string) => {
+    try {
+      // This is a placeholder - in a real app, fetch the role from your database
+      // For now, we'll randomly assign a role for demonstration
+      const roles = ["registered", "verified", "moderator", "admin"];
+      const randomRole = roles[Math.floor(Math.random() * roles.length)];
+      setUserRole(randomRole);
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+      setUserRole("registered");
+    }
+  };
 
   // Handle auth or profile navigation
   const handleAuthOrProfile = () => {
@@ -54,12 +79,29 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     }
   };
 
+  // Render role icon based on user role
+  const renderRoleIcon = () => {
+    if (!user) return null;
+    
+    switch (userRole) {
+      case "verified":
+        return <CheckCircle size={16} className="text-club-orange" />;
+      case "moderator":
+        return <ShieldAlert size={16} className="text-club-orange" />;
+      case "admin":
+        return <ShieldCheck size={16} className="text-club-orange" />;
+      default:
+        return null;
+    }
+  };
+
   // Determine text based on language
   const aboutText = currentLanguage === "en" ? "About Us" : "Sobre Nosotros";
   const verticalsText = currentLanguage === "en" ? "Verticals" : "Verticales";
   const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
   const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
   const membersText = currentLanguage === "en" ? "Members" : "Miembros";
+  const forumText = currentLanguage === "en" ? "Forum" : "Foro";
   const enterClubText = currentLanguage === "en" 
     ? (user ? "My Profile" : "Enter the Club") 
     : (user ? "Mi Perfil" : "Ingresar al Club");
@@ -100,12 +142,21 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
           >
             {membersText}
           </Link>
+          <Link 
+            to="/forum"
+            className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
+          >
+            {forumText}
+          </Link>
           <button 
             onClick={handleAuthOrProfile}
             className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect flex items-center gap-2"
           >
             {enterClubText}
-            {user && <User size={16} />}
+            <div className="flex items-center gap-1">
+              {user && <User size={16} />}
+              {renderRoleIcon()}
+            </div>
           </button>
         </nav>
 
@@ -157,6 +208,13 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
             >
               {membersText}
             </Link>
+            <Link 
+              to="/forum"
+              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {forumText}
+            </Link>
             <button 
               onClick={() => {
                 setMobileMenuOpen(false);
@@ -165,7 +223,10 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
               className="bg-club-orange text-club-white px-6 py-2.5 rounded-full inline-block text-center btn-hover-effect flex items-center gap-2 justify-center"
             >
               {enterClubText}
-              {user && <User size={16} />}
+              <div className="flex items-center gap-1">
+                {user && <User size={16} />}
+                {renderRoleIcon()}
+              </div>
             </button>
           </nav>
         </div>
