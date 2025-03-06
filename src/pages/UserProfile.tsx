@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, User, Settings, Instagram, Twitter, Github, 
-  Linkedin, Spotify, Youtube, TiktokIcon, Link as LinkIcon, 
+  Linkedin, Music, Youtube, Video, Link as LinkIcon, 
   Mail, ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,9 +139,9 @@ const UserProfile = () => {
       case "twitter": return <Twitter size={20} className="text-club-brown" />;
       case "github": return <Github size={20} className="text-club-brown" />;
       case "linkedin": return <Linkedin size={20} className="text-club-brown" />;
-      case "spotify": return <Spotify size={20} className="text-club-brown" />;
+      case "spotify": return <Music size={20} className="text-club-brown" />;
       case "youtube": return <Youtube size={20} className="text-club-brown" />;
-      case "tiktok": return <TiktokIcon size={20} className="text-club-brown" />;
+      case "tiktok": return <Video size={20} className="text-club-brown" />;
       case "website": return <LinkIcon size={20} className="text-club-brown" />;
       case "email": return <Mail size={20} className="text-club-brown" />;
       default: return <LinkIcon size={20} className="text-club-brown" />;

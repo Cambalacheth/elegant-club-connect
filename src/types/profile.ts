@@ -38,9 +38,9 @@ export const socialPlatformIcons: Record<SocialPlatform, string> = {
   twitter: 'twitter',
   github: 'github',
   linkedin: 'linkedin',
-  spotify: 'spotify',
+  spotify: 'music',
   youtube: 'youtube',
-  tiktok: 'tiktok',
+  tiktok: 'video',
   website: 'link',
   email: 'mail'
 };

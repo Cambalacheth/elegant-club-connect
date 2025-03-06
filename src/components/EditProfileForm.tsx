@@ -1,13 +1,12 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  Instagram, Twitter, Github, Linkedin, Spotify, Youtube, 
-  TiktokIcon, Link as LinkIcon, Mail, PlusCircle, X, Upload, Trash2 
+  Instagram, Twitter, Github, Linkedin, Music, Youtube, 
+  Video, Link as LinkIcon, Mail, PlusCircle, X, Upload, Trash2 
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Profile, SocialLink, Project, SocialPlatform } from "@/types/profile";
+import type { Profile, SocialLink, Project, SocialPlatform, socialPlatformLabels } from "@/types/profile";
 
 interface EditProfileFormProps {
   userId: string;
@@ -79,7 +78,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       try {
         setIsLoading(true);
         
-        // Fetch profile
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -88,7 +86,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         
         if (profileError) throw profileError;
         
-        // Fetch social links
         const { data: socialData, error: socialError } = await supabase
           .from("social_links")
           .select("*")
@@ -96,7 +93,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         
         if (socialError) throw socialError;
         
-        // Fetch projects
         const { data: projectsData, error: projectsError } = await supabase
           .from("projects")
           .select("*")
@@ -104,7 +100,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         
         if (projectsError) throw projectsError;
         
-        // Set state
         setProfile(profileData);
         setUsername(profileData.username || "");
         setWebsite(profileData.website || "");
@@ -114,14 +109,12 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         setBirthDate(profileData.birth_date || "");
         setAvatarUrl(profileData.avatar_url);
         
-        // Format social links
         const formattedSocialLinks = socialData.map(link => ({
           platform: link.platform as SocialPlatform,
           url: link.url
         }));
         setSocialLinks(formattedSocialLinks.length > 0 ? formattedSocialLinks : []);
         
-        // Format projects
         const formattedProjects = projectsData.map(project => ({
           id: project.id,
           name: project.name || "",
@@ -148,7 +141,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
   }, [userId, currentLanguage, toast]);
 
   const validateUsername = async (username: string) => {
-    // Check if username has valid format
     const usernameRegex = /^[a-zA-Z0-9_]+$/;
     if (!usernameRegex.test(username)) {
       setUsernameError(currentLanguage === "en" 
@@ -157,7 +149,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       return false;
     }
     
-    // Check if username is already taken (unless it's the current user's username)
     if (profile?.username !== username) {
       const { data, error } = await supabase
         .from("profiles")
@@ -192,7 +183,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Preview the image
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarUrl(reader.result as string);
@@ -252,17 +242,14 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     setIsSubmitting(true);
     
     try {
-      // Validate username
       const isUsernameValid = await validateUsername(username);
       if (!isUsernameValid) {
         setIsSubmitting(false);
         return;
       }
       
-      // Upload avatar if changed
       let avatarPath = profile?.avatar_url || null;
       if (avatarFile) {
-        // First, delete the old avatar if it exists
         if (profile?.avatar_url) {
           const oldAvatarPath = profile.avatar_url.split('/').pop();
           if (oldAvatarPath) {
@@ -270,7 +257,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           }
         }
         
-        // Upload the new avatar
         const fileExt = avatarFile.name.split('.').pop();
         const filePath = `${userId}_${Date.now()}.${fileExt}`;
         
@@ -280,21 +266,18 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           
         if (uploadError) throw uploadError;
         
-        // Get the public URL
         const { data: publicUrlData } = supabase.storage
           .from('avatars')
           .getPublicUrl(filePath);
           
         avatarPath = publicUrlData.publicUrl;
       } else if (avatarUrl === null && profile?.avatar_url) {
-        // User removed avatar, delete it from storage
         const oldAvatarPath = profile.avatar_url.split('/').pop();
         if (oldAvatarPath) {
           await supabase.storage.from('avatars').remove([oldAvatarPath]);
         }
       }
       
-      // Update profile
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -311,15 +294,12 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       
       if (profileError) throw profileError;
       
-      // Delete all existing social links and add the new ones
       if (socialLinks.length > 0) {
-        // First delete existing
         await supabase
           .from("social_links")
           .delete()
           .eq("profile_id", userId);
         
-        // Then insert new ones
         const socialLinksToInsert = socialLinks
           .filter(link => link.url.trim() !== "")
           .map(link => ({
@@ -337,13 +317,10 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         }
       }
       
-      // Handle projects - update existing, delete removed, add new
-      // First, get list of existing project IDs
       const existingProjectIds = projects
         .filter(p => p.id)
         .map(p => p.id) as string[];
       
-      // Delete projects that are not in the current list
       if (existingProjectIds.length > 0) {
         await supabase
           .from("projects")
@@ -351,19 +328,16 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           .eq("profile_id", userId)
           .not("id", "in", existingProjectIds);
       } else {
-        // If no existing projects in form, delete all
         await supabase
           .from("projects")
           .delete()
           .eq("profile_id", userId);
       }
       
-      // Insert or update projects
       for (const project of projects) {
         if (project.name.trim() === "") continue;
         
         if (project.id) {
-          // Update existing project
           await supabase
             .from("projects")
             .update({
@@ -374,7 +348,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
             })
             .eq("id", project.id);
         } else {
-          // Insert new project
           await supabase
             .from("projects")
             .insert({
@@ -393,7 +366,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           : "Perfil actualizado con éxito",
       });
       
-      // Navigate to profile page
       navigate(`/user/${username}`);
       
     } catch (error) {
@@ -416,9 +388,9 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       case "twitter": return <Twitter size={18} />;
       case "github": return <Github size={18} />;
       case "linkedin": return <Linkedin size={18} />;
-      case "spotify": return <Spotify size={18} />;
+      case "spotify": return <Music size={18} />;
       case "youtube": return <Youtube size={18} />;
-      case "tiktok": return <TiktokIcon size={18} />;
+      case "tiktok": return <Video size={18} />;
       case "website": return <LinkIcon size={18} />;
       case "email": return <Mail size={18} />;
       default: return <LinkIcon size={18} />;
@@ -442,7 +414,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       </div>
       
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
-        {/* Avatar Section */}
         <div className="flex flex-col sm:flex-row items-center gap-6">
           <div className="relative">
             <div 
@@ -486,7 +457,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           </div>
         </div>
         
-        {/* Basic Info Section */}
         <div className="space-y-4">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-club-brown mb-1">
@@ -539,7 +509,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           </div>
         </div>
         
-        {/* Gender and Birth Date */}
         <div className="space-y-4 pb-4 border-b border-club-olive/20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -589,7 +558,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           </div>
         </div>
         
-        {/* Social Links Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-club-brown">{texts.socialLinks}</h3>
           
@@ -643,7 +611,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           </button>
         </div>
         
-        {/* Projects Section */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-club-brown">{texts.projects}</h3>
           
@@ -713,7 +680,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           </button>
         </div>
         
-        {/* Form Actions */}
         <div className="flex justify-end gap-4 pt-4 border-t border-club-olive/20">
           <button
             type="button"
