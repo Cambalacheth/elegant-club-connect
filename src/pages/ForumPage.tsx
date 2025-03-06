@@ -25,92 +25,11 @@ const ForumPage = () => {
 
   const categories = ["General", "Legal", "Tecnología", "Finanzas", "Salud", "Audiovisual", "Eventos"];
 
-  // Mock data for demonstration
-  const mockDebates: Debate[] = [
-    {
-      id: "1",
-      title: "¿Cómo podemos mejorar la colaboración entre miembros?",
-      content: "Me gustaría saber qué ideas tienen para mejorar la colaboración entre miembros del club con diferentes perfiles profesionales.",
-      author_id: "1",
-      author_username: "ana_garcia",
-      author_avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-      author_role: "verified",
-      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "General",
-      votes_up: 15,
-      votes_down: 2,
-      comments_count: 8,
-    },
-    {
-      id: "2",
-      title: "Novedades legales que afectan a startups",
-      content: "Quisiera compartir algunas novedades legales recientes que pueden afectar a las startups y emprendedores del club.",
-      author_id: "2",
-      author_username: "carlos_legal",
-      author_avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      author_role: "moderator",
-      created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "Legal",
-      votes_up: 24,
-      votes_down: 0,
-      comments_count: 12,
-    },
-    {
-      id: "3",
-      title: "Próximo evento de networking: ideas y sugerencias",
-      content: "Estamos organizando un evento de networking para el próximo mes. ¿Qué temas les gustaría que abordáramos?",
-      author_id: "3",
-      author_username: "maria_admin",
-      author_avatar: "https://randomuser.me/api/portraits/women/45.jpg",
-      author_role: "admin",
-      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "Eventos",
-      votes_up: 32,
-      votes_down: 1,
-      comments_count: 20,
-    },
-    {
-      id: "4",
-      title: "Oportunidades de inversión en tecnología verde",
-      content: "Quisiera compartir algunas oportunidades interesantes de inversión en el sector de tecnología verde y sostenibilidad.",
-      author_id: "4",
-      author_username: "pedro_finanzas",
-      author_avatar: "https://randomuser.me/api/portraits/men/67.jpg",
-      author_role: "verified",
-      created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "Finanzas",
-      votes_up: 18,
-      votes_down: 3,
-      comments_count: 7,
-    },
-    {
-      id: "5",
-      title: "Nuevas tendencias en desarrollo web para 2023",
-      content: "Me gustaría discutir sobre las nuevas tendencias en desarrollo web que están surgiendo este año y cómo podemos aplicarlas.",
-      author_id: "5",
-      author_username: "laura_tech",
-      author_avatar: "https://randomuser.me/api/portraits/women/33.jpg",
-      author_role: "verified",
-      created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "Tecnología",
-      votes_up: 27,
-      votes_down: 2,
-      comments_count: 15,
-    },
-  ];
-
   // Get user session
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
-        // In a real app, you would fetch the user role from the database
-        // For demonstration purposes, we'll just set a default role
         if (session?.user) {
           fetchUserRole(session.user.id);
         } else {
@@ -130,14 +49,31 @@ const ForumPage = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Mock function to fetch user role
+  // Fetch user role from Supabase
   const fetchUserRole = async (userId: string) => {
     try {
-      // This is a placeholder - in a real app, fetch the role from your database
-      // For now, we'll randomly assign a role for demonstration
-      const roles: UserRole[] = ["registered", "verified", "moderator", "admin"];
-      const randomRole = roles[Math.floor(Math.random() * roles.length)];
-      setUserRole(randomRole);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("level")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching user role:", error);
+        setUserRole("registered");
+        return;
+      }
+
+      // Map Supabase level to UserRole
+      if (data?.level === "Verificado") {
+        setUserRole("verified");
+      } else if (data?.level === "Moderador") {
+        setUserRole("moderator");
+      } else if (data?.level === "Admin") {
+        setUserRole("admin");
+      } else {
+        setUserRole("registered");
+      }
     } catch (error) {
       console.error("Error fetching user role:", error);
       setUserRole("registered");
@@ -146,88 +82,190 @@ const ForumPage = () => {
 
   // Load debates
   useEffect(() => {
-    // In a real app, you would fetch debates from the database
-    // For demonstration purposes, we'll use mock data
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      setTimeout(() => {
-        setDebates(mockDebates);
+    const fetchDebates = async () => {
+      setIsLoading(true);
+      try {
+        let query = supabase
+          .from("debates_with_authors")
+          .select("*");
+
+        if (selectedCategory) {
+          query = query.eq("category", selectedCategory);
+        }
+
+        const { data, error: dbError } = await query.order("created_at", { ascending: false });
+
+        if (dbError) {
+          throw dbError;
+        }
+
+        setDebates(data as Debate[]);
         setIsLoading(false);
-      }, 500);
-    } catch (err) {
-      console.error("Error loading debates:", err);
-      setError("No se pudieron cargar los debates. Intenta nuevamente más tarde.");
-      setIsLoading(false);
-    }
-  }, []);
+      } catch (err) {
+        console.error("Error loading debates:", err);
+        setError("No se pudieron cargar los debates. Intenta nuevamente más tarde.");
+        setIsLoading(false);
+      }
+    };
 
-  // Filter debates by category
-  const filteredDebates = selectedCategory
-    ? debates.filter((debate) => debate.category === selectedCategory)
-    : debates;
+    fetchDebates();
+  }, [selectedCategory]);
 
-  // Handle debate creation (mock implementation)
+  // Handle debate creation
   const handleCreateDebate = async (title: string, content: string, category: string) => {
     if (!user) return;
 
-    // In a real app, you would create the debate in the database
-    // For demonstration purposes, we'll add it to the local state
-    const newDebate: Debate = {
-      id: `${Date.now()}`, // mock id
-      title,
-      content,
-      author_id: user.id,
-      author_username: user.email.split('@')[0], // simplified for demo
-      author_avatar: null,
-      author_role: userRole,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      category,
-      votes_up: 0,
-      votes_down: 0,
-      comments_count: 0,
-    };
+    try {
+      const { data, error } = await supabase
+        .from("debates")
+        .insert([
+          { 
+            title, 
+            content, 
+            category, 
+            author_id: user.id 
+          }
+        ])
+        .select();
 
-    setDebates([newDebate, ...debates]);
-    setShowCreateForm(false);
-  };
-
-  // Handle vote (mock implementation)
-  const handleVote = (debateId: string, voteType: "up" | "down") => {
-    if (!user) return;
-
-    // In a real app, you would update the vote in the database
-    // For demonstration purposes, we'll update the local state
-    setDebates(debates.map((debate) => {
-      if (debate.id === debateId) {
-        if (voteType === "up") {
-          return { ...debate, votes_up: debate.votes_up + 1 };
-        } else {
-          return { ...debate, votes_down: debate.votes_down + 1 };
-        }
+      if (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo crear el debate: " + error.message,
+          variant: "destructive",
+        });
+        return;
       }
-      return debate;
-    }));
 
-    toast({
-      title: "Voto registrado",
-      description: "Tu voto ha sido registrado con éxito",
-    });
+      // Fetch the newly created debate with author info
+      const { data: newDebateWithAuthor, error: fetchError } = await supabase
+        .from("debates_with_authors")
+        .select("*")
+        .eq("id", data[0].id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching new debate:", fetchError);
+      } else {
+        setDebates([newDebateWithAuthor as Debate, ...debates]);
+      }
+
+      setShowCreateForm(false);
+      toast({
+        title: "Debate creado",
+        description: "Tu debate ha sido publicado con éxito",
+      });
+    } catch (error) {
+      console.error("Error creating debate:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el debate",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Handle debate deletion (mock implementation)
-  const handleDeleteDebate = (debateId: string) => {
+  // Handle vote
+  const handleVote = async (debateId: string, voteType: "up" | "down") => {
+    if (!user) {
+      toast({
+        title: "Inicia sesión",
+        description: "Debes iniciar sesión para votar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Insert vote into votes table
+      const { error } = await supabase
+        .from("votes")
+        .insert([
+          { 
+            user_id: user.id, 
+            reference_id: debateId, 
+            reference_type: "debate", 
+            vote_type: voteType 
+          }
+        ]);
+
+      if (error) {
+        // If the error is because of a unique constraint violation,
+        // it means the user already voted
+        if (error.code === "23505") {
+          toast({
+            title: "Voto duplicado",
+            description: "Ya has votado en este debate",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "No se pudo registrar el voto: " + error.message,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      // Optimistic update of UI
+      setDebates(debates.map(debate => {
+        if (debate.id === debateId) {
+          if (voteType === "up") {
+            return { ...debate, votes_up: debate.votes_up + 1 };
+          } else {
+            return { ...debate, votes_down: debate.votes_down + 1 };
+          }
+        }
+        return debate;
+      }));
+
+      toast({
+        title: "Voto registrado",
+        description: "Tu voto ha sido registrado con éxito",
+      });
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo registrar el voto",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle debate deletion
+  const handleDeleteDebate = async (debateId: string) => {
     if (!user) return;
 
-    // In a real app, you would delete the debate from the database
-    // For demonstration purposes, we'll update the local state
-    setDebates(debates.filter((debate) => debate.id !== debateId));
+    try {
+      const { error } = await supabase
+        .from("debates")
+        .delete()
+        .eq("id", debateId);
 
-    toast({
-      title: "Debate eliminado",
-      description: "El debate ha sido eliminado con éxito",
-    });
+      if (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo eliminar el debate: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setDebates(debates.filter(debate => debate.id !== debateId));
+      toast({
+        title: "Debate eliminado",
+        description: "El debate ha sido eliminado con éxito",
+      });
+    } catch (error) {
+      console.error("Error deleting debate:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el debate",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -276,13 +314,13 @@ const ForumPage = () => {
                 <AlertCircle className="mr-2" size={20} />
                 <p>{error}</p>
               </div>
-            ) : filteredDebates.length === 0 ? (
+            ) : debates.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500">No hay debates en esta categoría.</p>
               </div>
             ) : (
               <div>
-                {filteredDebates.map((debate) => (
+                {debates.map((debate) => (
                   <DebateCard
                     key={debate.id}
                     debate={debate}

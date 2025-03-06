@@ -25,69 +25,11 @@ const DebateDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Mock data for demonstration
-  const mockDebate: Debate = {
-    id: "1",
-    title: "¿Cómo podemos mejorar la colaboración entre miembros?",
-    content: "Me gustaría saber qué ideas tienen para mejorar la colaboración entre miembros del club con diferentes perfiles profesionales.\n\nCreo que podríamos organizar más eventos temáticos donde profesionales de distintas áreas puedan compartir conocimientos y experiencias. También sería interesante crear un sistema de mentorías internas donde los miembros más experimentados puedan guiar a los que están comenzando.\n\n¿Qué otras ideas se les ocurren para fomentar la colaboración multidisciplinaria?",
-    author_id: "1",
-    author_username: "ana_garcia",
-    author_avatar: "https://randomuser.me/api/portraits/women/12.jpg",
-    author_role: "verified",
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    category: "General",
-    votes_up: 15,
-    votes_down: 2,
-    comments_count: 3,
-  };
-
-  const mockComments: Comment[] = [
-    {
-      id: "101",
-      debate_id: "1",
-      content: "Creo que sería buena idea crear grupos de trabajo por proyectos, donde personas de diferentes perfiles puedan aportar su experiencia. Por ejemplo, un proyecto de app móvil necesitaría diseñadores, desarrolladores, especialistas en UX, etc.",
-      author_id: "2",
-      author_username: "roberto_dev",
-      author_avatar: "https://randomuser.me/api/portraits/men/45.jpg",
-      author_role: "moderator",
-      created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      votes_up: 7,
-      votes_down: 0,
-    },
-    {
-      id: "102",
-      debate_id: "1",
-      content: "También podríamos implementar un sistema de puntos o reconocimientos para quienes participen activamente en colaboraciones multidisciplinarias. Esto incentivaría la participación y el compromiso.",
-      author_id: "3",
-      author_username: "laura_design",
-      author_avatar: "https://randomuser.me/api/portraits/women/22.jpg",
-      author_role: "verified",
-      created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      votes_up: 5,
-      votes_down: 1,
-    },
-    {
-      id: "103",
-      debate_id: "1",
-      content: "¿Qué tal si organizamos desayunos o almuerzos informales periódicos donde los miembros puedan conocerse mejor? A veces las mejores colaboraciones surgen de conversaciones casuales.",
-      author_id: "4",
-      author_username: "carlos_marketing",
-      author_avatar: "https://randomuser.me/api/portraits/men/67.jpg",
-      author_role: "admin",
-      created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      votes_up: 10,
-      votes_down: 0,
-    },
-  ];
-
   // Get user session
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
-        // In a real app, you would fetch the user role from the database
-        // For demonstration purposes, we'll just set a default role
         if (session?.user) {
           fetchUserRole(session.user.id);
         } else {
@@ -107,14 +49,31 @@ const DebateDetailPage = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Mock function to fetch user role
+  // Fetch user role from Supabase
   const fetchUserRole = async (userId: string) => {
     try {
-      // This is a placeholder - in a real app, fetch the role from your database
-      // For now, we'll randomly assign a role for demonstration
-      const roles: UserRole[] = ["registered", "verified", "moderator", "admin"];
-      const randomRole = roles[Math.floor(Math.random() * roles.length)];
-      setUserRole(randomRole);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("level")
+        .eq("id", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching user role:", error);
+        setUserRole("registered");
+        return;
+      }
+
+      // Map Supabase level to UserRole
+      if (data?.level === "Verificado") {
+        setUserRole("verified");
+      } else if (data?.level === "Moderador") {
+        setUserRole("moderator");
+      } else if (data?.level === "Admin") {
+        setUserRole("admin");
+      } else {
+        setUserRole("registered");
+      }
     } catch (error) {
       console.error("Error fetching user role:", error);
       setUserRole("registered");
@@ -125,32 +84,43 @@ const DebateDetailPage = () => {
   useEffect(() => {
     if (!id) return;
 
-    // In a real app, you would fetch the debate and comments from the database
-    // For demonstration purposes, we'll use mock data
-    setIsLoading(true);
-    try {
-      // Simulate API call
-      setTimeout(() => {
-        if (id === "1") {
-          setDebate(mockDebate);
-          setComments(mockComments);
-        } else {
-          // For other IDs, just return mock data
-          setDebate({
-            ...mockDebate,
-            id,
-            title: `Debate #${id}`,
-            content: `Este es el contenido del debate #${id}. En una aplicación real, este contenido vendría de la base de datos.`,
-          });
-          setComments([]);
+    const fetchDebateAndComments = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch debate
+        const { data: debateData, error: debateError } = await supabase
+          .from("debates_with_authors")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (debateError) {
+          throw debateError;
         }
+
+        setDebate(debateData as Debate);
+
+        // Fetch comments
+        const { data: commentsData, error: commentsError } = await supabase
+          .from("comments_with_authors")
+          .select("*")
+          .eq("debate_id", id)
+          .order("created_at", { ascending: true });
+
+        if (commentsError) {
+          throw commentsError;
+        }
+
+        setComments(commentsData as Comment[]);
         setIsLoading(false);
-      }, 500);
-    } catch (err) {
-      console.error("Error loading debate:", err);
-      setError("No se pudo cargar el debate. Intenta nuevamente más tarde.");
-      setIsLoading(false);
-    }
+      } catch (err) {
+        console.error("Error loading debate:", err);
+        setError("No se pudo cargar el debate. Intenta nuevamente más tarde.");
+        setIsLoading(false);
+      }
+    };
+
+    fetchDebateAndComments();
   }, [id]);
 
   // Format date
@@ -161,55 +131,147 @@ const DebateDetailPage = () => {
     });
   };
 
-  // Handle vote on debate (mock implementation)
-  const handleDebateVote = (voteType: "up" | "down") => {
-    if (!user || !debate) return;
-
-    // In a real app, you would update the vote in the database
-    // For demonstration purposes, we'll update the local state
-    if (voteType === "up") {
-      setDebate({ ...debate, votes_up: debate.votes_up + 1 });
-    } else {
-      setDebate({ ...debate, votes_down: debate.votes_down + 1 });
+  // Handle vote on debate
+  const handleDebateVote = async (voteType: "up" | "down") => {
+    if (!user || !debate) {
+      toast({
+        title: "Inicia sesión",
+        description: "Debes iniciar sesión para votar",
+        variant: "destructive",
+      });
+      return;
     }
 
-    toast({
-      title: "Voto registrado",
-      description: "Tu voto ha sido registrado con éxito",
-    });
-  };
+    try {
+      // Insert vote into votes table
+      const { error } = await supabase
+        .from("votes")
+        .insert([
+          { 
+            user_id: user.id, 
+            reference_id: debate.id, 
+            reference_type: "debate", 
+            vote_type: voteType 
+          }
+        ]);
 
-  // Handle vote on comment (mock implementation)
-  const handleCommentVote = (commentId: string, voteType: "up" | "down") => {
-    if (!user) return;
-
-    // In a real app, you would update the vote in the database
-    // For demonstration purposes, we'll update the local state
-    setComments(comments.map((comment) => {
-      if (comment.id === commentId) {
-        if (voteType === "up") {
-          return { ...comment, votes_up: comment.votes_up + 1 };
+      if (error) {
+        // If the error is because of a unique constraint violation,
+        // it means the user already voted
+        if (error.code === "23505") {
+          toast({
+            title: "Voto duplicado",
+            description: "Ya has votado en este debate",
+            variant: "destructive",
+          });
         } else {
-          return { ...comment, votes_down: comment.votes_down + 1 };
+          toast({
+            title: "Error",
+            description: "No se pudo registrar el voto: " + error.message,
+            variant: "destructive",
+          });
         }
+        return;
       }
-      return comment;
-    }));
 
-    toast({
-      title: "Voto registrado",
-      description: "Tu voto ha sido registrado con éxito",
-    });
+      // Optimistic update of UI
+      if (voteType === "up") {
+        setDebate({ ...debate, votes_up: debate.votes_up + 1 });
+      } else {
+        setDebate({ ...debate, votes_down: debate.votes_down + 1 });
+      }
+
+      toast({
+        title: "Voto registrado",
+        description: "Tu voto ha sido registrado con éxito",
+      });
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo registrar el voto",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Handle delete debate (mock implementation)
+  // Handle vote on comment
+  const handleCommentVote = async (commentId: string, voteType: "up" | "down") => {
+    if (!user) {
+      toast({
+        title: "Inicia sesión",
+        description: "Debes iniciar sesión para votar",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Insert vote into votes table
+      const { error } = await supabase
+        .from("votes")
+        .insert([
+          { 
+            user_id: user.id, 
+            reference_id: commentId, 
+            reference_type: "comment", 
+            vote_type: voteType 
+          }
+        ]);
+
+      if (error) {
+        // If the error is because of a unique constraint violation,
+        // it means the user already voted
+        if (error.code === "23505") {
+          toast({
+            title: "Voto duplicado",
+            description: "Ya has votado en este comentario",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: "No se pudo registrar el voto: " + error.message,
+            variant: "destructive",
+          });
+        }
+        return;
+      }
+
+      // Optimistic update of UI
+      setComments(comments.map((comment) => {
+        if (comment.id === commentId) {
+          if (voteType === "up") {
+            return { ...comment, votes_up: comment.votes_up + 1 };
+          } else {
+            return { ...comment, votes_down: comment.votes_down + 1 };
+          }
+        }
+        return comment;
+      }));
+
+      toast({
+        title: "Voto registrado",
+        description: "Tu voto ha sido registrado con éxito",
+      });
+    } catch (error) {
+      console.error("Error voting:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo registrar el voto",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle delete debate
   const handleDeleteDebate = async () => {
     if (!user || !debate || isDeleting) return;
 
-    if (!canModerateContent(userRole)) {
+    if (!canModerateContent(userRole) && user.id !== debate.author_id) {
       toast({
         title: "Acceso denegado",
-        description: "No tienes permisos para eliminar debates",
+        description: "No tienes permisos para eliminar este debate",
         variant: "destructive",
       });
       return;
@@ -217,8 +279,14 @@ const DebateDetailPage = () => {
 
     try {
       setIsDeleting(true);
-      // In a real app, you would delete the debate from the database
-      // For demonstration purposes, we'll just navigate back
+      const { error } = await supabase
+        .from("debates")
+        .delete()
+        .eq("id", debate.id);
+
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Debate eliminado",
@@ -238,50 +306,102 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Handle delete comment (mock implementation)
-  const handleDeleteComment = (commentId: string) => {
+  // Handle delete comment
+  const handleDeleteComment = async (commentId: string) => {
     if (!user) return;
 
-    if (!canModerateContent(userRole)) {
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+
+    if (!canModerateContent(userRole) && user.id !== comment.author_id) {
       toast({
         title: "Acceso denegado",
-        description: "No tienes permisos para eliminar comentarios",
+        description: "No tienes permisos para eliminar este comentario",
         variant: "destructive",
       });
       return;
     }
 
-    // In a real app, you would delete the comment from the database
-    // For demonstration purposes, we'll update the local state
-    setComments(comments.filter((comment) => comment.id !== commentId));
+    try {
+      const { error } = await supabase
+        .from("comments")
+        .delete()
+        .eq("id", commentId);
 
-    toast({
-      title: "Comentario eliminado",
-      description: "El comentario ha sido eliminado con éxito",
-    });
+      if (error) {
+        throw error;
+      }
+
+      setComments(comments.filter((comment) => comment.id !== commentId));
+      if (debate) {
+        setDebate({ ...debate, comments_count: debate.comments_count - 1 });
+      }
+
+      toast({
+        title: "Comentario eliminado",
+        description: "El comentario ha sido eliminado con éxito",
+      });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el comentario",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Handle create comment (mock implementation)
+  // Handle create comment
   const handleCreateComment = async (debateId: string, content: string) => {
     if (!user || !debate) return;
 
-    // In a real app, you would create the comment in the database
-    // For demonstration purposes, we'll update the local state
-    const newComment: Comment = {
-      id: `comment-${Date.now()}`, // mock id
-      debate_id: debateId,
-      content,
-      author_id: user.id,
-      author_username: user.email.split('@')[0], // simplified for demo
-      author_avatar: null,
-      author_role: userRole,
-      created_at: new Date().toISOString(),
-      votes_up: 0,
-      votes_down: 0,
-    };
+    try {
+      const { data, error } = await supabase
+        .from("comments")
+        .insert([
+          { 
+            debate_id: debateId, 
+            content, 
+            author_id: user.id 
+          }
+        ])
+        .select();
 
-    setComments([...comments, newComment]);
-    setDebate({ ...debate, comments_count: debate.comments_count + 1 });
+      if (error) {
+        toast({
+          title: "Error",
+          description: "No se pudo crear el comentario: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Fetch the newly created comment with author info
+      const { data: newCommentWithAuthor, error: fetchError } = await supabase
+        .from("comments_with_authors")
+        .select("*")
+        .eq("id", data[0].id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching new comment:", fetchError);
+      } else {
+        setComments([...comments, newCommentWithAuthor as Comment]);
+        setDebate({ ...debate, comments_count: debate.comments_count + 1 });
+      }
+
+      toast({
+        title: "Comentario publicado",
+        description: "Tu comentario ha sido publicado con éxito",
+      });
+    } catch (error) {
+      console.error("Error creating comment:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el comentario",
+        variant: "destructive",
+      });
+    }
   };
 
   // Render role badge
@@ -327,7 +447,7 @@ const DebateDetailPage = () => {
                 <div className="flex justify-between items-start mb-4">
                   <h1 className="text-2xl font-bold text-club-brown">{debate.title}</h1>
                   
-                  {canModerateContent(userRole) && (
+                  {(canModerateContent(userRole) || user?.id === debate.author_id) && (
                     <Button
                       variant="ghost"
                       size="sm"

@@ -9,6 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      comments: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          debate_id: string
+          id: string
+          votes_down: number
+          votes_up: number
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          debate_id: string
+          id?: string
+          votes_down?: number
+          votes_up?: number
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          debate_id?: string
+          id?: string
+          votes_down?: number
+          votes_up?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_debate_id_fkey"
+            columns: ["debate_id"]
+            isOneToOne: false
+            referencedRelation: "debates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_debate_id_fkey"
+            columns: ["debate_id"]
+            isOneToOne: false
+            referencedRelation: "debates_with_authors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debates: {
+        Row: {
+          author_id: string
+          category: string
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          votes_down: number
+          votes_up: number
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          votes_down?: number
+          votes_up?: number
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          votes_down?: number
+          votes_up?: number
+        }
+        Relationships: []
+      }
       otros_idiomas: {
         Row: {
           created_at: string
@@ -142,9 +223,85 @@ export type Database = {
           },
         ]
       }
+      votes: {
+        Row: {
+          created_at: string
+          id: string
+          reference_id: string
+          reference_type: string
+          user_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reference_id: string
+          reference_type: string
+          user_id: string
+          vote_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reference_id?: string
+          reference_type?: string
+          user_id?: string
+          vote_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      comments_with_authors: {
+        Row: {
+          author_avatar: string | null
+          author_category: string | null
+          author_id: string | null
+          author_role: string | null
+          author_username: string | null
+          content: string | null
+          created_at: string | null
+          debate_id: string | null
+          id: string | null
+          votes_down: number | null
+          votes_up: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_debate_id_fkey"
+            columns: ["debate_id"]
+            isOneToOne: false
+            referencedRelation: "debates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_debate_id_fkey"
+            columns: ["debate_id"]
+            isOneToOne: false
+            referencedRelation: "debates_with_authors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      debates_with_authors: {
+        Row: {
+          author_avatar: string | null
+          author_category: string | null
+          author_id: string | null
+          author_role: string | null
+          author_username: string | null
+          category: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          title: string | null
+          updated_at: string | null
+          votes_down: number | null
+          votes_up: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
