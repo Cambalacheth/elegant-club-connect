@@ -1,11 +1,6 @@
 
 import { useEffect } from "react";
-import Navbar from "../components/Navbar";
 import HeroSection from "../components/HeroSection";
-import AboutSection from "../components/AboutSection";
-import VerticalsSection from "../components/VerticalsSection";
-import EventsSection from "../components/EventsSection";
-import Footer from "../components/Footer";
 
 const Index = () => {
   // Smooth scroll functionality for anchor links
@@ -33,12 +28,7 @@ const Index = () => {
 
   return (
     <main className="relative min-h-screen overflow-x-hidden">
-      <Navbar />
       <HeroSection />
-      <AboutSection />
-      <VerticalsSection />
-      <EventsSection />
-      <Footer />
     </main>
   );
 };
