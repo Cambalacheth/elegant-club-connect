@@ -10,14 +10,15 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface ProjectSubmitModalProps {
   onClose: () => void;
@@ -35,7 +36,9 @@ const formSchema = z.object({
   long_description: z.string().optional(),
   website_url: z.string().url().optional().or(z.literal('')),
   social_links: z.string().optional(),
-  category: z.string(),
+  categories: z.array(z.string()).min(1, {
+    message: "Select at least one category",
+  }),
   tags: z.string().optional(),
 });
 
@@ -54,7 +57,7 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
       long_description: "",
       website_url: "",
       social_links: "",
-      category: "Tecnología",
+      categories: ["Tecnología"],
       tags: "",
     },
   });
@@ -119,7 +122,7 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
         imageUrl = publicUrl;
       }
 
-      // Submit project
+      // Submit project with primary category as the first one in the array
       const { error } = await supabase.from('projects').insert({
         profile_id: user.id,
         name: values.name,
@@ -127,7 +130,8 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
         long_description: values.long_description,
         website_url: values.website_url || null,
         image_url: imageUrl,
-        category: values.category,
+        category: values.categories[0], // Keep primary category for backward compatibility
+        categories: values.categories, // Store all selected categories
         tags: tagsArray,
       });
 
@@ -154,21 +158,22 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
   const cancelButtonText = language === "en" ? "Cancel" : "Cancelar";
   const uploadImageText = language === "en" ? "Upload Image" : "Subir Imagen";
   const imagePreviewText = language === "en" ? "Image Preview" : "Vista previa de la imagen";
-  const categoryLabel = language === "en" ? "Category" : "Categoría";
+  const categoriesLabel = language === "en" ? "Categories" : "Categorías"; // Updated to plural
   const nameLabel = language === "en" ? "Project Name" : "Nombre del Proyecto";
   const shortDescLabel = language === "en" ? "Short Description (max 220 chars)" : "Descripción Corta (máx 220 caracteres)";
   const longDescLabel = language === "en" ? "Long Description" : "Descripción Larga";
   const websiteLabel = language === "en" ? "Website URL (optional)" : "URL del Sitio Web (opcional)";
   const tagsLabel = language === "en" ? "Tags (comma separated, max 6)" : "Tags (separados por comas, máx 6)";
+  const selectCategoriesText = language === "en" ? "Select at least one category" : "Selecciona al menos una categoría";
   
   // Categories
-  const categories = [
-    { value: "Legal", label: language === "en" ? "Legal" : "Legal" },
-    { value: "Tecnología", label: language === "en" ? "Technology" : "Tecnología" },
-    { value: "Finanzas", label: language === "en" ? "Finance" : "Finanzas" },
-    { value: "Audiovisual", label: language === "en" ? "Audiovisual" : "Audiovisual" },
-    { value: "Comunidad", label: language === "en" ? "Community" : "Comunidad" },
-    { value: "Salud", label: language === "en" ? "Health" : "Salud" },
+  const categoriesOptions = [
+    { id: "Legal", label: language === "en" ? "Legal" : "Legal" },
+    { id: "Tecnología", label: language === "en" ? "Technology" : "Tecnología" },
+    { id: "Finanzas", label: language === "en" ? "Finance" : "Finanzas" },
+    { id: "Audiovisual", label: language === "en" ? "Audiovisual" : "Audiovisual" },
+    { id: "Comunidad", label: language === "en" ? "Community" : "Comunidad" },
+    { id: "Salud", label: language === "en" ? "Health" : "Salud" },
   ];
 
   return (
@@ -200,30 +205,58 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
                 />
               </div>
               
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{categoryLabel}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="md:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="categories"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>{categoriesLabel}</FormLabel>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          {selectCategoriesText}
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {categoriesOptions.map((category) => (
+                            <FormField
+                              key={category.id}
+                              control={form.control}
+                              name="categories"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={category.id}
+                                    className="flex flex-row items-start space-x-3 space-y-0"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(category.id)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...field.value, category.id])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== category.id
+                                                )
+                                              )
+                                        }}
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="font-normal cursor-pointer">
+                                      {category.label}
+                                    </FormLabel>
+                                  </FormItem>
+                                )
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               
               <FormField
                 control={form.control}

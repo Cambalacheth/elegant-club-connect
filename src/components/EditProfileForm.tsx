@@ -1,13 +1,40 @@
-import { useState, useEffect, useRef } from "react";
+
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Instagram, Twitter, Github, Linkedin, Music, Youtube, 
-  Video, Link as LinkIcon, Mail, PlusCircle, X, Upload, Trash2 
-} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { User, Loader2, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Profile, SocialLink, Project, SocialPlatform } from "@/types/profile";
-import { socialPlatformLabels } from "@/types/profile";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SocialPlatform, socialPlatformLabels } from "@/types/profile";
+
+interface SocialLink {
+  id?: string;
+  platform: string;
+  url: string;
+}
 
 interface EditProfileFormProps {
   userId: string;
@@ -16,702 +43,637 @@ interface EditProfileFormProps {
 }
 
 const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormProps) => {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [username, setUsername] = useState("");
-  const [usernameError, setUsernameError] = useState("");
-  const [website, setWebsite] = useState("");
-  const [description, setDescription] = useState("");
-  const [emailVisible, setEmailVisible] = useState(false);
-  const [gender, setGender] = useState("not_specified");
-  const [birthDate, setBirthDate] = useState("");
-  
-  const [socialLinks, setSocialLinks] = useState<{platform: SocialPlatform, url: string}[]>([]);
-  const [projects, setProjects] = useState<{id?: string, name: string, description: string, url: string}[]>([]);
-  
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [availablePlatforms, setAvailablePlatforms] = useState<SocialPlatform[]>([
+    "instagram",
+    "twitter",
+    "github",
+    "linkedin",
+    "spotify",
+    "youtube",
+    "tiktok",
+    "website",
+    "email",
+  ]);
 
+  // Text labels based on language
   const texts = {
     title: currentLanguage === "en" ? "Edit Profile" : "Editar Perfil",
-    save: currentLanguage === "en" ? "Save Changes" : "Guardar Cambios",
-    cancel: currentLanguage === "en" ? "Cancel" : "Cancelar",
-    username: currentLanguage === "en" ? "Username" : "Nombre de usuario",
-    usernameHelp: currentLanguage === "en" 
-      ? "Username must be unique and can only contain letters, numbers, and underscores" 
-      : "El nombre de usuario debe ser único y solo puede contener letras, números y guiones bajos",
-    website: currentLanguage === "en" ? "Website" : "Sitio web",
-    description: currentLanguage === "en" ? "About Me" : "Sobre Mí",
-    gender: currentLanguage === "en" ? "Gender" : "Género",
-    birthDate: currentLanguage === "en" ? "Birth Date" : "Fecha de nacimiento",
-    privacyNote: currentLanguage === "en" 
-      ? "Gender and birth date will not be displayed publicly" 
-      : "El género y la fecha de nacimiento no se mostrarán públicamente",
-    emailVisibility: currentLanguage === "en" 
-      ? "Show my email on my public profile" 
-      : "Mostrar mi correo electrónico en mi perfil público",
-    male: currentLanguage === "en" ? "Male" : "Masculino",
-    female: currentLanguage === "en" ? "Female" : "Femenino",
-    other: currentLanguage === "en" ? "Other" : "Otro",
-    notSpecified: currentLanguage === "en" ? "Prefer not to say" : "Prefiero no decir",
-    uploadAvatar: currentLanguage === "en" ? "Upload Photo" : "Subir Foto",
-    changeAvatar: currentLanguage === "en" ? "Change Photo" : "Cambiar Foto",
-    removeAvatar: currentLanguage === "en" ? "Remove" : "Eliminar",
-    socialLinks: currentLanguage === "en" ? "Social Links" : "Redes Sociales",
-    addSocialLink: currentLanguage === "en" ? "Add Social Link" : "Agregar Red Social",
-    platform: currentLanguage === "en" ? "Platform" : "Plataforma",
-    url: currentLanguage === "en" ? "URL" : "URL",
-    projects: currentLanguage === "en" ? "Projects" : "Proyectos",
-    addProject: currentLanguage === "en" ? "Add Project" : "Agregar Proyecto",
-    projectName: currentLanguage === "en" ? "Project Name" : "Nombre del Proyecto",
-    projectDesc: currentLanguage === "en" ? "Description" : "Descripción",
-    projectUrl: currentLanguage === "en" ? "Project URL" : "URL del Proyecto",
-    loading: currentLanguage === "en" ? "Loading..." : "Cargando...",
+    saveButton: currentLanguage === "en" ? "Save Changes" : "Guardar Cambios",
+    cancelButton: currentLanguage === "en" ? "Cancel" : "Cancelar",
+    usernameLabel: currentLanguage === "en" ? "Username" : "Nombre de usuario",
+    descriptionLabel: currentLanguage === "en" ? "Bio" : "Biografía",
+    emailVisibleLabel: currentLanguage === "en" ? "Email Visible" : "Email Visible",
+    emailVisibleDescription:
+      currentLanguage === "en"
+        ? "Make your email visible to other users"
+        : "Hacer tu email visible para otros usuarios",
+    websiteLabel: currentLanguage === "en" ? "Website" : "Sitio Web",
+    genderLabel: currentLanguage === "en" ? "Gender" : "Género",
+    genderMale: currentLanguage === "en" ? "Male" : "Masculino",
+    genderFemale: currentLanguage === "en" ? "Female" : "Femenino",
+    genderOther: currentLanguage === "en" ? "Other" : "Otro",
+    categoriesLabel: currentLanguage === "en" ? "Categories" : "Categorías",
+    selectCategoriesText: currentLanguage === "en" ? "Select categories of interest" : "Selecciona categorías de interés",
+    birthDateLabel: currentLanguage === "en" ? "Birth Date" : "Fecha de Nacimiento",
+    avatarLabel: currentLanguage === "en" ? "Profile Picture" : "Foto de Perfil",
+    socialLinksLabel: currentLanguage === "en" ? "Social Links" : "Enlaces Sociales",
+    addSocialLink: currentLanguage === "en" ? "Add Social Link" : "Añadir Enlace Social",
+    platformLabel: currentLanguage === "en" ? "Platform" : "Plataforma",
+    urlLabel: currentLanguage === "en" ? "URL" : "URL",
+    selectPlatform: currentLanguage === "en" ? "Select platform" : "Seleccionar plataforma",
+    errorMessage:
+      currentLanguage === "en"
+        ? "There was an error updating your profile"
+        : "Hubo un error al actualizar tu perfil",
+    successMessage:
+      currentLanguage === "en"
+        ? "Your profile has been updated"
+        : "Tu perfil ha sido actualizado",
   };
 
+  // Categories
+  const categoriesOptions = [
+    { id: "Legal", label: currentLanguage === "en" ? "Legal" : "Legal" },
+    { id: "Tecnología", label: currentLanguage === "en" ? "Technology" : "Tecnología" },
+    { id: "Finanzas", label: currentLanguage === "en" ? "Finance" : "Finanzas" },
+    { id: "Audiovisual", label: currentLanguage === "en" ? "Audiovisual" : "Audiovisual" },
+    { id: "Comunidad", label: currentLanguage === "en" ? "Community" : "Comunidad" },
+    { id: "Salud", label: currentLanguage === "en" ? "Health" : "Salud" },
+  ];
+
+  // Form schema
+  const formSchema = z.object({
+    username: z.string().min(3, {
+      message:
+        currentLanguage === "en"
+          ? "Username must be at least 3 characters."
+          : "El nombre de usuario debe tener al menos 3 caracteres.",
+    }),
+    description: z.string().optional(),
+    email_visible: z.boolean().default(false),
+    website: z.string().optional(),
+    gender: z.string().optional(),
+    birth_date: z.string().optional(),
+    categories: z.array(z.string()).optional(),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: "",
+      description: "",
+      email_visible: false,
+      website: "",
+      gender: "",
+      birth_date: "",
+      categories: [],
+    },
+  });
+
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchProfileData = async () => {
       try {
-        setIsLoading(true);
-        
-        const { data: profileData, error: profileError } = await supabase
+        // Fetch profile data
+        const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", userId)
           .single();
-        
+
         if (profileError) throw profileError;
-        
-        const { data: socialData, error: socialError } = await supabase
+
+        // Set form default values
+        form.reset({
+          username: profile.username,
+          description: profile.description || "",
+          email_visible: profile.email_visible || false,
+          website: profile.website || "",
+          gender: profile.gender || "",
+          birth_date: profile.birth_date
+            ? new Date(profile.birth_date).toISOString().split("T")[0]
+            : "",
+          categories: profile.categories || [profile.category].filter(Boolean),
+        });
+
+        // Set avatar URL
+        setAvatarUrl(profile.avatar_url);
+
+        // Fetch social links
+        const { data: links, error: linksError } = await supabase
           .from("social_links")
           .select("*")
           .eq("profile_id", userId);
-        
-        if (socialError) throw socialError;
-        
-        const { data: projectsData, error: projectsError } = await supabase
-          .from("projects")
-          .select("*")
-          .eq("profile_id", userId);
-        
-        if (projectsError) throw projectsError;
-        
-        setProfile(profileData);
-        setUsername(profileData.username || "");
-        setWebsite(profileData.website || "");
-        setDescription(profileData.description || "");
-        setEmailVisible(profileData.email_visible || false);
-        setGender(profileData.gender || "not_specified");
-        setBirthDate(profileData.birth_date || "");
-        setAvatarUrl(profileData.avatar_url);
-        
-        const formattedSocialLinks = socialData.map(link => ({
-          platform: link.platform as SocialPlatform,
-          url: link.url
-        }));
-        setSocialLinks(formattedSocialLinks.length > 0 ? formattedSocialLinks : []);
-        
-        const formattedProjects = projectsData.map(project => ({
-          id: project.id,
-          name: project.name || "",
-          description: project.description || "",
-          url: project.url || ""
-        }));
-        setProjects(formattedProjects.length > 0 ? formattedProjects : [{ name: "", description: "", url: "" }]);
-        
+
+        if (linksError) throw linksError;
+
+        setSocialLinks(links || []);
+
+        // Update available platforms based on existing links
+        if (links && links.length > 0) {
+          const usedPlatforms = links.map((link) => link.platform as SocialPlatform);
+          setAvailablePlatforms((prev) =>
+            prev.filter((platform) => !usedPlatforms.includes(platform))
+          );
+        }
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error fetching profile data:", error);
         toast({
-          title: currentLanguage === "en" ? "Error" : "Error",
-          description: currentLanguage === "en" 
-            ? "Could not load profile. Please try again." 
-            : "No se pudo cargar el perfil. Inténtalo de nuevo.",
+          title: "Error",
+          description: currentLanguage === "en"
+            ? "Could not load profile data"
+            : "No se pudieron cargar los datos del perfil",
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
       }
     };
-    
-    fetchProfile();
-  }, [userId, currentLanguage, toast]);
 
-  const validateUsername = async (username: string) => {
-    const usernameRegex = /^[a-zA-Z0-9_]+$/;
-    if (!usernameRegex.test(username)) {
-      setUsernameError(currentLanguage === "en" 
-        ? "Username can only contain letters, numbers, and underscores" 
-        : "El nombre de usuario solo puede contener letras, números y guiones bajos");
-      return false;
-    }
-    
-    if (profile?.username !== username) {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("username", username)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error checking username:", error);
-        setUsernameError(currentLanguage === "en" 
-          ? "Error checking username availability" 
-          : "Error al verificar la disponibilidad del nombre de usuario");
-        return false;
-      }
-      
-      if (data) {
-        setUsernameError(currentLanguage === "en" 
-          ? "Username is already taken" 
-          : "Este nombre de usuario ya está en uso");
-        return false;
-      }
-    }
-    
-    setUsernameError("");
-    return true;
-  };
+    fetchProfileData();
+  }, [userId, form, toast, currentLanguage]);
 
-  const handleAvatarUpload = () => {
-    fileInputRef.current?.click();
-  };
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAvatarUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setAvatarFile(file);
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: currentLanguage === "en" ? "File too large" : "Archivo demasiado grande",
+        description: currentLanguage === "en"
+          ? "Image must be less than 2MB"
+          : "La imagen debe ser menor a 2MB",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const handleRemoveAvatar = () => {
-    setAvatarUrl(null);
-    setAvatarFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    setAvatarFile(file);
+    const preview = URL.createObjectURL(file);
+    setAvatarUrl(preview);
   };
 
   const handleAddSocialLink = () => {
-    setSocialLinks([...socialLinks, { platform: "instagram", url: "" }]);
+    if (availablePlatforms.length === 0) return;
+
+    setSocialLinks([
+      ...socialLinks,
+      {
+        platform: availablePlatforms[0],
+        url: "",
+      },
+    ]);
+
+    setAvailablePlatforms((prev) => prev.filter((p) => p !== availablePlatforms[0]));
   };
 
   const handleRemoveSocialLink = (index: number) => {
-    const updatedLinks = [...socialLinks];
-    updatedLinks.splice(index, 1);
-    setSocialLinks(updatedLinks);
+    const linkToRemove = socialLinks[index];
+    
+    // If this is an existing link (has id), we'll delete it from DB later
+    // For now, just remove it from the form state
+    
+    // Add the platform back to available platforms if it's a valid platform
+    if (availablePlatforms.indexOf(linkToRemove.platform as SocialPlatform) === -1) {
+      setAvailablePlatforms((prev) => [...prev, linkToRemove.platform as SocialPlatform]);
+    }
+    
+    const newLinks = [...socialLinks];
+    newLinks.splice(index, 1);
+    setSocialLinks(newLinks);
   };
 
   const handleSocialLinkChange = (index: number, field: "platform" | "url", value: string) => {
-    const updatedLinks = [...socialLinks];
+    const newLinks = [...socialLinks];
+    
+    // If changing platform, update available platforms
     if (field === "platform") {
-      updatedLinks[index].platform = value as SocialPlatform;
-    } else {
-      updatedLinks[index].url = value;
-    }
-    setSocialLinks(updatedLinks);
-  };
-
-  const handleAddProject = () => {
-    setProjects([...projects, { name: "", description: "", url: "" }]);
-  };
-
-  const handleRemoveProject = (index: number) => {
-    const updatedProjects = [...projects];
-    updatedProjects.splice(index, 1);
-    setProjects(updatedProjects);
-  };
-
-  const handleProjectChange = (index: number, field: keyof Omit<typeof projects[0], "id">, value: string) => {
-    const updatedProjects = [...projects];
-    updatedProjects[index][field] = value;
-    setProjects(updatedProjects);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    setIsSubmitting(true);
-    
-    try {
-      const isUsernameValid = await validateUsername(username);
-      if (!isUsernameValid) {
-        setIsSubmitting(false);
-        return;
+      const oldPlatform = newLinks[index].platform as SocialPlatform;
+      
+      // Add old platform back to available list
+      if (availablePlatforms.indexOf(oldPlatform) === -1) {
+        setAvailablePlatforms((prev) => [...prev, oldPlatform]);
       }
       
-      let avatarPath = profile?.avatar_url || null;
+      // Remove new platform from available list
+      setAvailablePlatforms((prev) => prev.filter((p) => p !== value));
+    }
+    
+    newLinks[index] = { ...newLinks[index], [field]: value };
+    setSocialLinks(newLinks);
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    
+    try {
+      // 1. Update avatar if changed
+      let finalAvatarUrl = avatarUrl;
+      
       if (avatarFile) {
-        if (profile?.avatar_url) {
-          const oldAvatarPath = profile.avatar_url.split('/').pop();
-          if (oldAvatarPath) {
-            await supabase.storage.from('avatars').remove([oldAvatarPath]);
-          }
-        }
-        
         const fileExt = avatarFile.name.split('.').pop();
-        const filePath = `${userId}_${Date.now()}.${fileExt}`;
+        const fileName = `${userId}-${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(filePath, avatarFile);
+          .from("avatars")
+          .upload(fileName, avatarFile);
           
         if (uploadError) throw uploadError;
         
-        const { data: publicUrlData } = supabase.storage
-          .from('avatars')
-          .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from("avatars")
+          .getPublicUrl(fileName);
           
-        avatarPath = publicUrlData.publicUrl;
-      } else if (avatarUrl === null && profile?.avatar_url) {
-        const oldAvatarPath = profile.avatar_url.split('/').pop();
-        if (oldAvatarPath) {
-          await supabase.storage.from('avatars').remove([oldAvatarPath]);
-        }
+        finalAvatarUrl = publicUrl;
       }
       
-      const { error: profileError } = await supabase
+      // 2. Update profile
+      const { error: updateError } = await supabase
         .from("profiles")
         .update({
-          username,
-          avatar_url: avatarPath,
-          website,
-          description,
-          email_visible: emailVisible,
-          gender,
-          birth_date: birthDate || null,
-          updated_at: new Date().toISOString()
+          username: values.username,
+          description: values.description,
+          email_visible: values.email_visible,
+          website: values.website,
+          gender: values.gender,
+          birth_date: values.birth_date,
+          category: values.categories ? values.categories[0] : null, // Keep the first category as the primary one
+          categories: values.categories, // Store all categories
+          avatar_url: finalAvatarUrl,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
-      
-      if (profileError) throw profileError;
-      
-      if (socialLinks.length > 0) {
-        await supabase
-          .from("social_links")
-          .delete()
-          .eq("profile_id", userId);
         
-        const socialLinksToInsert = socialLinks
-          .filter(link => link.url.trim() !== "")
-          .map(link => ({
-            profile_id: userId,
-            platform: link.platform,
-            url: link.url
-          }));
+      if (updateError) throw updateError;
+      
+      // 3. Handle social links
+      
+      // Get existing links to compare
+      const { data: existingLinks, error: fetchError } = await supabase
+        .from("social_links")
+        .select("id, platform")
+        .eq("profile_id", userId);
         
-        if (socialLinksToInsert.length > 0) {
-          const { error: socialLinksError } = await supabase
+      if (fetchError) throw fetchError;
+      
+      const existingLinksMap = new Map();
+      existingLinks?.forEach(link => {
+        existingLinksMap.set(link.platform, link.id);
+      });
+      
+      // Process each social link in the form
+      for (const link of socialLinks) {
+        if (!link.url) continue; // Skip empty URLs
+        
+        if (link.id) {
+          // Update existing link
+          await supabase
             .from("social_links")
-            .insert(socialLinksToInsert);
+            .update({ platform: link.platform, url: link.url })
+            .eq("id", link.id);
             
-          if (socialLinksError) throw socialLinksError;
-        }
-      }
-      
-      const existingProjectIds = projects
-        .filter(p => p.id)
-        .map(p => p.id) as string[];
-      
-      if (existingProjectIds.length > 0) {
-        await supabase
-          .from("projects")
-          .delete()
-          .eq("profile_id", userId)
-          .not("id", "in", existingProjectIds);
-      } else {
-        await supabase
-          .from("projects")
-          .delete()
-          .eq("profile_id", userId);
-      }
-      
-      for (const project of projects) {
-        if (project.name.trim() === "") continue;
-        
-        if (project.id) {
-          await supabase
-            .from("projects")
-            .update({
-              name: project.name,
-              description: project.description || null,
-              url: project.url || null,
-              updated_at: new Date().toISOString()
-            })
-            .eq("id", project.id);
+          // Remove from map to track what's left to delete
+          existingLinksMap.delete(link.platform);
         } else {
-          await supabase
-            .from("projects")
-            .insert({
+          // Check if there's an existing link for this platform
+          const existingId = existingLinksMap.get(link.platform);
+          
+          if (existingId) {
+            // Update existing platform link
+            await supabase
+              .from("social_links")
+              .update({ url: link.url })
+              .eq("id", existingId);
+              
+            existingLinksMap.delete(link.platform);
+          } else {
+            // Create new link
+            await supabase.from("social_links").insert({
               profile_id: userId,
-              name: project.name,
-              description: project.description || null,
-              url: project.url || null
+              platform: link.platform,
+              url: link.url,
             });
+          }
         }
+      }
+      
+      // Delete any remaining links
+      for (const id of existingLinksMap.values()) {
+        await supabase.from("social_links").delete().eq("id", id);
       }
       
       toast({
-        title: currentLanguage === "en" ? "Success" : "Éxito",
-        description: currentLanguage === "en" 
-          ? "Profile updated successfully" 
-          : "Perfil actualizado con éxito",
+        title: texts.successMessage,
+        description: currentLanguage === "en"
+          ? "Your changes have been saved"
+          : "Tus cambios han sido guardados",
       });
       
-      navigate(`/user/${username}`);
+      // Redirect back to profile page
+      navigate(`/user/${values.username}`);
       
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
-        title: currentLanguage === "en" ? "Error" : "Error",
-        description: currentLanguage === "en" 
-          ? "Could not update profile. Please try again." 
-          : "No se pudo actualizar el perfil. Inténtalo de nuevo.",
+        title: "Error",
+        description: texts.errorMessage,
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  const getSocialIcon = (platform: SocialPlatform) => {
-    switch (platform) {
-      case "instagram": return <Instagram size={18} />;
-      case "twitter": return <Twitter size={18} />;
-      case "github": return <Github size={18} />;
-      case "linkedin": return <Linkedin size={18} />;
-      case "spotify": return <Music size={18} />;
-      case "youtube": return <Youtube size={18} />;
-      case "tiktok": return <Video size={18} />;
-      case "website": return <LinkIcon size={18} />;
-      case "email": return <Mail size={18} />;
-      default: return <LinkIcon size={18} />;
-    }
-  };
-  
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <div className="flex justify-center items-center h-64">
-          <p className="text-club-brown">{texts.loading}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <div className="bg-club-olive/20 p-6">
-        <h2 className="text-2xl font-semibold text-club-brown">{texts.title}</h2>
+      <div className="bg-club-olive/20 p-8">
+        <h1 className="text-3xl font-semibold text-club-brown text-center md:text-left">
+          {texts.title}
+        </h1>
       </div>
-      
-      <form onSubmit={handleSubmit} className="p-6 space-y-8">
-        <div className="flex flex-col sm:flex-row items-center gap-6">
-          <div className="relative">
-            <div 
-              className="w-24 h-24 rounded-full bg-club-olive/30 flex items-center justify-center overflow-hidden"
-            >
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <Upload size={32} className="text-club-brown/70" />
-              )}
-            </div>
-            
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              className="hidden"
-            />
-          </div>
-          
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={handleAvatarUpload}
-              className="bg-club-beige px-4 py-2 rounded-md text-club-brown hover:bg-club-beige-dark transition-colors text-sm"
-            >
-              {avatarUrl ? texts.changeAvatar : texts.uploadAvatar}
-            </button>
-            
-            {avatarUrl && (
-              <button
-                type="button"
-                onClick={handleRemoveAvatar}
-                className="bg-club-terracota/10 px-4 py-2 rounded-md text-club-terracota hover:bg-club-terracota/20 transition-colors text-sm flex items-center justify-center gap-1"
-              >
-                <Trash2 size={14} />
-                {texts.removeAvatar}
-              </button>
-            )}
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-club-brown mb-1">
-              {texts.username} <span className="text-club-terracota">*</span>
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                validateUsername(e.target.value);
-              }}
-              required
-              className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                usernameError ? "border-club-terracota focus:ring-club-terracota/30" : "border-club-olive/50 focus:ring-club-orange/30"
-              }`}
-            />
-            {usernameError && (
-              <p className="text-club-terracota text-sm mt-1">{usernameError}</p>
-            )}
-            <p className="text-club-brown/60 text-xs mt-1">{texts.usernameHelp}</p>
-          </div>
-          
-          <div>
-            <label htmlFor="website" className="block text-sm font-medium text-club-brown mb-1">
-              {texts.website}
-            </label>
-            <input
-              id="website"
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://example.com"
-              className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-club-brown mb-1">
-              {texts.description}
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-4 pb-4 border-b border-club-olive/20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="gender" className="block text-sm font-medium text-club-brown mb-1">
-                {texts.gender}
-              </label>
-              <select
-                id="gender"
-                value={gender}
-                onChange={(e) => setGender(e.target.value)}
-                className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-              >
-                <option value="male">{texts.male}</option>
-                <option value="female">{texts.female}</option>
-                <option value="other">{texts.other}</option>
-                <option value="not_specified">{texts.notSpecified}</option>
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="birthDate" className="block text-sm font-medium text-club-brown mb-1">
-                {texts.birthDate}
-              </label>
-              <input
-                id="birthDate"
-                type="date"
-                value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-                className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-              />
-            </div>
-          </div>
-          
-          <p className="text-club-brown/60 text-xs italic">{texts.privacyNote}</p>
-          
-          <div className="flex items-center">
-            <input
-              id="emailVisible"
-              type="checkbox"
-              checked={emailVisible}
-              onChange={(e) => setEmailVisible(e.target.checked)}
-              className="h-4 w-4 text-club-orange focus:ring-club-orange/30 border-club-olive/50 rounded"
-            />
-            <label htmlFor="emailVisible" className="ml-2 block text-sm text-club-brown">
-              {texts.emailVisibility}
-            </label>
-          </div>
-        </div>
-        
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-club-brown">{texts.socialLinks}</h3>
-          
-          {socialLinks.map((link, index) => (
-            <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-              <div className="flex-shrink-0 w-full sm:w-1/4">
-                <select
-                  value={link.platform}
-                  onChange={(e) => handleSocialLinkChange(index, "platform", e.target.value)}
-                  className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-                >
-                  {Object.entries(socialPlatformLabels).map(([platform, labels]) => (
-                    <option key={platform} value={platform}>
-                      {currentLanguage === "en" ? labels.en : labels.es}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex items-center gap-2 flex-1">
-                <div className="flex-shrink-0">
-                  {getSocialIcon(link.platform)}
-                </div>
-                
-                <input
-                  type="text"
-                  value={link.url}
-                  onChange={(e) => handleSocialLinkChange(index, "url", e.target.value)}
-                  placeholder={`https://${link.platform}.com/yourusername`}
-                  className="flex-1 px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-                />
-                
-                <button
-                  type="button"
-                  onClick={() => handleRemoveSocialLink(index)}
-                  className="text-club-terracota hover:text-club-terracota/70 transition-colors p-2"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-          ))}
-          
-          <button
-            type="button"
-            onClick={handleAddSocialLink}
-            className="inline-flex items-center text-club-orange hover:text-club-terracota transition-colors text-sm"
-          >
-            <PlusCircle size={16} className="mr-1" />
-            {texts.addSocialLink}
-          </button>
-        </div>
-        
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium text-club-brown">{texts.projects}</h3>
-          
-          {projects.map((project, index) => (
-            <div key={index} className="p-4 bg-club-beige/30 rounded-md space-y-3">
-              <div className="flex justify-between">
-                <label htmlFor={`project-name-${index}`} className="block text-sm font-medium text-club-brown mb-1">
-                  {texts.projectName} {index === 0 && <span className="text-club-terracota">*</span>}
-                </label>
-                
-                {projects.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveProject(index)}
-                    className="text-club-terracota hover:text-club-terracota/70 transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
+
+      <div className="p-8">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-club-olive/30 flex items-center justify-center">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User size={48} className="text-club-brown" />
                 )}
               </div>
-              
-              <input
-                id={`project-name-${index}`}
-                type="text"
-                value={project.name}
-                onChange={(e) => handleProjectChange(index, "name", e.target.value)}
-                required={index === 0}
-                className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-              />
-              
-              <div>
-                <label htmlFor={`project-desc-${index}`} className="block text-sm font-medium text-club-brown mb-1">
-                  {texts.projectDesc}
-                </label>
-                <textarea
-                  id={`project-desc-${index}`}
-                  value={project.description}
-                  onChange={(e) => handleProjectChange(index, "description", e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor={`project-url-${index}`} className="block text-sm font-medium text-club-brown mb-1">
-                  {texts.projectUrl}
-                </label>
-                <input
-                  id={`project-url-${index}`}
-                  type="url"
-                  value={project.url}
-                  onChange={(e) => handleProjectChange(index, "url", e.target.value)}
-                  placeholder="https://example.com/project"
-                  className="w-full px-4 py-2 border border-club-olive/50 rounded-md focus:outline-none focus:ring-2 focus:ring-club-orange/30"
+              <div className="flex-1">
+                <FormLabel>{texts.avatarLabel}</FormLabel>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="mt-2 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-club-beige file:text-club-brown hover:file:bg-club-beige/80"
                 />
               </div>
             </div>
-          ))}
-          
-          <button
-            type="button"
-            onClick={handleAddProject}
-            className="inline-flex items-center text-club-orange hover:text-club-terracota transition-colors text-sm"
-          >
-            <PlusCircle size={16} className="mr-1" />
-            {texts.addProject}
-          </button>
-        </div>
-        
-        <div className="flex justify-end gap-4 pt-4 border-t border-club-olive/20">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-2 border border-club-olive/50 rounded-md text-club-brown hover:bg-club-beige transition-colors"
-          >
-            {texts.cancel}
-          </button>
-          
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-6 py-2 bg-club-orange rounded-md text-white hover:bg-club-terracota transition-colors disabled:opacity-70"
-          >
-            {isSubmitting ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {currentLanguage === "en" ? "Saving..." : "Guardando..."}
-              </span>
-            ) : (
-              texts.save
-            )}
-          </button>
-        </div>
-      </form>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Username */}
+              <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{texts.usernameLabel}</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Website */}
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{texts.websiteLabel}</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://your-website.com" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Gender */}
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{texts.genderLabel}</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={texts.genderLabel} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="male">{texts.genderMale}</SelectItem>
+                        <SelectItem value="female">{texts.genderFemale}</SelectItem>
+                        <SelectItem value="other">{texts.genderOther}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Birth Date */}
+              <FormField
+                control={form.control}
+                name="birth_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{texts.birthDateLabel}</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Multiple Categories */}
+            <FormField
+              control={form.control}
+              name="categories"
+              render={() => (
+                <FormItem>
+                  <FormLabel>{texts.categoriesLabel}</FormLabel>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {texts.selectCategoriesText}
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {categoriesOptions.map((category) => (
+                        <FormField
+                          key={category.id}
+                          control={form.control}
+                          name="categories"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={category.id}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(category.id)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value || [], category.id])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== category.id
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal cursor-pointer">
+                                  {category.label}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Email Visible */}
+            <FormField
+              control={form.control}
+              name="email_visible"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">{texts.emailVisibleLabel}</FormLabel>
+                    <FormDescription>{texts.emailVisibleDescription}</FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{texts.descriptionLabel}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={6}
+                      placeholder={currentLanguage === "en" ? "Tell us about yourself" : "Cuéntanos sobre ti"}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Social Links */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <FormLabel>{texts.socialLinksLabel}</FormLabel>
+                {availablePlatforms.length > 0 && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddSocialLink}
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> {texts.addSocialLink}
+                  </Button>
+                )}
+              </div>
+
+              {socialLinks.map((link, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-[1fr_2fr_auto] gap-3 items-center"
+                >
+                  <Select
+                    value={link.platform}
+                    onValueChange={(value) =>
+                      handleSocialLinkChange(index, "platform", value)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={texts.selectPlatform} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={link.platform}>
+                        {socialPlatformLabels[link.platform as SocialPlatform][
+                          currentLanguage === "en" ? "en" : "es"
+                        ]}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Input
+                    value={link.url}
+                    onChange={(e) =>
+                      handleSocialLinkChange(index, "url", e.target.value)
+                    }
+                    placeholder={`https://...`}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleRemoveSocialLink(index)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-4 pt-4 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                {texts.cancelButton}
+              </Button>
+              <Button
+                type="submit"
+                className="bg-club-orange hover:bg-club-terracotta text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {currentLanguage === "en" ? "Saving..." : "Guardando..."}
+                  </>
+                ) : (
+                  texts.saveButton
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };
 
 export default EditProfileForm;
-

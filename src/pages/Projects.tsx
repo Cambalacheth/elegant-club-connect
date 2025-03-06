@@ -20,6 +20,7 @@ interface ProjectWithProfile {
   image_url?: string;
   website_url?: string;
   category: string;
+  categories?: string[]; // Add support for multiple categories
   tags?: string[];
   profile_id: string;
   username: string;
@@ -68,6 +69,7 @@ const Projects = () => {
           image_url, 
           website_url, 
           category,
+          categories,
           tags,
           profile_id,
           created_at,
