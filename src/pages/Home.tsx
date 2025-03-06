@@ -1,10 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection";
 import VerticalsSection from "../components/VerticalsSection";
-import Footer from "../components/Footer";
 
 const Home = () => {
   const location = useLocation();
@@ -98,8 +98,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-      
-      <Footer />
     </main>
   );
 };

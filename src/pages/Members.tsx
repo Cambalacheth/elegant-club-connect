@@ -1,9 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import MemberCard from '../components/MemberCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import Footer from '../components/Footer';
 
 // Define the profile type
 interface Profile {
@@ -115,8 +115,6 @@ const Members = () => {
           )}
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };
