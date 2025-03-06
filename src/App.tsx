@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import Members from "./pages/Members";
 import ForumPage from "./pages/ForumPage";
 import DebateDetailPage from "./pages/DebateDetailPage";
+import AdminPage from "./pages/AdminPage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/members" element={<Members />} />
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/forum/:id" element={<DebateDetailPage />} />
+          <Route path="/admin" element={<AdminPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
