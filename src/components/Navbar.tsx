@@ -2,7 +2,11 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 
-const Navbar = () => {
+interface NavbarProps {
+  currentLanguage?: string;
+}
+
+const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -18,6 +22,12 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Determine text based on language
+  const aboutText = currentLanguage === "en" ? "About Us" : "Sobre Nosotros";
+  const verticalsText = currentLanguage === "en" ? "Verticals" : "Verticales";
+  const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
+  const enterClubText = currentLanguage === "en" ? "Enter the Club" : "Ingresar al Club";
 
   return (
     <header
@@ -35,19 +45,19 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <a href="#about" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
-            Sobre Nosotros
+            {aboutText}
           </a>
           <a href="#verticals" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
-            Verticales
+            {verticalsText}
           </a>
           <a href="#events" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
-            Eventos
+            {eventsText}
           </a>
           <a 
             href="#" 
             className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect"
           >
-            Ingresar al Club
+            {enterClubText}
           </a>
         </nav>
 
@@ -69,27 +79,27 @@ const Navbar = () => {
               className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Sobre Nosotros
+              {aboutText}
             </a>
             <a 
               href="#verticals" 
               className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Verticales
+              {verticalsText}
             </a>
             <a 
               href="#events" 
               className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Eventos
+              {eventsText}
             </a>
             <a 
               href="#" 
               className="bg-club-orange text-club-white px-6 py-2.5 rounded-full inline-block text-center btn-hover-effect"
             >
-              Ingresar al Club
+              {enterClubText}
             </a>
           </nav>
         </div>
