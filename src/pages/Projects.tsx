@@ -1,22 +1,38 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { ExternalLink, Camera, Utensils, Vote } from "lucide-react";
+import { Plus, ExternalLink } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Button } from "@/components/ui/button";
+import ProjectSubmitModal from "@/components/projects/ProjectSubmitModal";
+import { useForumUser } from "@/hooks/useForumUser";
+import { useToast } from "@/hooks/use-toast";
+import ProjectCard from "@/components/projects/ProjectCard";
 
-interface Project {
+interface ProjectWithProfile {
   id: string;
-  title: string;
+  name: string;
   description: string;
-  imageUrl: string;
-  websiteUrl: string;
-  icon: JSX.Element;
+  long_description?: string;
+  image_url?: string;
+  website_url?: string;
+  category: string;
+  tags?: string[];
+  profile_id: string;
+  username: string;
+  avatar_url?: string;
+  created_at: string;
 }
 
 const Projects = () => {
   const location = useLocation();
   const [language, setLanguage] = useState("es"); // Default to Spanish
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const { user } = useForumUser();
+  const { toast } = useToast();
 
   useEffect(() => {
     // Extract language from URL query parameters
@@ -30,85 +46,109 @@ const Projects = () => {
 
   // Text based on selected language
   const pageTitle = language === "en" ? "Community Projects" : "Proyectos de la Comunidad";
-  const viewProjectText = language === "en" ? "View Project" : "Ver Proyecto";
+  const submitProjectText = language === "en" ? "Submit Project" : "Enviar Proyecto";
+  const noProjectsText = language === "en" 
+    ? "No projects yet. Be the first to submit one!" 
+    : "Aún no hay proyectos. ¡Sé el primero en enviar uno!";
+  const loginToSubmitText = language === "en"
+    ? "Login to submit your project"
+    : "Inicia sesión para enviar tu proyecto";
 
-  const projects: Project[] = [
-    {
-      id: "photographer",
-      title: "El Photographer",
-      description: language === "en" 
-        ? "An audiovisual production about a journalist and a psychologist investigating an elusive urban artist." 
-        : "Producción audiovisual sobre una periodista y un psicólogo investigando a un artista urbano furtivo.",
-      imageUrl: "/lovable-uploads/fa1c453f-499e-4a12-afcc-6dcf06ebebba.png",
-      websiteUrl: "https://stealthy-capture-experience.lovable.app/",
-      icon: <Camera className="w-5 h-5" />
-    },
-    {
-      id: "calorie-pilot",
-      title: "Calorie Pilot",
-      description: language === "en" 
-        ? "Mobile application for tracking and managing calories and macros." 
-        : "Aplicación móvil para trackeo y manejo de calorías y macros.",
-      imageUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      websiteUrl: "https://exercise-tracker-page.lovable.app",
-      icon: <Utensils className="w-5 h-5" />
-    },
-    {
-      id: "voteverse",
-      title: "Voteverse",
-      description: language === "en" 
-        ? "Mobile platform to create and manage live voting." 
-        : "Plataforma móvil para crear votaciones y gestionarlas en vivo.",
-      imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80",
-      websiteUrl: "https://voteverse-helper.lovable.app/",
-      icon: <Vote className="w-5 h-5" />
+  // Fetch projects from Supabase
+  const { data: projects, isLoading, refetch } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(`
+          id, 
+          name, 
+          description, 
+          long_description,
+          image_url, 
+          website_url, 
+          category,
+          tags,
+          profile_id,
+          created_at,
+          profiles:profile_id (username, avatar_url)
+        `)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching projects:", error);
+        throw error;
+      }
+      
+      return data?.map(project => ({
+        ...project,
+        username: project.profiles?.username || 'Unknown',
+        avatar_url: project.profiles?.avatar_url
+      })) as ProjectWithProfile[];
     }
-  ];
+  });
+
+  const handleProjectSubmitted = () => {
+    setShowSubmitModal(false);
+    refetch();
+    toast({
+      title: language === "en" ? "Project submitted" : "Proyecto enviado",
+      description: language === "en" 
+        ? "Your project has been submitted successfully." 
+        : "Tu proyecto ha sido enviado exitosamente.",
+    });
+  };
 
   return (
     <main className="relative min-h-screen bg-club-beige">
       <Navbar currentLanguage={language} />
       
       <div className="container mx-auto px-6 pt-32 pb-16">
-        <h1 className="text-4xl md:text-5xl font-serif text-club-brown text-center mb-12">
-          {pageTitle}
-        </h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project) => (
-            <div 
-              key={project.id}
-              className="bg-white rounded-lg overflow-hidden shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
+          <h1 className="text-4xl md:text-5xl font-serif text-club-brown text-center md:text-left mb-6 md:mb-0">
+            {pageTitle}
+          </h1>
+          
+          {user ? (
+            <Button 
+              onClick={() => setShowSubmitModal(true)}
+              className="bg-club-orange text-white hover:bg-club-terracotta"
             >
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={project.imageUrl} 
-                  alt={project.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-0 right-0 bg-club-orange text-white p-2 rounded-bl-lg">
-                  {project.icon}
-                </div>
-              </div>
-              
-              <div className="p-6">
-                <h3 className="font-serif text-2xl text-club-brown mb-2">{project.title}</h3>
-                <p className="text-club-brown/80 mb-4">{project.description}</p>
-                
-                <a 
-                  href={project.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-2 bg-club-orange text-white px-4 py-2 rounded-full transition-all hover:bg-club-terracotta btn-hover-effect"
-                >
-                  {viewProjectText}
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-          ))}
+              <Plus className="w-4 h-4 mr-2" /> {submitProjectText}
+            </Button>
+          ) : (
+            <p className="text-club-brown/80 italic">{loginToSubmitText}</p>
+          )}
         </div>
+        
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-orange"></div>
+          </div>
+        ) : projects && projects.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project) => (
+              <ProjectCard 
+                key={project.id} 
+                project={project} 
+                viewText={language === "en" ? "View Project" : "Ver Proyecto"}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg p-8 text-center">
+            <p className="text-club-brown text-xl">{noProjectsText}</p>
+          </div>
+        )}
       </div>
+      
+      {showSubmitModal && (
+        <ProjectSubmitModal 
+          onClose={() => setShowSubmitModal(false)} 
+          onSubmitted={handleProjectSubmitted}
+          language={language}
+        />
+      )}
       
       <Footer />
     </main>
