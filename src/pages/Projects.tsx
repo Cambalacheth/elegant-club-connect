@@ -71,7 +71,7 @@ const Projects = () => {
           tags,
           profile_id,
           created_at,
-          profiles:profile_id (username, avatar_url)
+          profiles(username, avatar_url)
         `)
         .order('created_at', { ascending: false });
       
@@ -80,7 +80,8 @@ const Projects = () => {
         throw error;
       }
       
-      return data?.map(project => ({
+      // Transform the data to match the ProjectWithProfile interface
+      return data.map(project => ({
         ...project,
         username: project.profiles?.username || 'Unknown',
         avatar_url: project.profiles?.avatar_url

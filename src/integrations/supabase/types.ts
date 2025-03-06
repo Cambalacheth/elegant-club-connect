@@ -155,31 +155,46 @@ export type Database = {
       }
       projects: {
         Row: {
+          category: string | null
           created_at: string | null
           description: string | null
           id: string
+          image_url: string | null
+          long_description: string | null
           name: string
           profile_id: string
+          tags: string[] | null
           updated_at: string | null
           url: string | null
+          website_url: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
+          long_description?: string | null
           name: string
           profile_id: string
+          tags?: string[] | null
           updated_at?: string | null
           url?: string | null
+          website_url?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
+          image_url?: string | null
+          long_description?: string | null
           name?: string
           profile_id?: string
+          tags?: string[] | null
           updated_at?: string | null
           url?: string | null
+          website_url?: string | null
         }
         Relationships: [
           {
