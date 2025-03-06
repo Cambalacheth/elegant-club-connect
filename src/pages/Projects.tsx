@@ -20,7 +20,7 @@ interface ProjectWithProfile {
   image_url?: string;
   website_url?: string;
   category: string;
-  categories?: string[]; // Add support for multiple categories
+  categories?: string[]; // Support for multiple categories
   tags?: string[];
   profile_id: string;
   username: string;
@@ -59,35 +59,40 @@ const Projects = () => {
   const { data: projects, isLoading, refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('projects')
-        .select(`
-          id, 
-          name, 
-          description, 
-          long_description,
-          image_url, 
-          website_url, 
-          category,
-          categories,
-          tags,
-          profile_id,
-          created_at,
-          profiles(username, avatar_url)
-        `)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching projects:", error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select(`
+            id, 
+            name, 
+            description, 
+            long_description,
+            image_url, 
+            website_url, 
+            category,
+            categories,
+            tags,
+            profile_id,
+            created_at,
+            profiles(username, avatar_url)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          console.error("Error fetching projects:", error);
+          throw error;
+        }
+        
+        // Transform the data to match the ProjectWithProfile interface
+        return data.map(project => ({
+          ...project,
+          username: project.profiles?.username || 'Unknown',
+          avatar_url: project.profiles?.avatar_url
+        })) as ProjectWithProfile[];
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+        return [] as ProjectWithProfile[];
       }
-      
-      // Transform the data to match the ProjectWithProfile interface
-      return data.map(project => ({
-        ...project,
-        username: project.profiles?.username || 'Unknown',
-        avatar_url: project.profiles?.avatar_url
-      })) as ProjectWithProfile[];
     }
   });
 

@@ -19,6 +19,29 @@ import ForumPage from "./pages/ForumPage";
 import DebateDetailPage from "./pages/DebateDetailPage";
 import AdminPage from "./pages/AdminPage";
 
+// Create public.html file for the redirect 
+const generateHtmlFile = () => {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting...</title>
+  <script>
+    // This script handles direct URLs and refreshes in production
+    window.onload = function() {
+      window.location.href = '/';
+    }
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>`;
+
+  return html;
+};
+
 const queryClient = new QueryClient();
 
 const App = () => (
