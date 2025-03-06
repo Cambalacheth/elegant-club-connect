@@ -62,7 +62,7 @@ export const useDebates = (selectedCategory: string | null) => {
           description: "No se pudo crear el debate: " + error.message,
           variant: "destructive",
         });
-        return;
+        return false;
       }
 
       // Fetch the newly created debate with author info

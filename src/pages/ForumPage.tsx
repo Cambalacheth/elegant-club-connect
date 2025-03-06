@@ -33,7 +33,8 @@ const ForumPage = () => {
       return;
     }
     
-    return handleCreateDebate(title, content, category, user.id);
+    // Call handleCreateDebate, but ignore the return value to match Promise<void>
+    await handleCreateDebate(title, content, category, user.id);
   };
 
   // Handle vote
