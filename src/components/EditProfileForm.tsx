@@ -6,7 +6,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import type { Profile, SocialLink, Project, SocialPlatform, socialPlatformLabels } from "@/types/profile";
+import type { Profile, SocialLink, Project, SocialPlatform } from "@/types/profile";
+import { socialPlatformLabels } from "@/types/profile";
 
 interface EditProfileFormProps {
   userId: string;
@@ -713,3 +714,4 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
 };
 
 export default EditProfileForm;
+
