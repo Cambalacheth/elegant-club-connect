@@ -86,8 +86,11 @@ const Projects = () => {
         // Transform the data to match the ProjectWithProfile interface
         return data.map(project => ({
           ...project,
+          // Make sure to safely handle cases where profiles might be null
           username: project.profiles?.username || 'Unknown',
-          avatar_url: project.profiles?.avatar_url
+          avatar_url: project.profiles?.avatar_url,
+          // Ensure categories is always an array, fallback to category if needed
+          categories: project.categories || (project.category ? [project.category] : [])
         })) as ProjectWithProfile[];
       } catch (error) {
         console.error("Failed to fetch projects:", error);
