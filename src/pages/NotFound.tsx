@@ -11,9 +11,13 @@ const NotFound = () => {
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
-      location.pathname
+      location.pathname,
+      "Full URL:",
+      window.location.href,
+      "Search params:",
+      location.search
     );
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const handleGoHome = () => {
     navigate("/home");

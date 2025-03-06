@@ -5,7 +5,6 @@ import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import { Button } from "@/components/ui/button";
 import ProjectSubmitModal from "@/components/projects/ProjectSubmitModal";
 import { useForumUser } from "@/hooks/useForumUser";
@@ -204,8 +203,6 @@ const Projects = () => {
           projectToEdit={editingProject}
         />
       )}
-      
-      <Footer />
     </main>
   );
 };
