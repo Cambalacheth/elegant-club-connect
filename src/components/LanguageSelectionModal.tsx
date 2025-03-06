@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Globe, Languages } from "lucide-react";
@@ -8,10 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 interface LanguageSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthRedirect?: () => void;
 }
 
-const LanguageSelectionModal = ({ isOpen, onClose, onAuthRedirect }: LanguageSelectionModalProps) => {
+const LanguageSelectionModal = ({ isOpen, onClose }: LanguageSelectionModalProps) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customLanguage, setCustomLanguage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,16 +19,10 @@ const LanguageSelectionModal = ({ isOpen, onClose, onAuthRedirect }: LanguageSel
   if (!isOpen) return null;
 
   const handleLanguageSelect = (language: string) => {
-    // In a real app, we would set the language in context/localStorage
-    // For now, we'll just navigate to home with a query param
-    if (onAuthRedirect) {
-      // First save the language preference
-      localStorage.setItem("preferredLanguage", language);
-      // Then redirect to auth
-      onAuthRedirect();
-    } else {
-      navigate(`/home?lang=${language}`);
-    }
+    // Save the language preference
+    localStorage.setItem("preferredLanguage", language);
+    // Navigate directly to home page
+    navigate(`/home?lang=${language}`);
   };
 
   const handleCustomLanguageSubmit = async (e: React.FormEvent) => {
@@ -61,13 +53,9 @@ const LanguageSelectionModal = ({ isOpen, onClose, onAuthRedirect }: LanguageSel
         setCustomLanguage("");
         setShowCustomInput(false);
         
-        // For now, store Spanish as fallback and redirect to auth
+        // For now, store Spanish as fallback and navigate to home
         localStorage.setItem("preferredLanguage", "es");
-        if (onAuthRedirect) {
-          onAuthRedirect();
-        } else {
-          navigate(`/home?lang=es`);
-        }
+        navigate(`/home?lang=es`);
       } catch (error) {
         // Show error toast
         toast({
