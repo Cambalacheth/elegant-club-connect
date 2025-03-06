@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, X, User } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface NavbarProps {
   currentLanguage?: string;
@@ -10,6 +11,8 @@ interface NavbarProps {
 const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,12 +27,41 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Check for authenticated user
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Handle auth or profile navigation
+  const handleAuthOrProfile = () => {
+    if (user) {
+      // If logged in, go to profile
+      navigate(`/user/${user.email?.split('@')[0]}`);
+    } else {
+      // If not logged in, go to auth page
+      navigate('/auth');
+    }
+  };
+
   // Determine text based on language
   const aboutText = currentLanguage === "en" ? "About Us" : "Sobre Nosotros";
   const verticalsText = currentLanguage === "en" ? "Verticals" : "Verticales";
   const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
   const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
-  const enterClubText = currentLanguage === "en" ? "Enter the Club" : "Ingresar al Club";
+  const enterClubText = currentLanguage === "en" 
+    ? (user ? "My Profile" : "Enter the Club") 
+    : (user ? "Mi Perfil" : "Ingresar al Club");
 
   return (
     <header
@@ -61,12 +93,13 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
           >
             {projectsText}
           </Link>
-          <a 
-            href="#" 
-            className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect"
+          <button 
+            onClick={handleAuthOrProfile}
+            className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect flex items-center gap-2"
           >
             {enterClubText}
-          </a>
+            {user && <User size={16} />}
+          </button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -110,12 +143,16 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
             >
               {projectsText}
             </Link>
-            <a 
-              href="#" 
-              className="bg-club-orange text-club-white px-6 py-2.5 rounded-full inline-block text-center btn-hover-effect"
+            <button 
+              onClick={() => {
+                setMobileMenuOpen(false);
+                handleAuthOrProfile();
+              }}
+              className="bg-club-orange text-club-white px-6 py-2.5 rounded-full inline-block text-center btn-hover-effect flex items-center gap-2 justify-center"
             >
               {enterClubText}
-            </a>
+              {user && <User size={16} />}
+            </button>
           </nav>
         </div>
       )}
