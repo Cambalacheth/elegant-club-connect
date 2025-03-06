@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface NavbarProps {
   currentLanguage?: string;
@@ -27,6 +28,7 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   const aboutText = currentLanguage === "en" ? "About Us" : "Sobre Nosotros";
   const verticalsText = currentLanguage === "en" ? "Verticals" : "Verticales";
   const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
+  const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
   const enterClubText = currentLanguage === "en" ? "Enter the Club" : "Ingresar al Club";
 
   return (
@@ -53,6 +55,12 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
           <a href="#events" className="text-club-brown hover:text-club-terracotta transition-colors duration-300">
             {eventsText}
           </a>
+          <Link 
+            to={`/projects?lang=${currentLanguage}`}
+            className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
+          >
+            {projectsText}
+          </Link>
           <a 
             href="#" 
             className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect"
@@ -95,6 +103,13 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
             >
               {eventsText}
             </a>
+            <Link 
+              to={`/projects?lang=${currentLanguage}`}
+              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {projectsText}
+            </Link>
             <a 
               href="#" 
               className="bg-club-orange text-club-white px-6 py-2.5 rounded-full inline-block text-center btn-hover-effect"
