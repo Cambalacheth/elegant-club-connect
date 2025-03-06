@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
+import Content from "./pages/Content";
+import Events from "./pages/Events";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import UserProfile from "./pages/UserProfile";
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/home" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/content" element={<Content />} />
+          <Route path="/events" element={<Events />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/user/me" element={<MeRedirect />} />

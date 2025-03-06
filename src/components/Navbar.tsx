@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Menu, X, User, CheckCircle, ShieldAlert, ShieldCheck, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -105,6 +106,8 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
   const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
   const membersText = currentLanguage === "en" ? "Members" : "Miembros";
   const forumText = currentLanguage === "en" ? "Forum" : "Foro";
+  const contentText = currentLanguage === "en" ? "Content" : "Contenido";
+  const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
   const enterClubText = currentLanguage === "en" 
     ? (user ? "My Profile" : "Enter the Club") 
     : (user ? "Mi Perfil" : "Ingresar al Club");
@@ -129,6 +132,18 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
             className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
           >
             {projectsText}
+          </Link>
+          <Link 
+            to="/content"
+            className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
+          >
+            {contentText}
+          </Link>
+          <Link 
+            to="/events"
+            className="text-club-brown hover:text-club-terracotta transition-colors duration-300"
+          >
+            {eventsText}
           </Link>
           <Link 
             to="/members"
@@ -180,6 +195,20 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
               onClick={() => setMobileMenuOpen(false)}
             >
               {projectsText}
+            </Link>
+            <Link 
+              to="/content"
+              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {contentText}
+            </Link>
+            <Link 
+              to="/events"
+              className="text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              {eventsText}
             </Link>
             <Link 
               to="/members"
