@@ -112,6 +112,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           birth_date: string | null
+          categories: string[] | null
           category: string | null
           created_at: string | null
           description: string | null
@@ -126,6 +127,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           birth_date?: string | null
+          categories?: string[] | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -140,6 +142,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           birth_date?: string | null
+          categories?: string[] | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -155,6 +158,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          categories: string[] | null
           category: string | null
           created_at: string | null
           description: string | null
@@ -169,6 +173,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          categories?: string[] | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -183,6 +188,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          categories?: string[] | null
           category?: string | null
           created_at?: string | null
           description?: string | null

@@ -158,7 +158,7 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           birth_date: profile.birth_date
             ? new Date(profile.birth_date).toISOString().split("T")[0]
             : "",
-          categories: profile.categories || [profile.category].filter(Boolean),
+          categories: profile.categories || (profile.category ? [profile.category] : []),
         });
 
         // Set avatar URL
@@ -301,7 +301,7 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           website: values.website,
           gender: values.gender,
           birth_date: values.birth_date,
-          category: values.categories ? values.categories[0] : null, // Keep the first category as the primary one
+          category: values.categories && values.categories.length > 0 ? values.categories[0] : null, // Keep the first category as the primary one
           categories: values.categories, // Store all categories
           avatar_url: finalAvatarUrl,
           updated_at: new Date().toISOString(),
