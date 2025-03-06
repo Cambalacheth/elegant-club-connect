@@ -32,7 +32,8 @@ const Projects = () => {
   const location = useLocation();
   const [language, setLanguage] = useState("es"); // Default to Spanish
   const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const { user } = useForumUser();
+  const [editingProject, setEditingProject] = useState<ProjectWithProfile | null>(null);
+  const { user, userRole } = useForumUser();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,6 +55,12 @@ const Projects = () => {
   const loginToSubmitText = language === "en"
     ? "Login to submit your project"
     : "Inicia sesión para enviar tu proyecto";
+  const projectDeletedText = language === "en"
+    ? "Project deleted successfully"
+    : "Proyecto eliminado exitosamente";
+  const errorDeletingText = language === "en"
+    ? "Error deleting project"
+    : "Error al eliminar el proyecto";
 
   // Fetch projects from Supabase
   const { data: projects, isLoading, refetch } = useQuery({
@@ -101,6 +108,7 @@ const Projects = () => {
 
   const handleProjectSubmitted = () => {
     setShowSubmitModal(false);
+    setEditingProject(null);
     refetch();
     toast({
       title: language === "en" ? "Project submitted" : "Proyecto enviado",
@@ -108,6 +116,35 @@ const Projects = () => {
         ? "Your project has been submitted successfully." 
         : "Tu proyecto ha sido enviado exitosamente.",
     });
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+      
+      if (error) throw error;
+      
+      refetch();
+      toast({
+        title: language === "en" ? "Success" : "Éxito",
+        description: projectDeletedText,
+      });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast({
+        title: language === "en" ? "Error" : "Error",
+        description: errorDeletingText,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditProject = (project: ProjectWithProfile) => {
+    setEditingProject(project);
+    setShowSubmitModal(true);
   };
 
   return (
@@ -143,6 +180,9 @@ const Projects = () => {
                 key={project.id} 
                 project={project} 
                 viewText={language === "en" ? "View Project" : "Ver Proyecto"}
+                onDelete={handleDeleteProject}
+                onEdit={handleEditProject}
+                language={language}
               />
             ))}
           </div>
@@ -155,9 +195,13 @@ const Projects = () => {
       
       {showSubmitModal && (
         <ProjectSubmitModal 
-          onClose={() => setShowSubmitModal(false)} 
+          onClose={() => {
+            setShowSubmitModal(false);
+            setEditingProject(null);
+          }} 
           onSubmitted={handleProjectSubmitted}
           language={language}
+          projectToEdit={editingProject}
         />
       )}
       

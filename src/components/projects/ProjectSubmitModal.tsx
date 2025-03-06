@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { X, Upload, Loader2 } from "lucide-react";
 import { z } from "zod";
@@ -20,10 +20,27 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  long_description?: string;
+  image_url?: string;
+  website_url?: string;
+  category: string;
+  categories?: string[];
+  tags?: string[];
+  profile_id: string;
+  username?: string;
+  avatar_url?: string;
+  created_at: string;
+}
+
 interface ProjectSubmitModalProps {
   onClose: () => void;
   onSubmitted: () => void;
   language: string;
+  projectToEdit?: Project | null;
 }
 
 const formSchema = z.object({
@@ -42,12 +59,14 @@ const formSchema = z.object({
   tags: z.string().optional(),
 });
 
-const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitModalProps) => {
+const ProjectSubmitModal = ({ onClose, onSubmitted, language, projectToEdit }: ProjectSubmitModalProps) => {
   const { user } = useForumUser();
   const { toast } = useToast();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const isEditing = !!projectToEdit;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -57,10 +76,30 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
       long_description: "",
       website_url: "",
       social_links: "",
-      categories: ["Tecnología"],
+      categories: [],
       tags: "",
     },
   });
+
+  // Initialize form with project data when editing
+  useEffect(() => {
+    if (projectToEdit) {
+      form.reset({
+        name: projectToEdit.name,
+        description: projectToEdit.description,
+        long_description: projectToEdit.long_description || "",
+        website_url: projectToEdit.website_url || "",
+        social_links: "",
+        categories: projectToEdit.categories || [projectToEdit.category],
+        tags: projectToEdit.tags ? projectToEdit.tags.join(", ") : "",
+      });
+      
+      if (projectToEdit.image_url) {
+        setExistingImageUrl(projectToEdit.image_url);
+        setImagePreview(projectToEdit.image_url);
+      }
+    }
+  }, [projectToEdit, form]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -94,7 +133,7 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
         : [];
 
       // Upload image if provided
-      let imageUrl = null;
+      let imageUrl = existingImageUrl;
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `${user.id}-${Date.now()}.${fileExt}`;
@@ -122,8 +161,8 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
         imageUrl = publicUrl;
       }
 
-      // Submit project with primary category as the first one in the array
-      const { error } = await supabase.from('projects').insert({
+      // Prepare project data
+      const projectData = {
         profile_id: user.id,
         name: values.name,
         description: values.description,
@@ -133,7 +172,26 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
         category: values.categories[0], // Keep primary category for backward compatibility
         categories: values.categories, // Store all selected categories
         tags: tagsArray,
-      });
+      };
+
+      let error;
+      
+      if (isEditing && projectToEdit) {
+        // Update existing project
+        const { error: updateError } = await supabase
+          .from('projects')
+          .update(projectData)
+          .eq('id', projectToEdit.id);
+          
+        error = updateError;
+      } else {
+        // Insert new project
+        const { error: insertError } = await supabase
+          .from('projects')
+          .insert(projectData);
+          
+        error = insertError;
+      }
 
       if (error) throw error;
 
@@ -153,12 +211,16 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language }: ProjectSubmitMod
   };
 
   // Text based on selected language
-  const modalTitle = language === "en" ? "Submit Project" : "Enviar Proyecto";
-  const submitButtonText = language === "en" ? "Submit" : "Enviar";
+  const modalTitle = isEditing 
+    ? (language === "en" ? "Edit Project" : "Editar Proyecto")
+    : (language === "en" ? "Submit Project" : "Enviar Proyecto");
+  const submitButtonText = isEditing
+    ? (language === "en" ? "Update" : "Actualizar")
+    : (language === "en" ? "Submit" : "Enviar");
   const cancelButtonText = language === "en" ? "Cancel" : "Cancelar";
   const uploadImageText = language === "en" ? "Upload Image" : "Subir Imagen";
   const imagePreviewText = language === "en" ? "Image Preview" : "Vista previa de la imagen";
-  const categoriesLabel = language === "en" ? "Categories" : "Categorías"; // Updated to plural
+  const categoriesLabel = language === "en" ? "Categories" : "Categorías";
   const nameLabel = language === "en" ? "Project Name" : "Nombre del Proyecto";
   const shortDescLabel = language === "en" ? "Short Description (max 220 chars)" : "Descripción Corta (máx 220 caracteres)";
   const longDescLabel = language === "en" ? "Long Description" : "Descripción Larga";

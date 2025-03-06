@@ -1,9 +1,24 @@
 
 import { Link } from "react-router-dom";
-import { Calendar, ExternalLink } from "lucide-react";
+import { Calendar, ExternalLink, Trash2, Edit2, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useForumUser } from "@/hooks/useForumUser";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Project {
   id: string;
@@ -24,6 +39,9 @@ interface Project {
 interface ProjectCardProps {
   project: Project;
   viewText: string;
+  onDelete: (id: string) => void;
+  onEdit?: (project: Project) => void;
+  language: string;
 }
 
 const getCategoryColor = (category: string) => {
@@ -45,7 +63,11 @@ const getCategoryColor = (category: string) => {
   }
 };
 
-const ProjectCard = ({ project, viewText }: ProjectCardProps) => {
+const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectCardProps) => {
+  const { user, userRole } = useForumUser();
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   const formattedDate = new Date(project.created_at).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
@@ -54,6 +76,21 @@ const ProjectCard = ({ project, viewText }: ProjectCardProps) => {
 
   // Use categories array if available, otherwise use single category
   const categoriesToDisplay = project.categories || [project.category];
+  
+  // Check if user is admin or project owner
+  const isAdmin = userRole === "admin";
+  const isProjectOwner = user?.id === project.profile_id;
+  const canModify = isAdmin || isProjectOwner;
+  
+  // Text based on selected language
+  const deleteText = language === "en" ? "Delete" : "Eliminar";
+  const editText = language === "en" ? "Edit" : "Editar";
+  const confirmDeleteText = language === "en" ? "Are you sure?" : "¿Estás seguro?";
+  const confirmDeleteDescText = language === "en" 
+    ? "This action cannot be undone." 
+    : "Esta acción no se puede deshacer.";
+  const cancelText = language === "en" ? "Cancel" : "Cancelar";
+  const deleteConfirmText = language === "en" ? "Delete" : "Eliminar";
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -101,7 +138,7 @@ const ProjectCard = ({ project, viewText }: ProjectCardProps) => {
           <span>{formattedDate}</span>
         </div>
 
-        {/* Author Info */}
+        {/* Author Info & Actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Link to={`/user/${project.username}`} className="flex items-center space-x-2 hover:text-club-terracotta">
@@ -113,25 +150,93 @@ const ProjectCard = ({ project, viewText }: ProjectCardProps) => {
             </Link>
           </div>
 
-          {project.website_url ? (
-            <a
-              href={project.website_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center text-sm text-club-orange hover:text-club-terracotta"
-            >
-              <span className="mr-1">{viewText}</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          ) : (
-            <Button
-              variant="link"
-              className="text-club-orange p-0 h-auto hover:text-club-terracotta"
-              disabled
-            >
-              {viewText}
-            </Button>
-          )}
+          <div className="flex items-center space-x-2">
+            {canModify && (
+              <>
+                {onEdit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-club-terracotta"
+                    onClick={() => onEdit(project)}
+                  >
+                    <Edit2 className="h-4 w-4" />
+                    <span className="sr-only">{editText}</span>
+                  </Button>
+                )}
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-500 hover:text-red-500"
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">{deleteText}</span>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center">
+                        <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                        {confirmDeleteText}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {confirmDeleteDescText}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>{cancelText}</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-red-500 hover:bg-red-600"
+                        onClick={async () => {
+                          setIsDeleting(true);
+                          try {
+                            onDelete(project.id);
+                          } catch (error) {
+                            console.error("Error deleting project:", error);
+                            toast({
+                              title: language === "en" ? "Error" : "Error",
+                              description: language === "en" 
+                                ? "Could not delete project" 
+                                : "No se pudo eliminar el proyecto",
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setIsDeleting(false);
+                          }
+                        }}
+                      >
+                        {deleteConfirmText}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+            
+            {project.website_url ? (
+              <a
+                href={project.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-sm text-club-orange hover:text-club-terracotta"
+              >
+                <span className="mr-1">{viewText}</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            ) : (
+              <Button
+                variant="link"
+                className="text-club-orange p-0 h-auto hover:text-club-terracotta"
+                disabled
+              >
+                {viewText}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
