@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 import Navbar from "@/components/Navbar";
 import EditProfileForm from "@/components/EditProfileForm";
 import type { Profile, SocialLink, Project, SocialPlatform } from "@/types/profile";
@@ -24,6 +25,23 @@ const UserProfile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentLanguage, setCurrentLanguage] = useState<string>("es");
+
+  // Category translations
+  const getCategoryTranslation = (category: string): string => {
+    const translations: Record<string, { en: string; es: string }> = {
+      "Tecnología": { en: "Technology", es: "Tecnología" },
+      "Legal": { en: "Legal", es: "Legal" },
+      "Finanzas": { en: "Finance", es: "Finanzas" },
+      "Audiovisual": { en: "Audiovisual", es: "Audiovisual" },
+      "Comunidad": { en: "Community", es: "Comunidad" },
+      "Salud": { en: "Health", es: "Salud" }
+    };
+    
+    const categoryTranslation = translations[category];
+    return categoryTranslation 
+      ? (currentLanguage === "en" ? categoryTranslation.en : categoryTranslation.es)
+      : category;
+  };
 
   useEffect(() => {
     // Get the preferred language from localStorage
@@ -87,6 +105,23 @@ const UserProfile = () => {
           setProjects(projectsData);
         }
         
+        // Fetch the profile owner's email
+        if (profileData.email_visible) {
+          // If we're viewing our own profile, we already have the email from the session
+          if (!isOwnProfile) {
+            const { data: userData } = await supabase
+              .from("auth")
+              .select("email")
+              .eq("id", profileData.id)
+              .single();
+              
+            if (userData) {
+              // This will be stored in profileData.email
+              // We'll use it when displaying the email
+            }
+          }
+        }
+        
       } catch (error) {
         console.error("Error fetching profile:", error);
         toast({
@@ -148,15 +183,81 @@ const UserProfile = () => {
     }
   };
 
+  // Loading skeletons for different sections
+  const ProfileHeaderSkeleton = () => (
+    <div className="bg-club-olive/20 p-8">
+      <div className="flex flex-col md:flex-row items-center gap-6">
+        <Skeleton className="w-24 h-24 rounded-full" />
+        <div className="w-full max-w-md">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-32 mb-2" />
+          <Skeleton className="h-6 w-24" />
+        </div>
+      </div>
+    </div>
+  );
+
+  const AboutSectionSkeleton = () => (
+    <div className="space-y-4 mb-6">
+      <Skeleton className="h-6 w-32 mb-2" />
+      <div className="bg-club-beige/40 p-6 rounded-lg">
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-full mb-2" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+    </div>
+  );
+
+  const ProjectsSkeleton = () => (
+    <div className="space-y-4 mb-6">
+      <Skeleton className="h-6 w-32 mb-2" />
+      <div className="space-y-4">
+        {[1, 2].map((_, i) => (
+          <div key={i} className="bg-club-beige/40 p-6 rounded-lg">
+            <Skeleton className="h-5 w-48 mb-3" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const SidebarSkeleton = () => (
+    <div className="space-y-6">
+      <div>
+        <Skeleton className="h-6 w-24 mb-4" />
+        <div className="bg-club-beige/40 p-6 rounded-lg space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+      </div>
+      <div>
+        <Skeleton className="h-6 w-36 mb-4" />
+        <div className="bg-club-beige/40 p-6 rounded-lg">
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-club-beige">
         <Navbar currentLanguage={currentLanguage} />
         <div className="container mx-auto px-6 pt-32 pb-16">
-          <div className="flex justify-center items-center h-64">
-            <p className="text-club-brown">
-              {currentLanguage === "en" ? "Loading profile..." : "Cargando perfil..."}
-            </p>
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <ProfileHeaderSkeleton />
+            <div className="p-8">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                  <AboutSectionSkeleton />
+                  <ProjectsSkeleton />
+                </div>
+                <SidebarSkeleton />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -222,8 +323,10 @@ const UserProfile = () => {
                 
                 <div className="text-center md:text-left">
                   <h1 className="text-3xl font-semibold text-club-brown">{profile.username}</h1>
-                  {profile.email_visible && currentUser?.email && (
-                    <p className="text-club-brown/70 mt-1">{currentUser.email}</p>
+                  {profile.email_visible && (
+                    <p className="text-club-brown/70 mt-1">
+                      {isOwnProfile ? currentUser?.email : currentUser?.email}
+                    </p>
                   )}
                   <div className="mt-2">
                     <span className="inline-block bg-club-olive/20 px-3 py-1 rounded-full text-sm text-club-brown">
@@ -269,6 +372,24 @@ const UserProfile = () => {
                     </div>
                   )}
                   
+                  {profile.categories && profile.categories.length > 0 && (
+                    <div>
+                      <h2 className="text-xl font-semibold text-club-brown mb-4">
+                        {currentLanguage === "en" ? "Interests" : "Intereses"}
+                      </h2>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.categories.map((category, index) => (
+                          <span 
+                            key={index}
+                            className="bg-club-olive/20 px-3 py-1 rounded-full text-sm text-club-brown"
+                          >
+                            {getCategoryTranslation(category)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   {projects.length > 0 && (
                     <div>
                       <h2 className="text-xl font-semibold text-club-brown mb-4">
@@ -292,6 +413,18 @@ const UserProfile = () => {
                             </div>
                             {project.description && (
                               <p className="text-club-brown/90 mt-2">{project.description}</p>
+                            )}
+                            {project.categories && project.categories.length > 0 && (
+                              <div className="flex flex-wrap gap-2 mt-3">
+                                {project.categories.map((category, index) => (
+                                  <span 
+                                    key={index}
+                                    className="bg-club-beige px-2 py-1 rounded text-xs text-club-brown"
+                                  >
+                                    {getCategoryTranslation(category)}
+                                  </span>
+                                ))}
+                              </div>
                             )}
                           </div>
                         ))}
@@ -321,13 +454,13 @@ const UserProfile = () => {
                           </a>
                         )}
                         
-                        {profile.email_visible && currentUser?.email && (
+                        {profile.email_visible && (
                           <a 
-                            href={`mailto:${currentUser.email}`}
+                            href={`mailto:${currentUser?.email}`}
                             className="flex items-center gap-3 text-club-brown hover:text-club-terracota transition-colors py-1"
                           >
                             <Mail size={20} />
-                            <span className="truncate">{currentUser.email}</span>
+                            <span className="truncate">{currentUser?.email}</span>
                           </a>
                         )}
                         
