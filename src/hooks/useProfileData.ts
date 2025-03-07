@@ -47,6 +47,11 @@ export const useProfileData = (username: string | undefined, currentLanguage: st
           throw new Error("Profile not found");
         }
         
+        // If this is the current user's profile, add the email to the profile object
+        if (session?.user && profileData.id === session.user.id) {
+          profileData.email = session.user.email;
+        }
+        
         setProfile(profileData);
         
         const { data: socialData } = await supabase

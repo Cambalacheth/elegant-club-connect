@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -61,7 +60,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     "email",
   ]);
 
-  // Text labels based on language
   const texts = {
     title: currentLanguage === "en" ? "Edit Profile" : "Editar Perfil",
     saveButton: currentLanguage === "en" ? "Save Changes" : "Guardar Cambios",
@@ -85,19 +83,13 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     socialLinksLabel: currentLanguage === "en" ? "Social Links" : "Enlaces Sociales",
     addSocialLink: currentLanguage === "en" ? "Add Social Link" : "Añadir Enlace Social",
     platformLabel: currentLanguage === "en" ? "Platform" : "Plataforma",
-    urlLabel: currentLanguage === "en" ? "URL" : "URL",
+    urlLabel: currentLanguage === "en" ? "Username" : "Nombre de Usuario",
+    urlDescription: currentLanguage === "en" 
+      ? "Just enter your username without the full URL" 
+      : "Solo ingresa tu nombre de usuario sin la URL completa",
     selectPlatform: currentLanguage === "en" ? "Select platform" : "Seleccionar plataforma",
-    errorMessage:
-      currentLanguage === "en"
-        ? "There was an error updating your profile"
-        : "Hubo un error al actualizar tu perfil",
-    successMessage:
-      currentLanguage === "en"
-        ? "Your profile has been updated"
-        : "Tu perfil ha sido actualizado",
   };
 
-  // Categories
   const categoriesOptions = [
     { id: "Legal", label: currentLanguage === "en" ? "Legal" : "Legal" },
     { id: "Tecnología", label: currentLanguage === "en" ? "Technology" : "Tecnología" },
@@ -107,7 +99,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     { id: "Salud", label: currentLanguage === "en" ? "Health" : "Salud" },
   ];
 
-  // Form schema
   const formSchema = z.object({
     username: z.string().min(3, {
       message:
@@ -139,7 +130,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        // Fetch profile data
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -148,12 +138,8 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
 
         if (profileError) throw profileError;
 
-        // Set form default values
-        // When editing, we want to ensure "Tecnología" is not automatically selected
-        // unless it was already selected in the user's profile
         let categories = profile.categories || [];
         
-        // If there's a category but no categories array, add the category to the array
         if (profile.category && (!categories || categories.length === 0)) {
           categories = [profile.category];
         }
@@ -170,10 +156,8 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           categories: categories,
         });
 
-        // Set avatar URL
         setAvatarUrl(profile.avatar_url);
 
-        // Fetch social links
         const { data: links, error: linksError } = await supabase
           .from("social_links")
           .select("*")
@@ -183,7 +167,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
 
         setSocialLinks(links || []);
 
-        // Update available platforms based on existing links
         if (links && links.length > 0) {
           const usedPlatforms = links.map((link) => link.platform as SocialPlatform);
           setAvailablePlatforms((prev) =>
@@ -209,7 +192,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: currentLanguage === "en" ? "File too large" : "Archivo demasiado grande",
@@ -243,10 +225,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
   const handleRemoveSocialLink = (index: number) => {
     const linkToRemove = socialLinks[index];
     
-    // If this is an existing link (has id), we'll delete it from DB later
-    // For now, just remove it from the form state
-    
-    // Add the platform back to available platforms if it's a valid platform
     if (availablePlatforms.indexOf(linkToRemove.platform as SocialPlatform) === -1) {
       setAvailablePlatforms((prev) => [...prev, linkToRemove.platform as SocialPlatform]);
     }
@@ -259,17 +237,34 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
   const handleSocialLinkChange = (index: number, field: "platform" | "url", value: string) => {
     const newLinks = [...socialLinks];
     
-    // If changing platform, update available platforms
     if (field === "platform") {
       const oldPlatform = newLinks[index].platform as SocialPlatform;
       
-      // Add old platform back to available list
       if (availablePlatforms.indexOf(oldPlatform) === -1) {
         setAvailablePlatforms((prev) => [...prev, oldPlatform]);
       }
       
-      // Remove new platform from available list
       setAvailablePlatforms((prev) => prev.filter((p) => p !== value));
+    }
+    
+    if (field === "url" && value.startsWith("http")) {
+      if (newLinks[index].platform === "instagram" && value.includes("instagram.com/")) {
+        value = value.split("instagram.com/")[1].split("/")[0].split("?")[0];
+      } else if (newLinks[index].platform === "twitter" && value.includes("twitter.com/")) {
+        value = value.split("twitter.com/")[1].split("/")[0].split("?")[0];
+      } else if (newLinks[index].platform === "github" && value.includes("github.com/")) {
+        value = value.split("github.com/")[1].split("/")[0].split("?")[0];
+      } else if (newLinks[index].platform === "linkedin" && value.includes("linkedin.com/in/")) {
+        value = value.split("linkedin.com/in/")[1].split("/")[0].split("?")[0];
+      } else if (newLinks[index].platform === "youtube" && value.includes("youtube.com/")) {
+        value = value.includes("youtube.com/@") 
+          ? value.split("youtube.com/@")[1].split("/")[0].split("?")[0]
+          : value.split("youtube.com/")[1].split("/")[0].split("?")[0];
+      } else if (newLinks[index].platform === "tiktok" && value.includes("tiktok.com/")) {
+        value = value.includes("tiktok.com/@") 
+          ? value.split("tiktok.com/@")[1].split("/")[0].split("?")[0]
+          : value.split("tiktok.com/")[1].split("/")[0].split("?")[0];
+      }
     }
     
     newLinks[index] = { ...newLinks[index], [field]: value };
@@ -280,7 +275,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     setIsLoading(true);
     
     try {
-      // 1. Update avatar if changed
       let finalAvatarUrl = avatarUrl;
       
       if (avatarFile) {
@@ -300,7 +294,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         finalAvatarUrl = publicUrl;
       }
       
-      // 2. Update profile
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -310,8 +303,8 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           website: values.website,
           gender: values.gender,
           birth_date: values.birth_date,
-          category: values.categories && values.categories.length > 0 ? values.categories[0] : null, // Keep the first category as the primary one
-          categories: values.categories, // Store all categories
+          category: values.categories && values.categories.length > 0 ? values.categories[0] : null,
+          categories: values.categories,
           avatar_url: finalAvatarUrl,
           updated_at: new Date().toISOString(),
         })
@@ -319,9 +312,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         
       if (updateError) throw updateError;
       
-      // 3. Handle social links
-      
-      // Get existing links to compare
       const { data: existingLinks, error: fetchError } = await supabase
         .from("social_links")
         .select("id, platform")
@@ -334,25 +324,20 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         existingLinksMap.set(link.platform, link.id);
       });
       
-      // Process each social link in the form
       for (const link of socialLinks) {
-        if (!link.url) continue; // Skip empty URLs
+        if (!link.url) continue;
         
         if (link.id) {
-          // Update existing link
           await supabase
             .from("social_links")
             .update({ platform: link.platform, url: link.url })
             .eq("id", link.id);
             
-          // Remove from map to track what's left to delete
           existingLinksMap.delete(link.platform);
         } else {
-          // Check if there's an existing link for this platform
           const existingId = existingLinksMap.get(link.platform);
           
           if (existingId) {
-            // Update existing platform link
             await supabase
               .from("social_links")
               .update({ url: link.url })
@@ -360,7 +345,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               
             existingLinksMap.delete(link.platform);
           } else {
-            // Create new link
             await supabase.from("social_links").insert({
               profile_id: userId,
               platform: link.platform,
@@ -370,7 +354,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         }
       }
       
-      // Delete any remaining links
       for (const id of existingLinksMap.values()) {
         await supabase.from("social_links").delete().eq("id", id);
       }
@@ -382,7 +365,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           : "Tus cambios han sido guardados",
       });
       
-      // Redirect back to profile page
       navigate(`/user/${values.username}`);
       
     } catch (error) {
@@ -408,7 +390,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       <div className="p-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Avatar Section */}
             <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
               <div className="w-24 h-24 rounded-full overflow-hidden bg-club-olive/30 flex items-center justify-center">
                 {avatarUrl ? (
@@ -433,7 +414,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Username */}
               <FormField
                 control={form.control}
                 name="username"
@@ -448,7 +428,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
                 )}
               />
 
-              {/* Website */}
               <FormField
                 control={form.control}
                 name="website"
@@ -463,7 +442,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
                 )}
               />
 
-              {/* Gender */}
               <FormField
                 control={form.control}
                 name="gender"
@@ -487,7 +465,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
                 )}
               />
 
-              {/* Birth Date */}
               <FormField
                 control={form.control}
                 name="birth_date"
@@ -503,7 +480,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               />
             </div>
 
-            {/* Multiple Categories */}
             <FormField
               control={form.control}
               name="categories"
@@ -555,7 +531,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               )}
             />
 
-            {/* Email Visible */}
             <FormField
               control={form.control}
               name="email_visible"
@@ -575,7 +550,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               )}
             />
 
-            {/* Description */}
             <FormField
               control={form.control}
               name="description"
@@ -594,7 +568,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               )}
             />
 
-            {/* Social Links */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <FormLabel>{texts.socialLinksLabel}</FormLabel>
@@ -613,47 +586,66 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               {socialLinks.map((link, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-[1fr_2fr_auto] gap-3 items-center"
+                  className="space-y-2 border p-4 rounded-md"
                 >
-                  <Select
-                    value={link.platform}
-                    onValueChange={(value) =>
-                      handleSocialLinkChange(index, "platform", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={texts.selectPlatform} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={link.platform}>
-                        {socialPlatformLabels[link.platform as SocialPlatform][
-                          currentLanguage === "en" ? "en" : "es"
-                        ]}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="grid grid-cols-[1fr_2fr_auto] gap-3 items-start">
+                    <div>
+                      <FormLabel>{texts.platformLabel}</FormLabel>
+                      <Select
+                        value={link.platform}
+                        onValueChange={(value) =>
+                          handleSocialLinkChange(index, "platform", value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={texts.selectPlatform} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={link.platform}>
+                            {socialPlatformLabels[link.platform as SocialPlatform][
+                              currentLanguage === "en" ? "en" : "es"
+                            ]}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <Input
-                    value={link.url}
-                    onChange={(e) =>
-                      handleSocialLinkChange(index, "url", e.target.value)
-                    }
-                    placeholder={`https://...`}
-                  />
+                    <div>
+                      <FormLabel>{texts.urlLabel}</FormLabel>
+                      <Input
+                        value={link.url}
+                        onChange={(e) =>
+                          handleSocialLinkChange(index, "url", e.target.value)
+                        }
+                        placeholder={
+                          link.platform === "instagram" ? "username" :
+                          link.platform === "twitter" ? "username" :
+                          link.platform === "github" ? "username" :
+                          link.platform === "linkedin" ? "username" :
+                          link.platform === "youtube" ? "@channel" :
+                          link.platform === "tiktok" ? "@username" :
+                          link.platform === "spotify" ? "username" :
+                          link.platform === "website" ? "example.com" :
+                          link.platform === "email" ? "you@example.com" : ""
+                        }
+                      />
+                      <p className="text-xs text-gray-500 mt-1">{texts.urlDescription}</p>
+                    </div>
 
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleRemoveSocialLink(index)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="mt-8"
+                      onClick={() => handleRemoveSocialLink(index)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Form Actions */}
             <div className="flex justify-end gap-4 pt-4 border-t">
               <Button
                 type="button"

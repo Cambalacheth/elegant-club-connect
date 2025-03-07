@@ -6,6 +6,7 @@ export interface Profile {
   website: string | null;
   description: string | null;
   email_visible: boolean;
+  email?: string | null;
   gender: string | null;
   birth_date: string | null;
   level: string;

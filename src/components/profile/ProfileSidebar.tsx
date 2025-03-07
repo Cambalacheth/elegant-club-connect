@@ -1,6 +1,5 @@
-
 import { Instagram, Twitter, Github, Linkedin, Music, Youtube, Video, Link as LinkIcon, Mail } from "lucide-react";
-import { Profile, SocialLink } from "@/types/profile";
+import { Profile, SocialLink, socialPlatformLabels } from "@/types/profile";
 
 interface ProfileSidebarProps {
   profile: Profile;
@@ -22,6 +21,22 @@ const ProfileSidebar = ({ profile, socialLinks, currentLanguage, currentUser }: 
       case "website": return <LinkIcon size={20} className="text-club-brown" />;
       case "email": return <Mail size={20} className="text-club-brown" />;
       default: return <LinkIcon size={20} className="text-club-brown" />;
+    }
+  };
+
+  const getSocialUrl = (platform: string, url: string): string => {
+    if (url.startsWith('http')) return url;
+    switch (platform) {
+      case "instagram": return `https://instagram.com/${url}`;
+      case "twitter": return `https://twitter.com/${url}`;
+      case "github": return `https://github.com/${url}`;
+      case "linkedin": return `https://linkedin.com/in/${url}`;
+      case "spotify": return `https://open.spotify.com/user/${url}`;
+      case "youtube": return `https://youtube.com/@${url}`;
+      case "tiktok": return `https://tiktok.com/@${url}`;
+      case "website": return `https://${url}`;
+      case "email": return `mailto:${url}`;
+      default: return url;
     }
   };
 
@@ -47,27 +62,31 @@ const ProfileSidebar = ({ profile, socialLinks, currentLanguage, currentUser }: 
               </a>
             )}
             
-            {profile.email_visible && currentUser && (
+            {profile.email_visible && profile.email && (
               <a 
-                href={`mailto:${currentUser.email}`}
+                href={`mailto:${profile.email}`}
                 className="flex items-center gap-3 text-club-brown hover:text-club-terracota transition-colors py-1"
               >
                 <Mail size={20} />
-                <span className="truncate">{currentUser.email}</span>
+                <span className="truncate">{profile.email}</span>
               </a>
             )}
             
             {socialLinks.map((link) => (
               <a 
                 key={link.id}
-                href={link.url.startsWith('http') ? link.url : `https://${link.url}`}
+                href={getSocialUrl(link.platform, link.url)}
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-club-brown hover:text-club-terracota transition-colors py-1"
               >
                 {getSocialIcon(link.platform)}
                 <span className="truncate">
-                  {link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                  {socialPlatformLabels[link.platform] 
+                    ? socialPlatformLabels[link.platform][currentLanguage === "en" ? "en" : "es"] 
+                    : link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
+                  {": "}
+                  {link.url}
                 </span>
               </a>
             ))}
