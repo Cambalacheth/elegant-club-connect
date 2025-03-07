@@ -4,11 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '../components/Navbar';
 import ProjectCard from '../components/projects/ProjectCard';
-import { Project } from '../types/project';
+import { Project, ProjectWithProfile } from '../types/project';
 import SearchBar from '../components/SearchBar';
 
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,7 +63,7 @@ const Projects = () => {
           ...project,
           username: project.profiles?.username || 'Unknown User',
           avatar_url: project.profiles?.avatar_url || null
-        })) || [];
+        })) as ProjectWithProfile[] || [];
         
         setProjects(transformedProjects);
       } catch (error) {
