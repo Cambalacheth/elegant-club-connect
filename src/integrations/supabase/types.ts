@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      asado_registrations: {
+        Row: {
+          additional_info: string | null
+          bringing_guests: boolean
+          created_at: string
+          dietary_preference: string
+          dietary_restrictions: string | null
+          email: string
+          full_name: string
+          guest_names: string | null
+          help_with_organization: boolean
+          id: string
+          number_of_guests: number | null
+          other_dietary_preference: string | null
+          personal_link: string | null
+          phone: string
+        }
+        Insert: {
+          additional_info?: string | null
+          bringing_guests?: boolean
+          created_at?: string
+          dietary_preference: string
+          dietary_restrictions?: string | null
+          email: string
+          full_name: string
+          guest_names?: string | null
+          help_with_organization?: boolean
+          id?: string
+          number_of_guests?: number | null
+          other_dietary_preference?: string | null
+          personal_link?: string | null
+          phone: string
+        }
+        Update: {
+          additional_info?: string | null
+          bringing_guests?: boolean
+          created_at?: string
+          dietary_preference?: string
+          dietary_restrictions?: string | null
+          email?: string
+          full_name?: string
+          guest_names?: string | null
+          help_with_organization?: boolean
+          id?: string
+          number_of_guests?: number | null
+          other_dietary_preference?: string | null
+          personal_link?: string | null
+          phone?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           author_id: string

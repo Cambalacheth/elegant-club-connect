@@ -62,25 +62,23 @@ const AsadoRegistration = () => {
     setIsSubmitting(true);
     
     try {
-      // Save to Supabase here
+      // Save to Supabase
       const { error } = await supabase
         .from("asado_registrations")
-        .insert([
-          {
-            full_name: data.fullName,
-            phone: data.phone,
-            email: data.email,
-            personal_link: data.personalLink || null,
-            dietary_restrictions: data.dietaryRestrictions || null,
-            dietary_preference: data.dietaryPreference,
-            other_dietary_preference: data.otherDietaryPreference || null,
-            bringing_guests: data.bringingGuests,
-            guest_names: data.guestNames || null,
-            number_of_guests: data.numberOfGuests || 0,
-            help_with_organization: data.helpWithOrganization,
-            additional_info: data.additionalInfo || null,
-          },
-        ]);
+        .insert({
+          full_name: data.fullName,
+          phone: data.phone,
+          email: data.email,
+          personal_link: data.personalLink || null,
+          dietary_restrictions: data.dietaryRestrictions || null,
+          dietary_preference: data.dietaryPreference,
+          other_dietary_preference: data.otherDietaryPreference || null,
+          bringing_guests: data.bringingGuests,
+          guest_names: data.guestNames || null,
+          number_of_guests: data.numberOfGuests || 0,
+          help_with_organization: data.helpWithOrganization,
+          additional_info: data.additionalInfo || null,
+        });
 
       if (error) {
         throw error;
