@@ -53,14 +53,18 @@ const SocialLinksSection = ({
       },
     ]);
 
-    setAvailablePlatforms((prev) => prev.filter((p) => p !== availablePlatforms[0]));
+    // Fix TypeScript error by creating a new array directly instead of using a callback function
+    const filteredPlatforms = availablePlatforms.filter(p => p !== availablePlatforms[0]);
+    setAvailablePlatforms(filteredPlatforms);
   };
 
   const handleRemoveSocialLink = (index: number) => {
     const linkToRemove = socialLinks[index];
     
     if (availablePlatforms.indexOf(linkToRemove.platform as SocialPlatform) === -1) {
-      setAvailablePlatforms((prev) => [...prev, linkToRemove.platform as SocialPlatform]);
+      // Fix TypeScript error by creating a new array directly
+      const updatedPlatforms = [...availablePlatforms, linkToRemove.platform as SocialPlatform];
+      setAvailablePlatforms(updatedPlatforms);
     }
     
     const newLinks = [...socialLinks];
@@ -75,10 +79,14 @@ const SocialLinksSection = ({
       const oldPlatform = newLinks[index].platform as SocialPlatform;
       
       if (availablePlatforms.indexOf(oldPlatform) === -1) {
-        setAvailablePlatforms((prev) => [...prev, oldPlatform]);
+        // Fix TypeScript error by creating a new array directly
+        const updatedPlatforms = [...availablePlatforms, oldPlatform];
+        setAvailablePlatforms(updatedPlatforms);
       }
       
-      setAvailablePlatforms((prev) => prev.filter((p) => p !== value));
+      // Fix TypeScript error by creating a new array directly
+      const filteredPlatforms = availablePlatforms.filter(p => p !== value);
+      setAvailablePlatforms(filteredPlatforms);
     }
     
     if (field === "url" && value.startsWith("http")) {
