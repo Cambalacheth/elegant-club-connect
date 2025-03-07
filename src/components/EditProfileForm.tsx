@@ -84,10 +84,11 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     addSocialLink: currentLanguage === "en" ? "Add Social Link" : "Añadir Enlace Social",
     platformLabel: currentLanguage === "en" ? "Platform" : "Plataforma",
     urlLabel: currentLanguage === "en" ? "Username" : "Nombre de Usuario",
-    urlDescription: currentLanguage === "en" 
-      ? "Just enter your username without the full URL" 
-      : "Solo ingresa tu nombre de usuario sin la URL completa",
     selectPlatform: currentLanguage === "en" ? "Select platform" : "Seleccionar plataforma",
+    successMessage: currentLanguage === "en" ? "Success" : "Éxito",
+    errorMessage: currentLanguage === "en" 
+      ? "There was an error updating your profile" 
+      : "Hubo un error al actualizar tu perfil"
   };
 
   const categoriesOptions = [

@@ -1,5 +1,6 @@
+
 import { Instagram, Twitter, Github, Linkedin, Music, Youtube, Video, Link as LinkIcon, Mail } from "lucide-react";
-import { Profile, SocialLink, socialPlatformLabels } from "@/types/profile";
+import { Profile, SocialLink } from "@/types/profile";
 
 interface ProfileSidebarProps {
   profile: Profile;
@@ -40,7 +41,22 @@ const ProfileSidebar = ({ profile, socialLinks, currentLanguage, currentUser }: 
     }
   };
 
-  const hasLinks = profile.website || socialLinks.length > 0 || profile.email_visible;
+  const getPlatformName = (platform: string): string => {
+    switch (platform) {
+      case "instagram": return "Instagram";
+      case "twitter": return "Twitter";
+      case "github": return "GitHub";
+      case "linkedin": return "LinkedIn";
+      case "spotify": return "Spotify";
+      case "youtube": return "YouTube";
+      case "tiktok": return "TikTok";
+      case "website": return currentLanguage === "en" ? "Website" : "Sitio Web";
+      case "email": return currentLanguage === "en" ? "Email" : "Correo";
+      default: return platform;
+    }
+  };
+
+  const hasLinks = profile.website || socialLinks.length > 0 || (profile.email_visible && profile.email);
 
   return (
     <div className="space-y-6">
@@ -58,7 +74,7 @@ const ProfileSidebar = ({ profile, socialLinks, currentLanguage, currentUser }: 
                 className="flex items-center gap-3 text-club-brown hover:text-club-terracota transition-colors py-1"
               >
                 <LinkIcon size={20} />
-                <span className="truncate">{profile.website}</span>
+                <span className="truncate">{currentLanguage === "en" ? "Website" : "Sitio Web"}</span>
               </a>
             )}
             
@@ -68,7 +84,7 @@ const ProfileSidebar = ({ profile, socialLinks, currentLanguage, currentUser }: 
                 className="flex items-center gap-3 text-club-brown hover:text-club-terracota transition-colors py-1"
               >
                 <Mail size={20} />
-                <span className="truncate">{profile.email}</span>
+                <span className="truncate">{currentLanguage === "en" ? "Email" : "Correo"}</span>
               </a>
             )}
             
@@ -82,11 +98,7 @@ const ProfileSidebar = ({ profile, socialLinks, currentLanguage, currentUser }: 
               >
                 {getSocialIcon(link.platform)}
                 <span className="truncate">
-                  {socialPlatformLabels[link.platform] 
-                    ? socialPlatformLabels[link.platform][currentLanguage === "en" ? "en" : "es"] 
-                    : link.platform.charAt(0).toUpperCase() + link.platform.slice(1)}
-                  {": "}
-                  {link.url}
+                  {getPlatformName(link.platform)}
                 </span>
               </a>
             ))}
