@@ -1,128 +1,84 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(28 43% 14%);
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --muted: hsl(28 6% 90%);
+    --muted-foreground: hsl(28 7% 45%);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: hsl(0 0% 100%);
+    --popover-foreground: hsl(28 43% 14%);
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --card: hsl(0 0% 100%);
+    --card-foreground: hsl(28 43% 14%);
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --border: hsl(28 6% 85%);
+    --input: hsl(28 6% 85%);
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --primary: hsl(28 61% 55%);
+    --primary-foreground: hsl(0 0% 100%);
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --secondary: hsl(28 15% 40%);
+    --secondary-foreground: hsl(0 0% 98%);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: hsl(28 15% 94%);
+    --accent-foreground: hsl(28 43% 14%);
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: hsl(0 63% 40%);
+    --destructive-foreground: hsl(0 0% 100%);
+
+    --ring: hsl(28 61% 55%);
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
+}
 
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-club-beige text-club-black font-sans antialiased;
-    scroll-behavior: smooth;
+    @apply bg-club-beige text-foreground;
+    @apply selection:bg-club-orange selection:text-club-white;
   }
+}
 
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-serif;
-  }
-  
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-  }
-  
-  /* Smooth appearance for images */
-  img {
-    @apply transition-opacity duration-700 ease-in-out;
-  }
+:root {
+  --club-orange: #E07A2D;
+  --club-terracotta: #B35933;
+  --club-brown: #31220A;
+  --club-beige: #F5F1EA;
+  --club-beige-dark: #E9E2D8;
+  --club-gray: #6B6B6B;
+  --club-white: #FFFFFF;
+  --club-black: #000000;
+  --club-danger: #B32D2D;
+}
 
-  /* Custom animations */
-  .animate-delay-100 {
-    animation-delay: 100ms;
-  }
-  
-  .animate-delay-200 {
-    animation-delay: 200ms;
-  }
-  
-  .animate-delay-300 {
-    animation-delay: 300ms;
-  }
-  
-  .animate-delay-400 {
-    animation-delay: 400ms;
-  }
-  
-  .animate-delay-500 {
-    animation-delay: 500ms;
-  }
-  
-  /* Glass effect */
-  .glass-effect {
-    @apply backdrop-blur-md bg-white/10 border border-white/20;
-  }
-  
-  /* Button animation */
-  .btn-hover-effect {
-    @apply transition-all duration-300 ease-in-out transform hover:scale-[1.02] active:scale-[0.98];
-  }
-  
-  /* Hide scrollbars but keep functionality */
-  .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari and Opera */
-  }
-  
-  /* Mobile optimizations */
-  @media (max-width: 640px) {
-    .container {
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-  }
+.btn-hover-effect {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.btn-hover-effect::after {
+  content: '';
+  @apply absolute inset-0 bg-black opacity-0 transition-opacity duration-300;
+}
+
+.btn-hover-effect:hover::after {
+  @apply opacity-10;
 }
