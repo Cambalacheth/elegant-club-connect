@@ -5,11 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 import Navbar from '../components/Navbar';
 import ProjectCard from '../components/projects/ProjectCard';
 import { Project } from '../types/project';
+import SearchBar from '../components/SearchBar';
 
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   
   const categories = [
@@ -28,15 +30,26 @@ const Projects = () => {
       try {
         setLoading(true);
         
-        // Fetch projects
+        // Fetch projects with profile information
         let query = supabase
           .from('projects')
-          .select('*');
+          .select(`
+            *,
+            profiles:profile_id (
+              username,
+              avatar_url
+            )
+          `);
         
         // Apply category filter if not "all"
         if (selectedCategory !== 'all') {
           // Try to match either the primary category or look in the categories array
           query = query.or(`category.eq.${selectedCategory},categories.cs.{${selectedCategory}}`);
+        }
+        
+        // Apply search query if provided
+        if (searchQuery) {
+          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
         }
         
         const { data, error } = await query;
@@ -45,7 +58,14 @@ const Projects = () => {
           throw error;
         }
         
-        setProjects(data || []);
+        // Transform the data to include username in the project object
+        const transformedProjects = data?.map(project => ({
+          ...project,
+          username: project.profiles?.username || 'Unknown User',
+          avatar_url: project.profiles?.avatar_url || null
+        })) || [];
+        
+        setProjects(transformedProjects);
       } catch (error) {
         console.error('Error fetching projects:', error);
         toast({
@@ -59,7 +79,11 @@ const Projects = () => {
     };
     
     fetchProjects();
-  }, [selectedCategory, toast]);
+  }, [selectedCategory, searchQuery, toast]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
 
   return (
     <div className="min-h-screen bg-club-beige-light">
@@ -68,6 +92,14 @@ const Projects = () => {
       <main className="container mx-auto px-4 py-24">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold text-club-brown mb-8 text-center">Proyectos</h1>
+          
+          {/* Search Bar */}
+          <div className="mb-6 max-w-md mx-auto">
+            <SearchBar 
+              placeholder="Buscar proyectos..." 
+              onSearch={handleSearch}
+            />
+          </div>
           
           {/* Category Filter */}
           <div className="mb-10">
@@ -97,13 +129,21 @@ const Projects = () => {
           ) : projects.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-club-brown text-lg">
-                No hay proyectos en esta categoría por el momento.
+                {searchQuery 
+                  ? 'No hay proyectos que coincidan con tu búsqueda.' 
+                  : 'No hay proyectos en esta categoría por el momento.'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard 
+                  key={project.id} 
+                  project={project} 
+                  viewText="Ver proyecto" 
+                  onDelete={() => {}} 
+                  language="es"
+                />
               ))}
             </div>
           )}

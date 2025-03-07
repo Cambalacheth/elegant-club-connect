@@ -8,9 +8,16 @@ export interface Project {
   image_url?: string | null;
   website_url?: string | null;
   category: string;
+  categories?: string[];
   tags?: string[];
   created_at: string;
   updated_at: string;
+  username?: string;
+  avatar_url?: string | null;
+  profiles?: {
+    username: string;
+    avatar_url?: string | null;
+  };
 }
 
 export interface ProjectWithProfile extends Project {
