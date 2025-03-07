@@ -1,4 +1,3 @@
-
 export interface Project {
   id: string;
   profile_id: string;

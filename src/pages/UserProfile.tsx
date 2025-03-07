@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -26,7 +25,6 @@ const UserProfile = () => {
   const { toast } = useToast();
   const [currentLanguage, setCurrentLanguage] = useState<string>("es");
 
-  // Category translations
   const getCategoryTranslation = (category: string): string => {
     const translations: Record<string, { en: string; es: string }> = {
       "Tecnología": { en: "Technology", es: "Tecnología" },
@@ -44,7 +42,6 @@ const UserProfile = () => {
   };
 
   useEffect(() => {
-    // Get the preferred language from localStorage
     const storedLanguage = localStorage.getItem("preferredLanguage");
     if (storedLanguage) {
       setCurrentLanguage(storedLanguage);
@@ -53,26 +50,22 @@ const UserProfile = () => {
     const fetchProfileData = async () => {
       setLoading(true);
       try {
-        // Check if this is the current user's profile
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           setCurrentUser(session.user);
           
-          // Fetch the current user's username from the profiles table
           const { data: currentUserProfile } = await supabase
             .from("profiles")
             .select("username")
             .eq("id", session.user.id)
             .single();
             
-          // Check if the current URL username matches the logged in user's username
           if (currentUserProfile && currentUserProfile.username === username) {
             setIsOwnProfile(true);
           }
         }
         
-        // Fetch profile by username
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
@@ -85,7 +78,6 @@ const UserProfile = () => {
         
         setProfile(profileData);
         
-        // Fetch social links
         const { data: socialData } = await supabase
           .from("social_links")
           .select("*")
@@ -95,7 +87,6 @@ const UserProfile = () => {
           setSocialLinks(socialData);
         }
         
-        // Fetch projects
         const { data: projectsData } = await supabase
           .from("projects")
           .select("*")
@@ -104,24 +95,6 @@ const UserProfile = () => {
         if (projectsData) {
           setProjects(projectsData);
         }
-        
-        // Fetch the profile owner's email
-        if (profileData.email_visible) {
-          // If we're viewing our own profile, we already have the email from the session
-          if (!isOwnProfile) {
-            const { data: userData } = await supabase
-              .from("auth")
-              .select("email")
-              .eq("id", profileData.id)
-              .single();
-              
-            if (userData) {
-              // This will be stored in profileData.email
-              // We'll use it when displaying the email
-            }
-          }
-        }
-        
       } catch (error) {
         console.error("Error fetching profile:", error);
         toast({
@@ -183,7 +156,6 @@ const UserProfile = () => {
     }
   };
 
-  // Loading skeletons for different sections
   const ProfileHeaderSkeleton = () => (
     <div className="bg-club-olive/20 p-8">
       <div className="flex flex-col md:flex-row items-center gap-6">
@@ -306,7 +278,6 @@ const UserProfile = () => {
           />
         ) : (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Profile Header */}
             <div className="bg-club-olive/20 p-8">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-club-olive/30 flex items-center justify-center">
@@ -325,7 +296,7 @@ const UserProfile = () => {
                   <h1 className="text-3xl font-semibold text-club-brown">{profile.username}</h1>
                   {profile.email_visible && (
                     <p className="text-club-brown/70 mt-1">
-                      {isOwnProfile ? currentUser?.email : currentUser?.email}
+                      {isOwnProfile && currentUser ? currentUser.email : null}
                     </p>
                   )}
                   <div className="mt-2">
@@ -356,10 +327,8 @@ const UserProfile = () => {
               </div>
             </div>
             
-            {/* Profile Content */}
             <div className="p-8">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Main Info */}
                 <div className="lg:col-span-2 space-y-6">
                   {profile.description && (
                     <div>
@@ -433,9 +402,7 @@ const UserProfile = () => {
                   )}
                 </div>
                 
-                {/* Sidebar */}
                 <div className="space-y-6">
-                  {/* Links Section */}
                   {(profile.website || socialLinks.length > 0 || profile.email_visible) && (
                     <div>
                       <h2 className="text-xl font-semibold text-club-brown mb-4">
@@ -454,13 +421,13 @@ const UserProfile = () => {
                           </a>
                         )}
                         
-                        {profile.email_visible && (
+                        {profile.email_visible && currentUser && (
                           <a 
-                            href={`mailto:${currentUser?.email}`}
+                            href={`mailto:${currentUser.email}`}
                             className="flex items-center gap-3 text-club-brown hover:text-club-terracota transition-colors py-1"
                           >
                             <Mail size={20} />
-                            <span className="truncate">{currentUser?.email}</span>
+                            <span className="truncate">{currentUser.email}</span>
                           </a>
                         )}
                         
@@ -482,7 +449,6 @@ const UserProfile = () => {
                     </div>
                   )}
                   
-                  {/* Member Since */}
                   <div>
                     <h2 className="text-xl font-semibold text-club-brown mb-4">
                       {currentLanguage === "en" ? "Member Since" : "Miembro desde"}
