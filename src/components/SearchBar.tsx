@@ -33,7 +33,7 @@ const SearchBar = ({
       if (onSearch) {
         onSearch(searchQuery.trim());
       } else {
-        // Default behavior: navigate to search page with query parameter
+        // Navigate to search page with query parameter
         navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       }
     }

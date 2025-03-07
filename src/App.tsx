@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,7 @@ import ForumPage from "./pages/ForumPage";
 import DebateDetailPage from "./pages/DebateDetailPage";
 import AdminPage from "./pages/AdminPage";
 import AsadoRegistration from "./pages/AsadoRegistration";
+import SearchPage from './pages/SearchPage';
 
 const queryClient = new QueryClient();
 
@@ -43,6 +43,7 @@ const App = () => (
           <Route path="/forum/:id" element={<DebateDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/asado" element={<AsadoRegistration />} />
+          <Route path="/search" element={<SearchPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
