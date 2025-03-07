@@ -23,9 +23,9 @@ const ProfileProjects = ({ projects, currentLanguage, getCategoryTranslation }: 
           <div key={project.id} className="bg-club-beige/40 p-6 rounded-lg">
             <div className="flex justify-between items-start">
               <h3 className="text-lg font-medium text-club-brown">{project.name}</h3>
-              {project.url && (
+              {project.website_url && (
                 <a 
-                  href={project.url} 
+                  href={project.website_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-club-orange hover:text-club-terracota transition-colors"

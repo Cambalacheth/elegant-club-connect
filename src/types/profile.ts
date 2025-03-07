@@ -1,3 +1,4 @@
+
 export interface Profile {
   id: string;
   username: string;
@@ -27,7 +28,9 @@ export interface Project {
   profile_id: string;
   name: string;
   description: string | null;
-  url: string | null;
+  website_url: string | null;
+  image_url?: string | null;
+  categories?: string[];
   created_at: string;
   updated_at: string;
 }
