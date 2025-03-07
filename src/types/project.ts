@@ -24,4 +24,3 @@ export interface ProjectWithProfile extends Project {
   username: string;
   avatar_url?: string | null;
 }
-
