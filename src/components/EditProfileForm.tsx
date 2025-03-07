@@ -630,7 +630,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
                           link.platform === "email" ? "you@example.com" : ""
                         }
                       />
-                      <p className="text-xs text-gray-500 mt-1">{texts.urlDescription}</p>
                     </div>
 
                     <Button
