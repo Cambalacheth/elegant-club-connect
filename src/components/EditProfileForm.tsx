@@ -149,6 +149,15 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
         if (profileError) throw profileError;
 
         // Set form default values
+        // When editing, we want to ensure "Tecnología" is not automatically selected
+        // unless it was already selected in the user's profile
+        let categories = profile.categories || [];
+        
+        // If there's a category but no categories array, add the category to the array
+        if (profile.category && (!categories || categories.length === 0)) {
+          categories = [profile.category];
+        }
+
         form.reset({
           username: profile.username,
           description: profile.description || "",
@@ -158,7 +167,7 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
           birth_date: profile.birth_date
             ? new Date(profile.birth_date).toISOString().split("T")[0]
             : "",
-          categories: profile.categories || (profile.category ? [profile.category] : []),
+          categories: categories,
         });
 
         // Set avatar URL

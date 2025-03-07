@@ -4,6 +4,7 @@ import { Menu, X, User, CheckCircle, ShieldAlert, ShieldCheck, Settings } from "
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole, canAdminContent } from "@/types/user";
+import SearchBar from "./SearchBar";
 
 interface NavbarProps {
   currentLanguage?: string;
@@ -120,11 +121,16 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
       }`}
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
-        <Link to="/home" className="flex items-center">
-          <span className="font-serif text-2xl font-semibold text-club-brown">
-            Terreta Hub
-          </span>
-        </Link>
+        <div className="flex items-center space-x-4">
+          <Link to="/home" className="flex items-center">
+            <span className="font-serif text-2xl font-semibold text-club-brown">
+              Terreta Hub
+            </span>
+          </Link>
+          <div className="hidden md:block">
+            <SearchBar currentLanguage={currentLanguage} />
+          </div>
+        </div>
 
         <nav className="hidden md:flex items-center space-x-8">
           <Link 
@@ -178,12 +184,17 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
           </button>
         </nav>
 
-        <button 
-          className="md:hidden text-club-brown"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        <div className="flex items-center md:hidden">
+          <div className="mr-4">
+            <SearchBar currentLanguage={currentLanguage} />
+          </div>
+          <button 
+            className="text-club-brown"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {mobileMenuOpen && (

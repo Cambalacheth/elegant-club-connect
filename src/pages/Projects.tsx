@@ -1,209 +1,115 @@
 
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { Plus } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import Navbar from "../components/Navbar";
-import { Button } from "@/components/ui/button";
-import ProjectSubmitModal from "@/components/projects/ProjectSubmitModal";
-import { useForumUser } from "@/hooks/useForumUser";
-import { useToast } from "@/hooks/use-toast";
-import ProjectCard from "@/components/projects/ProjectCard";
-
-interface ProjectWithProfile {
-  id: string;
-  name: string;
-  description: string;
-  long_description?: string;
-  image_url?: string;
-  website_url?: string;
-  category: string;
-  categories?: string[]; // Support for multiple categories
-  tags?: string[];
-  profile_id: string;
-  username: string;
-  avatar_url?: string;
-  created_at: string;
-}
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import Navbar from '../components/Navbar';
+import ProjectCard from '../components/projects/ProjectCard';
+import { Project } from '../types/project';
 
 const Projects = () => {
-  const location = useLocation();
-  const [language, setLanguage] = useState("es"); // Default to Spanish
-  const [showSubmitModal, setShowSubmitModal] = useState(false);
-  const [editingProject, setEditingProject] = useState<ProjectWithProfile | null>(null);
-  const { user, userRole } = useForumUser();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
+  
+  const categories = [
+    'all',
+    'Legal',
+    'Tecnología',
+    'Finanzas',
+    'Audiovisual',
+    'Salud',
+    'Comunidad',
+    'Eventos'
+  ];
 
   useEffect(() => {
-    // Extract language from URL query parameters
-    const searchParams = new URLSearchParams(location.search);
-    const langParam = searchParams.get("lang");
-    if (langParam && (langParam === "es" || langParam === "en")) {
-      setLanguage(langParam);
-      console.log(`Language set to: ${langParam}`);
-    }
-  }, [location]);
-
-  // Text based on selected language
-  const pageTitle = language === "en" ? "Community Projects" : "Proyectos de la Comunidad";
-  const submitProjectText = language === "en" ? "Submit Project" : "Enviar Proyecto";
-  const noProjectsText = language === "en" 
-    ? "No projects yet. Be the first to submit one!" 
-    : "Aún no hay proyectos. ¡Sé el primero en enviar uno!";
-  const loginToSubmitText = language === "en"
-    ? "Login to submit your project"
-    : "Inicia sesión para enviar tu proyecto";
-  const projectDeletedText = language === "en"
-    ? "Project deleted successfully"
-    : "Proyecto eliminado exitosamente";
-  const errorDeletingText = language === "en"
-    ? "Error deleting project"
-    : "Error al eliminar el proyecto";
-
-  // Fetch projects from Supabase
-  const { data: projects, isLoading, refetch } = useQuery({
-    queryKey: ['projects'],
-    queryFn: async () => {
+    const fetchProjects = async () => {
       try {
-        const { data, error } = await supabase
+        setLoading(true);
+        
+        // Fetch projects
+        let query = supabase
           .from('projects')
-          .select(`
-            id, 
-            name, 
-            description, 
-            long_description,
-            image_url, 
-            website_url, 
-            category,
-            categories,
-            tags,
-            profile_id,
-            created_at,
-            profiles(username, avatar_url)
-          `)
-          .order('created_at', { ascending: false });
+          .select('*');
+        
+        // Apply category filter if not "all"
+        if (selectedCategory !== 'all') {
+          // Try to match either the primary category or look in the categories array
+          query = query.or(`category.eq.${selectedCategory},categories.cs.{${selectedCategory}}`);
+        }
+        
+        const { data, error } = await query;
         
         if (error) {
-          console.error("Error fetching projects:", error);
           throw error;
         }
         
-        // Transform the data to match the ProjectWithProfile interface
-        return data.map(project => ({
-          ...project,
-          // Make sure to safely handle cases where profiles might be null
-          username: project.profiles?.username || 'Unknown',
-          avatar_url: project.profiles?.avatar_url,
-          // Ensure categories is always an array, fallback to category if needed
-          categories: project.categories || (project.category ? [project.category] : [])
-        })) as ProjectWithProfile[];
+        setProjects(data || []);
       } catch (error) {
-        console.error("Failed to fetch projects:", error);
-        return [] as ProjectWithProfile[];
+        console.error('Error fetching projects:', error);
+        toast({
+          title: 'Error',
+          description: 'No pudimos cargar los proyectos. Por favor, intenta nuevamente más tarde.',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
       }
-    }
-  });
-
-  const handleProjectSubmitted = () => {
-    setShowSubmitModal(false);
-    setEditingProject(null);
-    refetch();
-    toast({
-      title: language === "en" ? "Project submitted" : "Proyecto enviado",
-      description: language === "en" 
-        ? "Your project has been submitted successfully." 
-        : "Tu proyecto ha sido enviado exitosamente.",
-    });
-  };
-
-  const handleDeleteProject = async (projectId: string) => {
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', projectId);
-      
-      if (error) throw error;
-      
-      refetch();
-      toast({
-        title: language === "en" ? "Success" : "Éxito",
-        description: projectDeletedText,
-      });
-    } catch (error) {
-      console.error("Error deleting project:", error);
-      toast({
-        title: language === "en" ? "Error" : "Error",
-        description: errorDeletingText,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleEditProject = (project: ProjectWithProfile) => {
-    setEditingProject(project);
-    setShowSubmitModal(true);
-  };
+    };
+    
+    fetchProjects();
+  }, [selectedCategory, toast]);
 
   return (
-    <main className="relative min-h-screen bg-club-beige">
-      <Navbar currentLanguage={language} />
+    <div className="min-h-screen bg-club-beige-light">
+      <Navbar />
       
-      <div className="container mx-auto px-6 pt-32 pb-16">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
-          <h1 className="text-4xl md:text-5xl font-serif text-club-brown text-center md:text-left mb-6 md:mb-0">
-            {pageTitle}
-          </h1>
+      <main className="container mx-auto px-4 py-24">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold text-club-brown mb-8 text-center">Proyectos</h1>
           
-          {user ? (
-            <Button 
-              onClick={() => setShowSubmitModal(true)}
-              className="bg-club-orange text-white hover:bg-club-terracotta"
-            >
-              <Plus className="w-4 h-4 mr-2" /> {submitProjectText}
-            </Button>
+          {/* Category Filter */}
+          <div className="mb-10">
+            <h2 className="text-xl font-medium text-club-brown mb-4">Filtrar por categoría:</h2>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 rounded-full transition-colors ${
+                    selectedCategory === category
+                      ? 'bg-club-orange text-white'
+                      : 'bg-white border border-club-olive text-club-brown hover:bg-club-beige-dark'
+                  }`}
+                >
+                  {category === 'all' ? 'Todos' : category}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Projects Grid */}
+          {loading ? (
+            <div className="flex justify-center my-12">
+              <div className="animate-pulse text-club-brown">Cargando proyectos...</div>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-club-brown text-lg">
+                No hay proyectos en esta categoría por el momento.
+              </p>
+            </div>
           ) : (
-            <p className="text-club-brown/80 italic">{loginToSubmitText}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+              {projects.map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
           )}
         </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-orange"></div>
-          </div>
-        ) : projects && projects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.map((project) => (
-              <ProjectCard 
-                key={project.id} 
-                project={project} 
-                viewText={language === "en" ? "View Project" : "Ver Proyecto"}
-                onDelete={handleDeleteProject}
-                onEdit={handleEditProject}
-                language={language}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-lg p-8 text-center">
-            <p className="text-club-brown text-xl">{noProjectsText}</p>
-          </div>
-        )}
-      </div>
-      
-      {showSubmitModal && (
-        <ProjectSubmitModal 
-          onClose={() => {
-            setShowSubmitModal(false);
-            setEditingProject(null);
-          }} 
-          onSubmitted={handleProjectSubmitted}
-          language={language}
-          projectToEdit={editingProject}
-        />
-      )}
-    </main>
+      </main>
+    </div>
   );
 };
 
