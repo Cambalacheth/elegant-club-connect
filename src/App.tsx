@@ -18,6 +18,7 @@ import Members from "./pages/Members";
 import ForumPage from "./pages/ForumPage";
 import DebateDetailPage from "./pages/DebateDetailPage";
 import AdminPage from "./pages/AdminPage";
+import AsadoRegistration from "./pages/AsadoRegistration";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/forum" element={<ForumPage />} />
           <Route path="/forum/:id" element={<DebateDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/asado" element={<AsadoRegistration />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
