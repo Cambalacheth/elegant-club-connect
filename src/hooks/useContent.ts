@@ -1,8 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { ContentItem, ContentType } from "@/types/content";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  fetchPublishedContent, 
+  fetchAllContentData, 
+  createContentItem, 
+  updateContentItem, 
+  deleteContentItem 
+} from "@/services/contentService";
+import { filterContentById } from "@/utils/contentUtils";
 
 export const useContent = (type?: ContentType) => {
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -19,39 +26,7 @@ export const useContent = (type?: ContentType) => {
     setError(null);
 
     try {
-      let query = supabase
-        .from("content")
-        .select("*, author:profiles(username, level)")
-        .eq('published', true);
-
-      if (type) {
-        query = query.eq('type', type);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      const transformedData: ContentItem[] = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description || "",
-        content: item.content || undefined,
-        imageUrl: item.image_url || "",
-        type: item.type as ContentType,
-        author_id: item.author_id,
-        author_username: item.author?.username || "Usuario",
-        author_role: item.author?.level,
-        videoUrl: item.video_url || undefined,
-        resourceUrl: item.resource_url || undefined,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        category: item.category,
-        published: item.published
-      }));
-
+      const transformedData = await fetchPublishedContent(type);
       setContent(transformedData);
     } catch (error: any) {
       console.error("Error fetching content:", error);
@@ -66,44 +41,12 @@ export const useContent = (type?: ContentType) => {
     }
   };
 
-  // Admin-only: fetch all content including unpublished
   const fetchAllContent = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      let query = supabase
-        .from("content")
-        .select("*, author:profiles(username, level)");
-
-      if (type) {
-        query = query.eq('type', type);
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      const transformedData: ContentItem[] = data.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description || "",
-        content: item.content || undefined,
-        imageUrl: item.image_url || "",
-        type: item.type as ContentType,
-        author_id: item.author_id,
-        author_username: item.author?.username || "Usuario",
-        author_role: item.author?.level,
-        videoUrl: item.video_url || undefined,
-        resourceUrl: item.resource_url || undefined,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        category: item.category,
-        published: item.published
-      }));
-
+      const transformedData = await fetchAllContentData(type);
       setContent(transformedData);
     } catch (error: any) {
       console.error("Error fetching all content:", error);
@@ -120,31 +63,12 @@ export const useContent = (type?: ContentType) => {
 
   const createContent = async (newContent: Partial<ContentItem>) => {
     try {
-      const { data, error } = await supabase.from("content").insert([
-        {
-          title: newContent.title,
-          description: newContent.description,
-          content: newContent.content,
-          image_url: newContent.imageUrl,
-          type: newContent.type,
-          author_id: newContent.author_id,
-          video_url: newContent.videoUrl,
-          resource_url: newContent.resourceUrl,
-          category: newContent.category,
-          published: newContent.published || false
-        }
-      ]).select();
-
-      if (error) {
-        throw error;
-      }
-
+      const createdItem = await createContentItem(newContent);
       toast({
         title: "Éxito",
         description: "Contenido creado correctamente",
       });
-
-      return data[0];
+      return createdItem;
     } catch (error: any) {
       console.error("Error creating content:", error);
       toast({
@@ -158,32 +82,12 @@ export const useContent = (type?: ContentType) => {
 
   const updateContent = async (id: string, updates: Partial<ContentItem>) => {
     try {
-      const { data, error } = await supabase
-        .from("content")
-        .update({
-          title: updates.title,
-          description: updates.description,
-          content: updates.content,
-          image_url: updates.imageUrl,
-          video_url: updates.videoUrl,
-          resource_url: updates.resourceUrl,
-          category: updates.category,
-          published: updates.published,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-        .select();
-
-      if (error) {
-        throw error;
-      }
-
+      const updatedItem = await updateContentItem(id, updates);
       toast({
         title: "Éxito",
         description: "Contenido actualizado correctamente",
       });
-
-      return data[0];
+      return updatedItem;
     } catch (error: any) {
       console.error("Error updating content:", error);
       toast({
@@ -197,21 +101,12 @@ export const useContent = (type?: ContentType) => {
 
   const deleteContent = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from("content")
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
+      await deleteContentItem(id);
       toast({
         title: "Éxito",
         description: "Contenido eliminado correctamente",
       });
-
-      setContent(content.filter(item => item.id !== id));
+      setContent(filterContentById(content, id));
     } catch (error: any) {
       console.error("Error deleting content:", error);
       toast({
