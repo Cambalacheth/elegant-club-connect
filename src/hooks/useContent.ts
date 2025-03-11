@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentItem, ContentType } from "@/types/content";
@@ -23,7 +22,7 @@ export const useContent = (type?: ContentType) => {
         .from("content")
         .select(`
           *,
-          profiles:author_id(username)
+          profiles (username)
         `)
         .eq('published', true);
 
@@ -161,7 +160,6 @@ export const useContent = (type?: ContentType) => {
         description: "Contenido eliminado correctamente",
       });
 
-      // Update local state
       setContent(content.filter(item => item.id !== id));
     } catch (error: any) {
       console.error("Error deleting content:", error);
