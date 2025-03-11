@@ -23,7 +23,26 @@ const ContentDetail = () => {
           .single();
 
         if (error) throw error;
-        setContent(data);
+        
+        // Transform database fields to match ContentItem interface
+        const transformedContent: ContentItem = {
+          id: data.id,
+          title: data.title,
+          description: data.description || "",
+          content: data.content || undefined,
+          imageUrl: data.image_url || "",
+          type: data.type,
+          author_id: data.author_id,
+          author_username: data.profiles?.username || "Usuario",
+          videoUrl: data.video_url || undefined,
+          resourceUrl: data.resource_url || undefined,
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+          category: data.category,
+          published: data.published
+        };
+        
+        setContent(transformedContent);
       } catch (error) {
         console.error("Error fetching content:", error);
       } finally {
