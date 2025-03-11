@@ -21,7 +21,7 @@ export const useContent = (type?: ContentType) => {
     try {
       let query = supabase.from("content").select(`
         *,
-        profiles:author_id (username)
+        profiles(username)
       `).eq('published', true);
 
       if (type) {
