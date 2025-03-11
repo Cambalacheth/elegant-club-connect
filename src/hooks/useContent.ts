@@ -34,7 +34,6 @@ export const useContent = (type?: ContentType) => {
         throw error;
       }
 
-      // Transform the data to match ContentItem interface
       const transformedData: ContentItem[] = data.map(item => ({
         id: item.id,
         title: item.title,

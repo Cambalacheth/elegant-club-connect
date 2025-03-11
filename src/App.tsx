@@ -19,6 +19,7 @@ import DebateDetailPage from "./pages/DebateDetailPage";
 import AdminPage from "./pages/AdminPage";
 import AsadoRegistration from "./pages/AsadoRegistration";
 import SearchPage from './pages/SearchPage';
+import ContentDetail from "./pages/ContentDetail";
 
 const queryClient = new QueryClient();
 

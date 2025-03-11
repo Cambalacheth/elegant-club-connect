@@ -105,6 +105,54 @@ export type Database = {
           },
         ]
       }
+      content: {
+        Row: {
+          author_id: string
+          category: string
+          content: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          published: boolean
+          resource_url: string | null
+          title: string
+          type: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          author_id: string
+          category?: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          published?: boolean
+          resource_url?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          author_id?: string
+          category?: string
+          content?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          published?: boolean
+          resource_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       debates: {
         Row: {
           author_id: string
