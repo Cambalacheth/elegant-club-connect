@@ -8,6 +8,7 @@ export const useForumUser = () => {
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<UserRole>("registered");
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -17,6 +18,7 @@ export const useForumUser = () => {
           fetchUserRole(session.user.id);
         } else {
           setUserRole("registered");
+          setIsLoading(false);
         }
       }
     );
@@ -26,6 +28,8 @@ export const useForumUser = () => {
       setUser(session?.user || null);
       if (session?.user) {
         fetchUserRole(session.user.id);
+      } else {
+        setIsLoading(false);
       }
     });
 
@@ -44,6 +48,11 @@ export const useForumUser = () => {
       if (error) {
         console.error("Error fetching user role:", error);
         setUserRole("registered");
+        toast({
+          title: "Error",
+          description: "No se pudo cargar tu rol de usuario",
+          variant: "destructive",
+        });
         return;
       }
 

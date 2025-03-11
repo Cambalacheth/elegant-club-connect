@@ -17,6 +17,10 @@ export const canModerateContent = (role: UserRole): boolean => {
   return ['moderator', 'admin'].includes(role);
 };
 
+export const canManageContent = (role: UserRole): boolean => {
+  return ['moderator', 'admin'].includes(role);
+};
+
 export const canAdminContent = (role: UserRole): boolean => {
   return role === 'admin';
 };
