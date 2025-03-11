@@ -23,7 +23,7 @@ export const useContent = (type?: ContentType) => {
         .from("content")
         .select(`
           *,
-          profiles!content_author_id_fkey(username)
+          profiles:author_id(username)
         `)
         .eq('published', true);
 

@@ -20,7 +20,7 @@ const ContentDetail = () => {
           .from("content")
           .select(`
             *,
-            profiles!content_author_id_fkey(username)
+            profiles:author_id(username)
           `)
           .eq("id", id)
           .single();
@@ -34,7 +34,7 @@ const ContentDetail = () => {
           description: data.description || "",
           content: data.content || undefined,
           imageUrl: data.image_url || "",
-          type: data.type as ContentItem['type'],
+          type: data.type,
           author_id: data.author_id,
           author_username: data.profiles?.username || "Usuario",
           videoUrl: data.video_url || undefined,
