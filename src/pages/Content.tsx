@@ -9,7 +9,6 @@ import { ContentManagement } from "@/components/content/ContentManagement";
 import { useContent } from "@/hooks/useContent";
 import { ContentType } from "@/types/content";
 import { useForumUser } from "@/hooks/useForumUser";
-import { canManageContent } from "@/types/user";
 
 const Content = () => {
   const location = useLocation();
@@ -35,9 +34,6 @@ const Content = () => {
   const guidesText = language === "en" ? "Guides" : "Guías";
   const resourcesText = language === "en" ? "Resources" : "Recursos";
   const managementText = language === "en" ? "Content Management" : "Gestión de Contenido";
-
-  console.log("Current user role:", userRole);
-  console.log("Can manage content:", canManageContent(userRole));
 
   return (
     <main className="min-h-screen bg-club-beige">
@@ -88,7 +84,7 @@ const Content = () => {
                 {resourcesText}
               </TabsTrigger>
               
-              {!isUserLoading && user && canManageContent(userRole) && (
+              {!isUserLoading && user && userRole === 'admin' && (
                 <TabsTrigger 
                   value="management" 
                   className="data-[state=active]:bg-club-orange data-[state=active]:text-white"
@@ -135,7 +131,7 @@ const Content = () => {
             />
           </TabsContent>
           
-          {!isUserLoading && user && canManageContent(userRole) && (
+          {!isUserLoading && user && userRole === 'admin' && (
             <TabsContent value="management" className="mt-6">
               <ContentManagement 
                 userId={user.id} 

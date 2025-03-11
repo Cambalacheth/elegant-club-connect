@@ -9,6 +9,7 @@ import { ContentItem, ContentType } from "@/types/content";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useContent } from "@/hooks/useContent";
 import { UserRole, canManageContent } from "@/types/user";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ContentManagementProps {
   userId: string;
@@ -23,17 +24,24 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   const {
     content,
     isLoading,
-    refetch,
+    fetchAllContent,
     createContent,
     updateContent,
     deleteContent
   } = useContent(activeTab);
 
+  // Fetch all content including unpublished when component mounts or tab changes
+  useState(() => {
+    if (canManageContent(userRole)) {
+      fetchAllContent();
+    }
+  });
+
   const handleCreateContent = async (data: Partial<ContentItem>) => {
     try {
       setIsSubmitting(true);
       await createContent(data);
-      refetch();
+      fetchAllContent();
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error creating content:", error);
@@ -46,7 +54,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
     try {
       setIsSubmitting(true);
       await updateContent(id, data);
-      refetch();
+      fetchAllContent();
     } catch (error) {
       console.error("Error updating content:", error);
     } finally {
@@ -57,18 +65,20 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   const handleDeleteContent = async (id: string) => {
     try {
       await deleteContent(id);
-      refetch();
+      fetchAllContent();
     } catch (error) {
       console.error("Error deleting content:", error);
     }
   };
 
-  if (!canManageContent(userRole)) {
+  if (userRole !== 'admin') {
     return (
-      <div className="p-6 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
-        <h3 className="text-lg font-medium mb-2">Acceso restringido</h3>
-        <p>Solo los moderadores y administradores pueden gestionar el contenido.</p>
-      </div>
+      <Alert variant="destructive" className="bg-red-50 border border-red-200 text-red-800">
+        <AlertTitle className="text-lg font-medium">Acceso restringido</AlertTitle>
+        <AlertDescription>
+          Solo los administradores pueden gestionar el contenido.
+        </AlertDescription>
+      </Alert>
     );
   }
 

@@ -10,6 +10,7 @@ export interface ContentItem {
   type: ContentType;
   author_id: string;
   author_username?: string;
+  author_role?: string;
   videoUrl?: string; // For videos
   resourceUrl?: string; // For resources
   created_at: string;

@@ -21,7 +21,7 @@ export const useContent = (type?: ContentType) => {
     try {
       let query = supabase
         .from("content")
-        .select("*, author:profiles(username)")
+        .select("*, author:profiles(username, level)")
         .eq('published', true);
 
       if (type) {
@@ -43,6 +43,7 @@ export const useContent = (type?: ContentType) => {
         type: item.type as ContentType,
         author_id: item.author_id,
         author_username: item.author?.username || "Usuario",
+        author_role: item.author?.level,
         videoUrl: item.video_url || undefined,
         resourceUrl: item.resource_url || undefined,
         created_at: item.created_at,
@@ -58,6 +59,58 @@ export const useContent = (type?: ContentType) => {
       toast({
         title: "Error",
         description: "No se pudo cargar el contenido",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Admin-only: fetch all content including unpublished
+  const fetchAllContent = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      let query = supabase
+        .from("content")
+        .select("*, author:profiles(username, level)");
+
+      if (type) {
+        query = query.eq('type', type);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      const transformedData: ContentItem[] = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description || "",
+        content: item.content || undefined,
+        imageUrl: item.image_url || "",
+        type: item.type as ContentType,
+        author_id: item.author_id,
+        author_username: item.author?.username || "Usuario",
+        author_role: item.author?.level,
+        videoUrl: item.video_url || undefined,
+        resourceUrl: item.resource_url || undefined,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        category: item.category,
+        published: item.published
+      }));
+
+      setContent(transformedData);
+    } catch (error: any) {
+      console.error("Error fetching all content:", error);
+      setError(error.message);
+      toast({
+        title: "Error",
+        description: "No se pudo cargar todo el contenido",
         variant: "destructive",
       });
     } finally {
@@ -175,6 +228,7 @@ export const useContent = (type?: ContentType) => {
     isLoading,
     error,
     refetch: fetchContent,
+    fetchAllContent,
     createContent,
     updateContent,
     deleteContent

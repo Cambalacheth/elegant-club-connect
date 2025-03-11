@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { Badge } from "@/components/ui/badge";
 
 const ContentDetail = () => {
   const { type, id } = useParams();
@@ -18,8 +19,9 @@ const ContentDetail = () => {
       try {
         const { data, error } = await supabase
           .from("content")
-          .select("*, author:profiles(username)")
+          .select("*, author:profiles(username, level)")
           .eq("id", id)
+          .eq("published", true)
           .single();
 
         if (error) throw error;
@@ -34,6 +36,7 @@ const ContentDetail = () => {
           type: data.type as ContentType,
           author_id: data.author_id,
           author_username: data.author?.username || "Usuario",
+          author_role: data.author?.level,
           videoUrl: data.video_url || undefined,
           resourceUrl: data.resource_url || undefined,
           created_at: data.created_at,
@@ -94,7 +97,7 @@ const ContentDetail = () => {
           <img
             src={content.imageUrl}
             alt={content.title}
-            className="w-full h-64 object-cover rounded-lg mb-8"
+            className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
           />
         )}
 
@@ -109,8 +112,15 @@ const ContentDetail = () => {
           </div>
         )}
 
-        <div className="flex items-center gap-4 text-sm text-club-brown/70 mb-8">
-          <span>Por {content.author_username || "Usuario"}</span>
+        <div className="flex flex-wrap items-center gap-4 text-sm text-club-brown/70 mb-8">
+          <span className="flex items-center gap-2">
+            Por {content.author_username || "Usuario"}
+            {content.author_role && (
+              <Badge variant="outline" className="ml-1">
+                {content.author_role}
+              </Badge>
+            )}
+          </span>
           <span>•</span>
           <span>
             {format(new Date(content.created_at), "d 'de' MMMM, yyyy", {
