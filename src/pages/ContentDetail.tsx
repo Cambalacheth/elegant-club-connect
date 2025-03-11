@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +18,7 @@ const ContentDetail = () => {
       try {
         const { data, error } = await supabase
           .from("content")
-          .select("*, profiles:author_id(username)")
+          .select("*, author:profiles(username)")
           .eq("id", id)
           .single();
 
@@ -32,7 +33,7 @@ const ContentDetail = () => {
           imageUrl: data.image_url || "",
           type: data.type as ContentType,
           author_id: data.author_id,
-          author_username: data.profiles?.username || "Usuario",
+          author_username: data.author?.username || "Usuario",
           videoUrl: data.video_url || undefined,
           resourceUrl: data.resource_url || undefined,
           created_at: data.created_at,

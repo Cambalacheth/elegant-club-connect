@@ -78,11 +78,14 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
         <h2 className="text-2xl font-serif text-club-brown">Administración de Contenido</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-club-orange hover:bg-club-terracotta text-white">
-              <Plus className="mr-2 h-4 w-4" /> Nuevo contenido
+            <Button 
+              size="lg"
+              className="bg-gradient-to-br from-club-orange-mid to-club-terracotta hover:opacity-90 text-white font-medium shadow-md transition-all"
+            >
+              <Plus className="mr-2 h-5 w-5" /> Nuevo contenido
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border-club-beige shadow-xl">
             <ContentForm
               contentType={activeTab}
               onSubmit={handleCreateContent}
@@ -94,17 +97,17 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
       </div>
 
       <Tabs defaultValue="article" onValueChange={(value) => setActiveTab(value as ContentType)}>
-        <TabsList className="mb-6">
-          <TabsTrigger value="article" className="flex items-center">
+        <TabsList className="mb-6 bg-club-beige/50 p-1.5">
+          <TabsTrigger value="article" className="flex items-center data-[state=active]:bg-club-orange data-[state=active]:text-white">
             <FileText className="mr-2 h-4 w-4" /> Artículos
           </TabsTrigger>
-          <TabsTrigger value="video" className="flex items-center">
+          <TabsTrigger value="video" className="flex items-center data-[state=active]:bg-club-orange data-[state=active]:text-white">
             <Video className="mr-2 h-4 w-4" /> Videos
           </TabsTrigger>
-          <TabsTrigger value="guide" className="flex items-center">
+          <TabsTrigger value="guide" className="flex items-center data-[state=active]:bg-club-orange data-[state=active]:text-white">
             <BookOpen className="mr-2 h-4 w-4" /> Guías
           </TabsTrigger>
-          <TabsTrigger value="resource" className="flex items-center">
+          <TabsTrigger value="resource" className="flex items-center data-[state=active]:bg-club-orange data-[state=active]:text-white">
             <Newspaper className="mr-2 h-4 w-4" /> Recursos
           </TabsTrigger>
         </TabsList>

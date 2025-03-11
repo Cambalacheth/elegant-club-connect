@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ContentItem, ContentType } from "@/types/content";
@@ -20,7 +21,7 @@ export const useContent = (type?: ContentType) => {
     try {
       let query = supabase
         .from("content")
-        .select("*, profiles:author_id(username)")
+        .select("*, author:profiles(username)")
         .eq('published', true);
 
       if (type) {
@@ -41,7 +42,7 @@ export const useContent = (type?: ContentType) => {
         imageUrl: item.image_url || "",
         type: item.type as ContentType,
         author_id: item.author_id,
-        author_username: item.profiles?.username || "Usuario",
+        author_username: item.author?.username || "Usuario",
         videoUrl: item.video_url || undefined,
         resourceUrl: item.resource_url || undefined,
         created_at: item.created_at,

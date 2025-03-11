@@ -64,172 +64,196 @@ export const ContentForm = ({
     });
   };
 
+  // Get form title based on content type and edit mode
+  const getFormTitle = () => {
+    const action = initialData?.id ? 'Editar' : 'Crear nuevo';
+    let typeName = '';
+    switch(contentType) {
+      case 'article': typeName = 'artículo'; break;
+      case 'video': typeName = 'video'; break;
+      case 'guide': typeName = 'guía'; break;
+      case 'resource': typeName = 'recurso'; break;
+    }
+    return `${action} ${typeName}`;
+  };
+
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl text-club-brown">
-          {initialData?.id ? `Editar ${contentType === 'article' ? 'artículo' : contentType === 'video' ? 'video' : contentType === 'guide' ? 'guía' : 'recurso'}` : `Crear nuevo ${contentType === 'article' ? 'artículo' : contentType === 'video' ? 'video' : contentType === 'guide' ? 'guía' : 'recurso'}`}
+    <Card className="w-full border-0 shadow-none">
+      <CardHeader className="bg-gradient-to-r from-club-orange/90 to-club-terracotta/90 text-white rounded-t-lg">
+        <CardTitle className="text-xl font-semibold">
+          {getFormTitle()}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Título del contenido" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-club-brown font-medium">Título</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Título del contenido" {...field} className="border-club-beige-dark focus:border-club-orange" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoría</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona una categoría" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-club-brown font-medium">Categoría</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="border-club-beige-dark focus:border-club-orange">
+                            <SelectValue placeholder="Selecciona una categoría" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descripción</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Breve descripción del contenido" 
-                      className="resize-none" 
-                      rows={3} 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-club-brown font-medium">Descripción</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Breve descripción del contenido" 
+                          className="resize-none border-club-beige-dark focus:border-club-orange" 
+                          rows={3} 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <div className="space-y-4">
-              <Label htmlFor="image">Imagen de portada</Label>
-              <div className="flex flex-col items-center gap-4">
-                {imagePreview && (
-                  <div className="w-full h-48 overflow-hidden rounded-md border border-gray-200">
-                    <img 
-                      src={imagePreview} 
-                      alt="Preview" 
-                      className="w-full h-full object-cover"
+                {contentType === 'article' || contentType === 'guide' ? (
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-club-brown font-medium">Contenido</FormLabel>
+                        <FormControl>
+                          <Textarea 
+                            placeholder="Contenido completo" 
+                            className="min-h-[200px] border-club-beige-dark focus:border-club-orange" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : contentType === 'video' ? (
+                  <FormField
+                    control={form.control}
+                    name="videoUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-club-brown font-medium">URL del video (YouTube, Vimeo, etc.)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://..." {...field} className="border-club-beige-dark focus:border-club-orange" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="resourceUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-club-brown font-medium">URL del recurso</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://..." {...field} className="border-club-beige-dark focus:border-club-orange" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <Label htmlFor="image" className="text-club-brown font-medium">Imagen de portada</Label>
+                  <div className="flex flex-col items-center gap-4">
+                    {imagePreview ? (
+                      <div className="w-full h-48 overflow-hidden rounded-md border border-club-beige-dark">
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-full h-48 flex items-center justify-center rounded-md border border-dashed border-club-beige-dark bg-gray-50">
+                        <span className="text-club-gray text-sm">Vista previa de la imagen</span>
+                      </div>
+                    )}
+                    <Input 
+                      id="image" 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={handleImageChange}
+                      className="cursor-pointer border-club-beige-dark"
                     />
                   </div>
-                )}
-                <Input 
-                  id="image" 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={handleImageChange}
-                  className="cursor-pointer"
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="published"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 border-club-beige-dark bg-club-beige/30">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base text-club-brown font-medium">Publicar</FormLabel>
+                        <p className="text-sm text-club-gray">
+                          {field.value 
+                            ? "El contenido será visible para todos los usuarios" 
+                            : "El contenido será solo visible para administradores"}
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-club-orange"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
               </div>
             </div>
 
-            {contentType === 'article' || contentType === 'guide' ? (
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contenido</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Contenido completo" 
-                        className="min-h-[200px]" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : contentType === 'video' ? (
-              <FormField
-                control={form.control}
-                name="videoUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL del video (YouTube, Vimeo, etc.)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <FormField
-                control={form.control}
-                name="resourceUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL del recurso</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            <FormField
-              control={form.control}
-              name="published"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Publicar</FormLabel>
-                    <p className="text-sm text-gray-500">
-                      {field.value 
-                        ? "El contenido será visible para todos los usuarios" 
-                        : "El contenido será solo visible para administradores"}
-                    </p>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <CardFooter className="flex justify-end p-0">
+            <CardFooter className="flex justify-end p-0 pt-4">
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-club-orange hover:bg-club-terracotta text-white"
+                className="bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90 text-white font-medium shadow-md transition-all"
               >
                 {isSubmitting 
                   ? "Guardando..." 
