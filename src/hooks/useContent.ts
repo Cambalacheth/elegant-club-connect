@@ -19,10 +19,13 @@ export const useContent = (type?: ContentType) => {
     setError(null);
 
     try {
-      let query = supabase.from("content").select(`
-        *,
-        profiles(username)
-      `).eq('published', true);
+      let query = supabase
+        .from("content")
+        .select(`
+          *,
+          profiles!content_author_id_fkey(username)
+        `)
+        .eq('published', true);
 
       if (type) {
         query = query.eq('type', type);
