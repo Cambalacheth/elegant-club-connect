@@ -14,9 +14,9 @@ import { canManageContent } from "@/types/user";
 const Content = () => {
   const location = useLocation();
   const [language, setLanguage] = useState("es"); // Default to Spanish
-  const [activeTab, setActiveTab] = useState<ContentType>("article");
+  const [activeTab, setActiveTab] = useState<ContentType | "management">("article");
   const { user, userRole, isLoading: isUserLoading } = useForumUser();
-  const { content, isLoading: isContentLoading } = useContent(activeTab);
+  const { content, isLoading: isContentLoading } = useContent(activeTab as ContentType);
 
   useEffect(() => {
     // Extract language from URL query parameters
@@ -36,6 +36,9 @@ const Content = () => {
   const resourcesText = language === "en" ? "Resources" : "Recursos";
   const managementText = language === "en" ? "Content Management" : "Gestión de Contenido";
 
+  console.log("Current user role:", userRole);
+  console.log("Can manage content:", canManageContent(userRole));
+
   return (
     <main className="min-h-screen bg-club-beige">
       <Navbar currentLanguage={language} />
@@ -45,7 +48,12 @@ const Content = () => {
           {contentTitle}
         </h1>
         
-        <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as ContentType)} className="w-full">
+        <Tabs 
+          defaultValue="article" 
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as ContentType | "management")} 
+          className="w-full"
+        >
           <div className="flex justify-center mb-8">
             <TabsList className="bg-white/50 p-1">
               <TabsTrigger 
