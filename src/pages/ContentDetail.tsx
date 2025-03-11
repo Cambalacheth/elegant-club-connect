@@ -17,10 +17,7 @@ const ContentDetail = () => {
       try {
         const { data, error } = await supabase
           .from("content")
-          .select(`
-            *,
-            profiles (username)
-          `)
+          .select("*, profiles:author_id(username)")
           .eq("id", id)
           .single();
 
