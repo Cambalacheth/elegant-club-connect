@@ -12,6 +12,7 @@ export interface ContentItem {
   author_username?: string;
   author_role?: string;
   videoUrl?: string; // For videos
+  videoId?: string; // Added YouTube video ID
   resourceUrl?: string; // For resources
   created_at: string;
   updated_at: string;

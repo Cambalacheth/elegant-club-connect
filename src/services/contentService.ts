@@ -115,24 +115,59 @@ export const deleteContentItem = async (id: string) => {
 };
 
 /**
+ * Extracts YouTube video ID from a YouTube URL
+ */
+export const extractYoutubeVideoId = (url: string): string | null => {
+  if (!url) return null;
+  
+  // Match patterns like:
+  // - https://www.youtube.com/watch?v=VIDEO_ID
+  // - https://youtu.be/VIDEO_ID
+  // - https://youtube.com/shorts/VIDEO_ID
+  const regex = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  
+  return match ? match[1] : null;
+};
+
+/**
+ * Get YouTube thumbnail URL from video ID
+ */
+export const getYoutubeThumbnailUrl = (videoId: string): string => {
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+};
+
+/**
  * Maps data from the database to ContentItem objects
  */
 const mapContentData = (data: any[]): ContentItem[] => {
-  return data.map(item => ({
-    id: item.id,
-    title: item.title,
-    description: item.description || "",
-    content: item.content || undefined,
-    imageUrl: item.image_url || "",
-    type: item.type as ContentType,
-    author_id: item.author_id,
-    author_username: item.author?.username || "Usuario",
-    author_role: item.author?.level,
-    videoUrl: item.video_url || undefined,
-    resourceUrl: item.resource_url || undefined,
-    created_at: item.created_at,
-    updated_at: item.updated_at,
-    category: item.category,
-    published: item.published
-  }));
+  return data.map(item => {
+    // Extract YouTube video ID if there's a video URL
+    let imageUrl = item.image_url || "";
+    const videoId = item.video_url ? extractYoutubeVideoId(item.video_url) : null;
+    
+    // If this is a video and no image was provided, use YouTube thumbnail
+    if (item.type === 'video' && videoId && !imageUrl) {
+      imageUrl = getYoutubeThumbnailUrl(videoId);
+    }
+    
+    return {
+      id: item.id,
+      title: item.title,
+      description: item.description || "",
+      content: item.content || undefined,
+      imageUrl: imageUrl,
+      type: item.type as ContentType,
+      author_id: item.author_id,
+      author_username: item.author?.username || "Usuario",
+      author_role: item.author?.level,
+      videoUrl: item.video_url || undefined,
+      videoId: videoId, // Add the extracted videoId
+      resourceUrl: item.resource_url || undefined,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      category: item.category,
+      published: item.published
+    };
+  });
 };

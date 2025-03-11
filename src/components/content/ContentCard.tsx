@@ -35,12 +35,17 @@ export const ContentCard = ({ item, currentLanguage = "es" }: ContentCardProps) 
 
   return (
     <Card className="overflow-hidden h-full flex flex-col bg-white hover:shadow-md transition-shadow duration-300">
-      <div className="h-48 overflow-hidden">
+      <div className="h-48 overflow-hidden relative group">
         <img
           src={imageUrl}
           alt={title}
-          className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+          className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-300"
         />
+        {type === "video" && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Video className="h-12 w-12 text-white" />
+          </div>
+        )}
       </div>
       <CardHeader>
         <div className="flex items-center justify-between mb-2">

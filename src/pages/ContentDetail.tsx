@@ -8,6 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
+import VideoEmbed from "@/components/content/VideoEmbed";
+import { extractYoutubeVideoId } from "@/services/contentService";
 
 const ContentDetail = () => {
   const { type, id } = useParams();
@@ -26,6 +28,9 @@ const ContentDetail = () => {
 
         if (error) throw error;
         
+        // Extract YouTube video ID if video URL exists
+        const videoId = data.video_url ? extractYoutubeVideoId(data.video_url) : null;
+        
         // Transform database fields to match ContentItem interface
         const transformedContent: ContentItem = {
           id: data.id,
@@ -38,6 +43,7 @@ const ContentDetail = () => {
           author_username: data.author?.username || "Usuario",
           author_role: data.author?.level,
           videoUrl: data.video_url || undefined,
+          videoId: videoId || undefined,
           resourceUrl: data.resource_url || undefined,
           created_at: data.created_at,
           updated_at: data.updated_at,
@@ -93,23 +99,14 @@ const ContentDetail = () => {
           {content.title}
         </h1>
 
-        {content.imageUrl && (
+        {content.type === "video" && content.videoId ? (
+          <VideoEmbed videoId={content.videoId} title={content.title} />
+        ) : content.imageUrl && (
           <img
             src={content.imageUrl}
             alt={content.title}
             className="w-full h-64 md:h-96 object-cover rounded-lg mb-8"
           />
-        )}
-
-        {content.type === "video" && content.videoUrl && (
-          <div className="aspect-video mb-8">
-            <iframe
-              src={content.videoUrl}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
         )}
 
         <div className="flex flex-wrap items-center gap-4 text-sm text-club-brown/70 mb-8">
@@ -136,6 +133,19 @@ const ContentDetail = () => {
           {content.content && (
             <div className="text-club-brown whitespace-pre-wrap">
               {content.content}
+            </div>
+          )}
+          {content.type === "video" && content.videoUrl && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold text-club-brown mb-4">Enlace Original:</h3>
+              <a
+                href={content.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block text-club-orange hover:text-club-terracotta"
+              >
+                Ver en YouTube →
+              </a>
             </div>
           )}
           {content.type === "resource" && content.resourceUrl && (
