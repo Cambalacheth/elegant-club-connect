@@ -7,6 +7,9 @@ import { Event } from "@/types/event";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isPast } from "date-fns";
 import { es } from "date-fns/locale";
+import { useForumUser } from "@/hooks/useForumUser";
+import { EventManagement } from "@/components/events/EventManagement";
+import { canAdminContent } from "@/types/user";
 
 const Events = () => {
   const location = useLocation();
@@ -14,6 +17,8 @@ const Events = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, userRole } = useForumUser();
+  const isAdmin = canAdminContent(userRole);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -153,9 +158,17 @@ const Events = () => {
       <Navbar currentLanguage={language} />
       
       <div className="container mx-auto px-6 pt-32 pb-16">
-        <h1 className="text-4xl md:text-5xl font-serif text-club-brown text-center mb-12">
-          {eventsTitle}
-        </h1>
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-serif text-club-brown">
+            {eventsTitle}
+          </h1>
+          
+          {isAdmin && (
+            <div>
+              <EventManagement />
+            </div>
+          )}
+        </div>
         
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

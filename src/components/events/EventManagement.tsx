@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { EventForm } from "./EventForm";
@@ -89,12 +89,19 @@ export const EventManagement = () => {
               <Plus className="mr-2 h-5 w-5" /> Nuevo evento
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border-club-beige shadow-xl">
-            <EventForm
-              initialData={editingEvent || undefined}
-              onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
-              isSubmitting={isSubmitting}
-            />
+          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white p-0 border-2 shadow-xl">
+            <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-white z-10 border-b">
+              <DialogTitle className="text-xl font-serif text-club-brown">
+                {editingEvent ? 'Editar evento' : 'Nuevo Evento'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="px-0 py-0">
+              <EventForm
+                initialData={editingEvent || undefined}
+                onSubmit={editingEvent ? handleUpdateEvent : handleCreateEvent}
+                isSubmitting={isSubmitting}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       </div>
