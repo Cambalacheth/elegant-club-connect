@@ -1,4 +1,3 @@
-
 export interface Project {
   id: string;
   profile_id: string;
@@ -18,6 +17,7 @@ export interface Project {
     username: string;
     avatar_url?: string | null;
   };
+  approved?: boolean;
 }
 
 export interface ProjectWithProfile extends Project {

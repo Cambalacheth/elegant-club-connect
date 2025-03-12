@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { ExternalLink, Edit2 } from "lucide-react";
+import { ExternalLink, Edit2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProjectDeleteButton from './ProjectDeleteButton';
 import { Project } from '@/types/project';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProjectActionsProps {
   project: Project;
@@ -12,13 +14,66 @@ interface ProjectActionsProps {
   onEdit?: (project: Project) => void;
   language: string;
   canModify: boolean;
+  isAdmin: boolean;
 }
 
-const ProjectActions = ({ project, viewText, onDelete, onEdit, language, canModify }: ProjectActionsProps) => {
+const ProjectActions = ({ 
+  project, 
+  viewText, 
+  onDelete, 
+  onEdit, 
+  language, 
+  canModify,
+  isAdmin 
+}: ProjectActionsProps) => {
+  const { toast } = useToast();
   const editText = language === "en" ? "Edit" : "Editar";
+
+  const handleApprove = async () => {
+    try {
+      const { error } = await supabase
+        .from('projects')
+        .update({ approved: true })
+        .eq('id', project.id);
+
+      if (error) throw error;
+
+      toast({
+        title: language === "en" ? "Success" : "Éxito",
+        description: language === "en" 
+          ? "Project has been approved" 
+          : "El proyecto ha sido aprobado",
+      });
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error approving project:', error);
+      toast({
+        title: language === "en" ? "Error" : "Error",
+        description: language === "en"
+          ? "Could not approve project"
+          : "No se pudo aprobar el proyecto",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="flex items-center space-x-2">
+      {isAdmin && !project.approved && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+          onClick={handleApprove}
+        >
+          <Check className="h-4 w-4" />
+          <span className="sr-only">
+            {language === "en" ? "Approve" : "Aprobar"}
+          </span>
+        </Button>
+      )}
+
       {canModify && (
         <>
           {onEdit && (

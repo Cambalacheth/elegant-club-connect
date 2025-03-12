@@ -304,6 +304,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          approved: boolean | null
           categories: string[] | null
           category: string | null
           created_at: string | null
@@ -319,6 +320,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          approved?: boolean | null
           categories?: string[] | null
           category?: string | null
           created_at?: string | null
@@ -334,6 +336,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          approved?: boolean | null
           categories?: string[] | null
           category?: string | null
           created_at?: string | null

@@ -1,12 +1,13 @@
 
 import React from "react";
-import { Calendar } from "lucide-react";
+import { Calendar, Shield } from "lucide-react";
 import { useForumUser } from "@/hooks/useForumUser";
 import { Project } from "@/types/project";
 import ProjectImage from "./ProjectImage";
 import ProjectCategories from "./ProjectCategories";
 import ProjectAuthor from "./ProjectAuthor";
 import ProjectActions from "./ProjectActions";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ProjectCardProps {
   project: Project;
@@ -25,20 +26,27 @@ const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectC
     day: "numeric",
   });
 
-  // Use categories array if available, otherwise use single category
   const categoriesToDisplay = project.categories || [project.category];
-  
-  // Check if user is admin or project owner
   const isAdmin = userRole === "admin";
   const isProjectOwner = user?.id === project.profile_id;
   const canModify = isAdmin || isProjectOwner;
+  const isPending = !project.approved;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      {/* Project Image */}
+      {isPending && (isProjectOwner || isAdmin) && (
+        <Alert className="rounded-none border-b bg-yellow-50/80">
+          <Shield className="h-4 w-4" />
+          <AlertDescription>
+            {language === "en" 
+              ? "This project is pending approval" 
+              : "Este proyecto está pendiente de aprobación"}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <ProjectImage imageUrl={project.image_url} name={project.name} />
 
-      {/* Project Content */}
       <div className="p-5">
         <ProjectCategories categories={categoriesToDisplay} />
 
@@ -55,14 +63,11 @@ const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectC
           <span>{formattedDate}</span>
         </div>
 
-        {/* Author Info & Actions */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <ProjectAuthor 
-              username={project.username} 
-              avatarUrl={project.avatar_url} 
-            />
-          </div>
+          <ProjectAuthor 
+            username={project.username} 
+            avatarUrl={project.avatar_url} 
+          />
 
           <ProjectActions 
             project={project} 
@@ -70,7 +75,8 @@ const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectC
             onDelete={onDelete} 
             onEdit={onEdit} 
             language={language} 
-            canModify={canModify} 
+            canModify={canModify}
+            isAdmin={isAdmin} 
           />
         </div>
       </div>

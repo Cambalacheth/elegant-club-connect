@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +5,11 @@ import Navbar from '../components/Navbar';
 import ProjectCard from '../components/projects/ProjectCard';
 import { Project, ProjectWithProfile } from '../types/project';
 import SearchBar from '../components/SearchBar';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import ProjectForm from '../components/projects/ProjectForm';
+import { useForumUser } from '@/hooks/useForumUser';
 
 const Projects = () => {
   const [projects, setProjects] = useState<ProjectWithProfile[]>([]);
@@ -13,7 +17,9 @@ const Projects = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
-  
+  const { user } = useForumUser();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const categories = [
     'all',
     'Legal',
@@ -43,7 +49,6 @@ const Projects = () => {
         
         // Apply category filter if not "all"
         if (selectedCategory !== 'all') {
-          // Try to match either the primary category or look in the categories array
           query = query.or(`category.eq.${selectedCategory},categories.cs.{${selectedCategory}}`);
         }
         
@@ -97,7 +102,29 @@ const Projects = () => {
       
       <main className="container mx-auto px-4 py-16 md:py-24">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-club-brown mb-6 md:mb-8 text-center">Proyectos</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl md:text-4xl font-bold text-club-brown">Proyectos</h1>
+            {user && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="bg-club-orange hover:bg-club-terracotta text-white"
+                  >
+                    <Plus className="w-5 h-5 mr-2" /> Nuevo proyecto
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[800px]">
+                  <ProjectForm
+                    onSubmitted={() => {
+                      setIsDialogOpen(false);
+                      window.location.reload();
+                    }}
+                    language="es"
+                  />
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
           
           {/* Search Bar - Optimized for mobile */}
           <div className="mb-6 max-w-full sm:max-w-md mx-auto">
