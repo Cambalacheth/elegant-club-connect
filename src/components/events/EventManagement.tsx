@@ -33,7 +33,7 @@ export const EventManagement = () => {
     try {
       setIsSubmitting(true);
       await createEvent(data as Omit<Event, "id" | "created_at" | "updated_at">);
-      fetchEvents();
+      await fetchEvents(); // Refresh the events list
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error creating event:", error);
@@ -48,12 +48,21 @@ export const EventManagement = () => {
     try {
       setIsSubmitting(true);
       await updateEvent(editingEvent.id, data);
-      fetchEvents();
+      await fetchEvents(); // Refresh the events list
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error updating event:", error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await deleteEvent(id);
+      await fetchEvents(); // Refresh the events list to ensure UI is updated correctly
+    } catch (error) {
+      console.error("Error deleting event:", error);
     }
   };
 
@@ -153,7 +162,7 @@ export const EventManagement = () => {
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction 
-                            onClick={() => deleteEvent(event.id)}
+                            onClick={() => handleDeleteEvent(event.id)}
                             className="bg-red-600 hover:bg-red-700"
                           >
                             Eliminar

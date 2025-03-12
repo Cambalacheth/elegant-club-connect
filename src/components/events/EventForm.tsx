@@ -35,9 +35,24 @@ export const EventForm = ({
   const handleSubmit = async (data: Partial<Event>) => {
     const formattedData = {
       ...data,
-      image_url: imagePreview
+      image_url: imagePreview,
+      // We let the backend handle null values for these fields
     };
-    await onSubmit(formattedData);
+    
+    try {
+      await onSubmit(formattedData);
+      form.reset({
+        title: "",
+        description: "",
+        location: "",
+        price: "",
+        reservation_link: "",
+        event_date: ""
+      });
+      setImagePreview(null);
+    } catch (error) {
+      console.error("Error in form submission:", error);
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,9 +87,9 @@ export const EventForm = ({
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Título</FormLabel>
+                      <FormLabel>Título <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="Título del evento" {...field} />
+                        <Input placeholder="Título del evento" {...field} required />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -86,12 +101,13 @@ export const EventForm = ({
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Descripción</FormLabel>
+                      <FormLabel>Descripción <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Descripción del evento" 
                           className="min-h-32" 
                           {...field} 
+                          required
                         />
                       </FormControl>
                       <FormMessage />
