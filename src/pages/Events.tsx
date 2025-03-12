@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { Calendar, MapPin, Clock, Users, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Clock, Users, ExternalLink, Pencil, Trash2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Event } from "@/types/event";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,11 @@ import { es } from "date-fns/locale";
 import { useForumUser } from "@/hooks/useForumUser";
 import { EventManagement } from "@/components/events/EventManagement";
 import { canAdminContent } from "@/types/user";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { EventForm } from "@/components/events/EventForm";
+import { useEvents } from "@/hooks/useEvents";
 
 const Events = () => {
   const location = useLocation();
@@ -19,6 +24,14 @@ const Events = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user, userRole } = useForumUser();
   const isAdmin = canAdminContent(userRole);
+  
+  // Dialog state
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  // Event operations
+  const { fetchEvents, updateEvent, deleteEvent } = useEvents();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -33,7 +46,7 @@ const Events = () => {
     fetchEvents();
   }, []);
 
-  const fetchEvents = async () => {
+  const handleFetchEvents = async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
@@ -78,6 +91,35 @@ const Events = () => {
     }
   };
 
+  const handleEditClick = (event: Event) => {
+    setEditingEvent(event);
+    setIsDialogOpen(true);
+  };
+
+  const handleUpdateEvent = async (data: Partial<Event>) => {
+    if (!editingEvent) return;
+    
+    try {
+      setIsSubmitting(true);
+      await updateEvent(editingEvent.id, data);
+      await handleFetchEvents(); // Refresh the events list
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating event:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await deleteEvent(id);
+      await handleFetchEvents(); // Refresh the events list
+    } catch (error) {
+      console.error("Error deleting event:", error);
+    }
+  };
+
   const eventsTitle = language === "en" ? "Community Events" : "Eventos de la Comunidad";
   const upcomingEventsText = language === "en" ? "Upcoming Events" : "Próximos Eventos";
   const pastEventsText = language === "en" ? "Past Events" : "Eventos Pasados";
@@ -107,7 +149,46 @@ const Events = () => {
           </div>
         )}
         <div className="p-6">
-          <h3 className="text-xl font-medium text-club-brown mb-3">{event.title}</h3>
+          <div className="flex justify-between items-start mb-3">
+            <h3 className="text-xl font-medium text-club-brown">{event.title}</h3>
+            
+            {isAdmin && (
+              <div className="flex space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleEditClick(event)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Esta acción no se puede deshacer. Se eliminará permanentemente este evento.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Eliminar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-2 mb-4">
             <div className="flex items-center text-club-brown/80">
@@ -210,6 +291,24 @@ const Events = () => {
           </>
         )}
       </div>
+      
+      {/* Edit Event Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white p-0 border-2 shadow-xl">
+          <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-white z-10 border-b">
+            <DialogTitle className="text-xl font-serif text-club-brown">
+              {editingEvent ? 'Editar evento' : 'Nuevo Evento'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="px-0 py-0">
+            <EventForm
+              initialData={editingEvent || undefined}
+              onSubmit={handleUpdateEvent}
+              isSubmitting={isSubmitting}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };

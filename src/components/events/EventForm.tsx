@@ -6,6 +6,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Event } from "@/types/event";
 
 interface EventFormProps {
@@ -20,6 +21,8 @@ export const EventForm = ({
   isSubmitting 
 }: EventFormProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image_url || null);
+  const [revealDateLater, setRevealDateLater] = useState<boolean>(!initialData?.event_date);
+  const [revealLocationLater, setRevealLocationLater] = useState<boolean>(!initialData?.location);
   
   const form = useForm<Partial<Event>>({
     defaultValues: {
@@ -36,7 +39,9 @@ export const EventForm = ({
     const formattedData = {
       ...data,
       image_url: imagePreview,
-      // We let the backend handle null values for these fields
+      // Handle the "reveal later" options
+      event_date: revealDateLater ? null : data.event_date,
+      location: revealLocationLater ? null : data.location
     };
     
     try {
@@ -50,6 +55,8 @@ export const EventForm = ({
         event_date: ""
       });
       setImagePreview(null);
+      setRevealDateLater(false);
+      setRevealLocationLater(false);
     } catch (error) {
       console.error("Error in form submission:", error);
     }
@@ -121,12 +128,33 @@ export const EventForm = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Ubicación</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Ubicación del evento (opcional)" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        Deja en blanco si la ubicación se revelará más adelante
-                      </FormDescription>
+                      <div className="space-y-2">
+                        <FormControl>
+                          <Input 
+                            placeholder="Ubicación del evento" 
+                            {...field} 
+                            disabled={revealLocationLater}
+                          />
+                        </FormControl>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="reveal-location-later" 
+                            checked={revealLocationLater}
+                            onCheckedChange={(checked) => {
+                              setRevealLocationLater(checked as boolean);
+                              if (checked) {
+                                form.setValue('location', '');
+                              }
+                            }}
+                          />
+                          <label 
+                            htmlFor="reveal-location-later" 
+                            className="text-sm cursor-pointer"
+                          >
+                            Revelar ubicación más adelante
+                          </label>
+                        </div>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -140,15 +168,33 @@ export const EventForm = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Fecha y hora</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="datetime-local" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Deja en blanco si la fecha se revelará más adelante
-                      </FormDescription>
+                      <div className="space-y-2">
+                        <FormControl>
+                          <Input 
+                            type="datetime-local" 
+                            {...field} 
+                            disabled={revealDateLater}
+                          />
+                        </FormControl>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox 
+                            id="reveal-date-later" 
+                            checked={revealDateLater}
+                            onCheckedChange={(checked) => {
+                              setRevealDateLater(checked as boolean);
+                              if (checked) {
+                                form.setValue('event_date', '');
+                              }
+                            }}
+                          />
+                          <label 
+                            htmlFor="reveal-date-later" 
+                            className="text-sm cursor-pointer"
+                          >
+                            Revelar fecha más adelante
+                          </label>
+                        </div>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
