@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useForumUser } from "@/hooks/useForumUser";
 import UserManagement from "@/components/admin/UserManagement";
+import { ContentManagement } from "@/components/content/ContentManagement";
+import { EventManagement } from "@/components/events/EventManagement";
 
 const AdminPage = () => {
   const { toast } = useToast();
@@ -40,12 +42,22 @@ const AdminPage = () => {
           <Tabs defaultValue="users">
             <TabsList className="mb-6">
               <TabsTrigger value="users">Usuarios</TabsTrigger>
+              <TabsTrigger value="content">Contenido</TabsTrigger>
+              <TabsTrigger value="events">Eventos</TabsTrigger>
               <TabsTrigger value="debates">Debates</TabsTrigger>
               <TabsTrigger value="stats">Estadísticas</TabsTrigger>
             </TabsList>
             
             <TabsContent value="users">
               <UserManagement />
+            </TabsContent>
+            
+            <TabsContent value="content">
+              {user && <ContentManagement userId={user.id} userRole={userRole} />}
+            </TabsContent>
+            
+            <TabsContent value="events">
+              <EventManagement />
             </TabsContent>
             
             <TabsContent value="debates">

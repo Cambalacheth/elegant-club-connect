@@ -197,6 +197,45 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          created_at: string
+          description: string
+          event_date: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          price: string | null
+          reservation_link: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          event_date?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          price?: string | null
+          reservation_link?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          event_date?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          price?: string | null
+          reservation_link?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       otros_idiomas: {
         Row: {
           created_at: string

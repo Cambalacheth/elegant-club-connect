@@ -1,25 +1,19 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Calendar, MapPin, Clock, Users, ExternalLink } from "lucide-react";
 import Navbar from "../components/Navbar";
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  imageUrl: string;
-  capacity?: number;
-  registrationLink?: string;
-}
+import { Event } from "@/types/event";
+import { supabase } from "@/integrations/supabase/client";
+import { format, isPast } from "date-fns";
+import { es } from "date-fns/locale";
 
 const Events = () => {
   const location = useLocation();
   const [language, setLanguage] = useState("es"); // Default to Spanish
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -31,79 +25,53 @@ const Events = () => {
   }, [location]);
 
   useEffect(() => {
-    const sampleEvents: Event[] = [
-      {
-        id: "1",
-        title: language === "en" ? "Workshop: Introduction to Web3" : "Taller: Introducción a Web3",
-        description: language === "en" 
-          ? "Learn the basics of Web3 technology and blockchain fundamentals in this interactive workshop." 
-          : "Aprende los conceptos básicos de la tecnología Web3 y los fundamentos de blockchain en este taller interactivo.",
-        date: "2023-12-15",
-        time: "18:00",
-        location: "Terreta Hub, Valencia",
-        imageUrl: "https://images.unsplash.com/photo-1591115765373-5207764f72e4?q=80&w=2340&auto=format&fit=crop",
-        capacity: 30,
-        registrationLink: "#"
-      },
-      {
-        id: "2",
-        title: language === "en" ? "Networking Event: Tech in Valencia" : "Evento de Networking: Tech en Valencia",
-        description: language === "en"
-          ? "Connect with other tech professionals in Valencia and expand your network."
-          : "Conéctate con otros profesionales de tecnología en Valencia y expande tu red.",
-        date: "2023-12-20",
-        time: "19:30",
-        location: "Coworking Space, Valencia",
-        imageUrl: "https://images.unsplash.com/photo-1511795409834-432f7b667e35?q=80&w=2340&auto=format&fit=crop",
-        capacity: 50,
-        registrationLink: "#"
-      },
-      {
-        id: "3",
-        title: language === "en" ? "Terreta Hub Annual Gala" : "Gala Anual de Terreta Hub",
-        description: language === "en"
-          ? "Join us for our annual gala dinner celebrating our community achievements."
-          : "Únete a nuestra cena de gala anual celebrando los logros de nuestra comunidad.",
-        date: "2024-01-15",
-        time: "20:00",
-        location: "Hotel Valencia Palace",
-        imageUrl: "https://images.unsplash.com/photo-1562510044-edc87c246d73?q=80&w=2340&auto=format&fit=crop",
-        capacity: 100,
-        registrationLink: "#"
-      },
-      {
-        id: "4",
-        title: language === "en" ? "Web Development Workshop" : "Taller de Desarrollo Web",
-        description: language === "en"
-          ? "A workshop focused on modern web development techniques and best practices."
-          : "Un taller enfocado en técnicas modernas de desarrollo web y mejores prácticas.",
-        date: "2023-10-10", // Past event
-        time: "17:00",
-        location: "Online",
-        imageUrl: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=2331&auto=format&fit=crop",
-      },
-    ];
+    fetchEvents();
+  }, []);
 
-    const now = new Date();
-    const upcoming: Event[] = [];
-    const past: Event[] = [];
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("events")
+        .select("*")
+        .order("event_date", { ascending: true });
+        
+      if (error) throw error;
+      
+      const now = new Date();
+      const upcoming: Event[] = [];
+      const past: Event[] = [];
 
-    sampleEvents.forEach(event => {
-      const eventDate = new Date(event.date);
-      if (eventDate >= now) {
-        upcoming.push(event);
-      } else {
-        past.push(event);
-      }
-    });
+      data.forEach(event => {
+        if (event.event_date && isPast(new Date(event.event_date))) {
+          past.push(event);
+        } else {
+          upcoming.push(event);
+        }
+      });
+      
+      // Sort upcoming events by date, with events without dates last
+      upcoming.sort((a, b) => {
+        if (!a.event_date) return 1;
+        if (!b.event_date) return -1;
+        return new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
+      });
+      
+      // Sort past events by date, most recent first
+      past.sort((a, b) => {
+        if (!a.event_date) return 1;
+        if (!b.event_date) return -1;
+        return new Date(b.event_date).getTime() - new Date(a.event_date).getTime();
+      });
 
-    upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    past.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    setUpcomingEvents(upcoming);
-    setPastEvents(past);
-  }, [language]);
+      setUpcomingEvents(upcoming);
+      setPastEvents(past);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const eventsTitle = language === "en" ? "Community Events" : "Eventos de la Comunidad";
   const upcomingEventsText = language === "en" ? "Upcoming Events" : "Próximos Eventos";
@@ -114,24 +82,25 @@ const Events = () => {
     : "No hay eventos programados en este momento.";
   const capacityText = language === "en" ? "Capacity" : "Capacidad";
   const locationText = language === "en" ? "Location" : "Ubicación";
+  const dateToBeAnnouncedText = language === "en" ? "Date to be announced" : "Fecha por anunciar";
+  const locationToBeAnnouncedText = language === "en" ? "Location to be announced" : "Ubicación por anunciar";
 
   const EventCard = ({ event, isPast = false }: { event: Event, isPast?: boolean }) => {
-    const eventDate = new Date(event.date);
-    const formattedDate = eventDate.toLocaleDateString(language === "en" ? "en-US" : "es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric"
-    });
+    const formattedDate = event.event_date 
+      ? format(new Date(event.event_date), 'PPpp', {locale: language === "en" ? undefined : es})
+      : dateToBeAnnouncedText;
 
     return (
       <div className={`bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow ${isPast ? 'opacity-70' : ''}`}>
-        <div className="h-48 overflow-hidden">
-          <img 
-            src={event.imageUrl} 
-            alt={event.title} 
-            className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
-          />
-        </div>
+        {event.image_url && (
+          <div className="h-48 overflow-hidden">
+            <img 
+              src={event.image_url} 
+              alt={event.title} 
+              className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
+            />
+          </div>
+        )}
         <div className="p-6">
           <h3 className="text-xl font-medium text-club-brown mb-3">{event.title}</h3>
           
@@ -141,30 +110,34 @@ const Events = () => {
               <span>{formattedDate}</span>
             </div>
             
-            <div className="flex items-center text-club-brown/80">
-              <Clock className="h-4 w-4 mr-2" />
-              <span>{event.time}</span>
-            </div>
-            
-            <div className="flex items-center text-club-brown/80">
-              <MapPin className="h-4 w-4 mr-2" />
-              <span>{event.location}</span>
-            </div>
-            
-            {event.capacity && (
+            {event.location ? (
               <div className="flex items-center text-club-brown/80">
-                <Users className="h-4 w-4 mr-2" />
-                <span>{capacityText}: {event.capacity}</span>
+                <MapPin className="h-4 w-4 mr-2" />
+                <span>{event.location}</span>
+              </div>
+            ) : (
+              <div className="flex items-center text-club-brown/80">
+                <MapPin className="h-4 w-4 mr-2" />
+                <span>{locationToBeAnnouncedText}</span>
+              </div>
+            )}
+            
+            {event.price && (
+              <div className="flex items-center text-club-brown/80">
+                <Clock className="h-4 w-4 mr-2" />
+                <span>{event.price}</span>
               </div>
             )}
           </div>
           
           <p className="text-club-brown/80 mb-4">{event.description}</p>
           
-          {!isPast && event.registrationLink && (
+          {!isPast && event.reservation_link && (
             <a 
-              href={event.registrationLink} 
+              href={event.reservation_link} 
               className="inline-flex items-center bg-club-orange text-white px-4 py-2 rounded-full hover:bg-club-terracotta transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
             >
               {registerText}
               <ExternalLink className="ml-2 h-4 w-4" />
@@ -184,36 +157,44 @@ const Events = () => {
           {eventsTitle}
         </h1>
         
-        <section className="mb-16">
-          <h2 className="text-2xl font-serif text-club-brown mb-8 border-b border-club-brown/20 pb-2">
-            {upcomingEventsText}
-          </h2>
-          
-          {upcomingEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {upcomingEvents.map(event => (
-                <EventCard key={event.id} event={event} />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg p-8 text-center">
-              <p className="text-club-brown text-lg">{noEventsText}</p>
-            </div>
-          )}
-        </section>
-        
-        {pastEvents.length > 0 && (
-          <section>
-            <h2 className="text-2xl font-serif text-club-brown mb-8 border-b border-club-brown/20 pb-2">
-              {pastEventsText}
-            </h2>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-orange"></div>
+          </div>
+        ) : (
+          <>
+            <section className="mb-16">
+              <h2 className="text-2xl font-serif text-club-brown mb-8 border-b border-club-brown/20 pb-2">
+                {upcomingEventsText}
+              </h2>
+              
+              {upcomingEvents.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {upcomingEvents.map(event => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg p-8 text-center">
+                  <p className="text-club-brown text-lg">{noEventsText}</p>
+                </div>
+              )}
+            </section>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {pastEvents.map(event => (
-                <EventCard key={event.id} event={event} isPast={true} />
-              ))}
-            </div>
-          </section>
+            {pastEvents.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-serif text-club-brown mb-8 border-b border-club-brown/20 pb-2">
+                  {pastEventsText}
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {pastEvents.map(event => (
+                    <EventCard key={event.id} event={event} isPast={true} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>
