@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,9 @@ const Projects = () => {
   const { toast } = useToast();
   const { user } = useForumUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [projectImage, setProjectImage] = useState<File | null>(null);
 
   const categories = [
     'all',
@@ -96,6 +100,48 @@ const Projects = () => {
     setSearchQuery(query);
   };
 
+  const handleImageChange = (file: File | null) => {
+    setProjectImage(file);
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
+
+  const handleSubmit = async (values: any) => {
+    setIsUploading(true);
+    try {
+      // Project submission logic would go here
+      toast({
+        title: "Éxito",
+        description: "Proyecto enviado para aprobación",
+      });
+      setIsDialogOpen(false);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el proyecto",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setIsDialogOpen(false);
+    setImagePreview(null);
+    setProjectImage(null);
+  };
+
   return (
     <div className="min-h-screen bg-club-beige-light">
       <Navbar />
@@ -115,11 +161,14 @@ const Projects = () => {
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[800px]">
                   <ProjectForm
-                    onSubmitted={() => {
-                      setIsDialogOpen(false);
-                      window.location.reload();
-                    }}
+                    onSubmit={handleSubmit}
+                    onCancel={handleCancel}
                     language="es"
+                    isUploading={isUploading}
+                    projectToEdit={null}
+                    imagePreview={imagePreview}
+                    existingImageUrl={null}
+                    onImageChange={handleImageChange}
                   />
                 </DialogContent>
               </Dialog>
