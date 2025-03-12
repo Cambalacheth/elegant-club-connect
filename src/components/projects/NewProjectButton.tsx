@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProjectForm from './ProjectForm';
 import { User } from '@supabase/supabase-js';
 
@@ -74,17 +74,24 @@ const NewProjectButton = ({ user, language }: NewProjectButtonProps) => {
           <Plus className="w-5 h-5 mr-2" /> Nuevo proyecto
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[800px]">
-        <ProjectForm
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          language={language}
-          isUploading={isUploading}
-          projectToEdit={null}
-          imagePreview={imagePreview}
-          existingImageUrl={null}
-          onImageChange={handleImageChange}
-        />
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white p-0 border-2">
+        <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-white z-10 border-b">
+          <DialogTitle className="text-xl font-serif text-club-brown">
+            {language === "en" ? "New Project" : "Nuevo Proyecto"}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="px-0 py-0">
+          <ProjectForm
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            language={language}
+            isUploading={isUploading}
+            projectToEdit={null}
+            imagePreview={imagePreview}
+            existingImageUrl={null}
+            onImageChange={handleImageChange}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
