@@ -19,7 +19,7 @@ export const useEvents = () => {
         .from("events")
         .select("*")
         .order("event_date", { ascending: true });
-
+        
       if (error) throw error;
       
       setEvents(data || []);

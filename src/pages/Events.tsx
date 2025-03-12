@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Event } from "@/types/event";
-import { supabase } from "@/integrations/supabase/client";
 import { isPast } from "date-fns";
 import { useForumUser } from "@/hooks/useForumUser";
 import { EventManagement } from "@/components/events/EventManagement";
@@ -18,7 +17,6 @@ const Events = () => {
   const [language, setLanguage] = useState("es"); // Default to Spanish
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { user, userRole } = useForumUser();
   const isAdmin = canAdminContent(userRole);
   
@@ -28,7 +26,7 @@ const Events = () => {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   // Event operations
-  const { fetchEvents, updateEvent, deleteEvent } = useEvents();
+  const { events, isLoading, fetchEvents, updateEvent, deleteEvent, createEvent } = useEvents();
 
   // Get language-specific texts
   const texts = useEventTexts(language);
@@ -38,7 +36,6 @@ const Events = () => {
     const langParam = searchParams.get("lang");
     if (langParam && (langParam === "es" || langParam === "en")) {
       setLanguage(langParam);
-      console.log(`Language set to: ${langParam}`);
     }
   }, [location]);
 
@@ -46,21 +43,14 @@ const Events = () => {
     fetchEvents();
   }, []);
 
-  const handleFetchEvents = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .order("event_date", { ascending: true });
-        
-      if (error) throw error;
-      
+  // Process events whenever the events array changes
+  useEffect(() => {
+    if (events.length > 0) {
       const now = new Date();
       const upcoming: Event[] = [];
       const past: Event[] = [];
 
-      data.forEach(event => {
+      events.forEach(event => {
         if (event.event_date && isPast(new Date(event.event_date))) {
           past.push(event);
         } else {
@@ -84,12 +74,11 @@ const Events = () => {
 
       setUpcomingEvents(upcoming);
       setPastEvents(past);
-    } catch (error) {
-      console.error("Error fetching events:", error);
-    } finally {
-      setIsLoading(false);
+    } else {
+      setUpcomingEvents([]);
+      setPastEvents([]);
     }
-  };
+  }, [events]);
 
   const handleEditClick = (event: Event) => {
     setEditingEvent(event);
@@ -102,7 +91,7 @@ const Events = () => {
     try {
       setIsSubmitting(true);
       await updateEvent(editingEvent.id, data);
-      await handleFetchEvents(); // Refresh the events list
+      await fetchEvents(); // Refresh the events list
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error updating event:", error);
@@ -114,7 +103,7 @@ const Events = () => {
   const handleDeleteEvent = async (id: string) => {
     try {
       await deleteEvent(id);
-      await handleFetchEvents(); // Refresh the events list
+      await fetchEvents(); // Refresh the events list
     } catch (error) {
       console.error("Error deleting event:", error);
     }
@@ -132,7 +121,7 @@ const Events = () => {
           
           {isAdmin && (
             <div>
-              <EventManagement />
+              <EventManagement onEventAdded={fetchEvents} />
             </div>
           )}
         </div>
