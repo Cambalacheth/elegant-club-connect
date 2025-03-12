@@ -8,6 +8,7 @@ import ProjectCardCategories from "./ProjectCardCategories";
 import ProjectAuthor from "./ProjectAuthor";
 import ProjectActions from "./ProjectActions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
 
 interface ProjectCardProps {
   project: Project;
@@ -45,24 +46,28 @@ const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectC
         </Alert>
       )}
 
-      <ProjectImage imageUrl={project.image_url} name={project.name} />
+      <Link to={`/projects/${project.id}`} className="block">
+        <ProjectImage imageUrl={project.image_url} name={project.name} />
 
-      <div className="p-5">
-        <ProjectCardCategories categories={categoriesToDisplay} />
+        <div className="p-5">
+          <ProjectCardCategories categories={categoriesToDisplay} />
 
-        <h3 className="text-xl font-serif text-club-brown mb-2 line-clamp-2">
-          {project.name}
-        </h3>
+          <h3 className="text-xl font-serif text-club-brown mb-2 line-clamp-2">
+            {project.name}
+          </h3>
 
-        <p className="text-club-brown/80 mb-4 text-sm line-clamp-3">
-          {project.description}
-        </p>
+          <p className="text-club-brown/80 mb-4 text-sm line-clamp-3">
+            {project.description}
+          </p>
 
-        <div className="flex items-center text-club-brown/60 text-xs mb-5">
-          <Calendar className="w-3 h-3 mr-1" />
-          <span>{formattedDate}</span>
+          <div className="flex items-center text-club-brown/60 text-xs mb-5">
+            <Calendar className="w-3 h-3 mr-1" />
+            <span>{formattedDate}</span>
+          </div>
         </div>
+      </Link>
 
+      <div className="px-5 pb-5">
         <div className="flex items-center justify-between">
           <ProjectAuthor 
             username={project.username} 

@@ -6,6 +6,7 @@ import ProjectDeleteButton from './ProjectDeleteButton';
 import { Project } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from "react-router-dom";
 
 interface ProjectActionsProps {
   project: Project;
@@ -81,7 +82,10 @@ const ProjectActions = ({
               variant="ghost"
               size="sm"
               className="text-gray-500 hover:text-club-terracotta"
-              onClick={() => onEdit(project)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(project);
+              }}
             >
               <Edit2 className="h-4 w-4" />
               <span className="sr-only">{editText}</span>
@@ -102,18 +106,19 @@ const ProjectActions = ({
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center text-sm text-club-orange hover:text-club-terracotta"
+          onClick={(e) => e.stopPropagation()}
         >
           <span className="mr-1">{viewText}</span>
           <ExternalLink className="h-3 w-3" />
         </a>
       ) : (
-        <Button
-          variant="link"
-          className="text-club-orange p-0 h-auto hover:text-club-terracotta"
-          disabled
+        <Link
+          to={`/projects/${project.id}`}
+          className="inline-flex items-center text-sm text-club-orange hover:text-club-terracotta"
+          onClick={(e) => e.stopPropagation()}
         >
-          {viewText}
-        </Button>
+          <span className="mr-1">{viewText}</span>
+        </Link>
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +21,8 @@ import AdminPage from "./pages/AdminPage";
 import AsadoRegistration from "./pages/AsadoRegistration";
 import SearchPage from './pages/SearchPage';
 import ContentDetail from "./pages/ContentDetail";
+import EventDetail from "./pages/EventDetail";
+import ProjectDetail from "./pages/ProjectDetail";
 
 const queryClient = new QueryClient();
 
@@ -34,9 +37,11 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/home" element={<Home />} />
             <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/content" element={<Content />} />
             <Route path="/content/:type/:id" element={<ContentDetail />} />
             <Route path="/events" element={<Events />} />
+            <Route path="/events/:id" element={<EventDetail />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/user/me" element={<MeRedirect />} />
