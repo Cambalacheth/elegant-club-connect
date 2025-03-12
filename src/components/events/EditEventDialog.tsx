@@ -2,12 +2,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EventForm } from "./EventForm";
 import { Event } from "@/types/event";
+import { CreateEventData } from "./types";
 
 interface EditEventDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   editingEvent: Event | null;
-  onSubmit: (data: Partial<Event>) => Promise<void>;
+  onSubmit: (data: CreateEventData) => Promise<void>;
   isSubmitting: boolean;
 }
 
