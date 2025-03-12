@@ -1,21 +1,12 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { Project, ProjectFormValues, projectFormSchema } from "./project-form-schema";
 import ProjectCategoriesSelect from "./ProjectCategoriesSelect";
 import ProjectImageUpload from "./ProjectImageUpload";
+import BasicFields from "./form/BasicFields";
+import FormButtons from "./form/FormButtons";
 import { useEffect } from "react";
 
 interface ProjectFormProps {
@@ -69,100 +60,13 @@ const ProjectForm = ({
     }
   }, [projectToEdit, form]);
 
-  // Text based on selected language
-  const submitButtonText = isEditing
-    ? (language === "en" ? "Update" : "Actualizar")
-    : (language === "en" ? "Submit" : "Enviar");
-  const cancelButtonText = language === "en" ? "Cancel" : "Cancelar";
-  const nameLabel = language === "en" ? "Project Name" : "Nombre del Proyecto";
-  const shortDescLabel = language === "en" ? "Short Description (max 220 chars)" : "Descripción Corta (máx 220 caracteres)";
-  const longDescLabel = language === "en" ? "Long Description" : "Descripción Larga";
-  const websiteLabel = language === "en" ? "Website URL (optional)" : "URL del Sitio Web (opcional)";
-  const tagsLabel = language === "en" ? "Tags (comma separated, max 6)" : "Tags (separados por comas, máx 6)";
-
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{nameLabel}</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <BasicFields form={form} language={language} />
           
           <ProjectCategoriesSelect form={form} language={language} />
-          
-          <FormField
-            control={form.control}
-            name="tags"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tagsLabel}</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="tech, web, app" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{shortDescLabel}</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={2} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="long_description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{longDescLabel}</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={6} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="website_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{websiteLabel}</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="https://yourproject.com" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
           
           <ProjectImageUpload 
             language={language} 
@@ -172,30 +76,12 @@ const ProjectForm = ({
           />
         </div>
         
-        <div className="flex justify-end gap-4 pt-4 border-t">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-            disabled={isUploading}
-          >
-            {cancelButtonText}
-          </Button>
-          <Button 
-            type="submit"
-            className="bg-club-orange hover:bg-club-terracotta text-white"
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {language === "en" ? "Uploading..." : "Subiendo..."}
-              </>
-            ) : (
-              submitButtonText
-            )}
-          </Button>
-        </div>
+        <FormButtons 
+          onCancel={onCancel}
+          isUploading={isUploading}
+          isEditing={isEditing}
+          language={language}
+        />
       </form>
     </Form>
   );
