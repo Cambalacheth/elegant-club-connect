@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +10,19 @@ import { Event } from "@/types/event";
 
 interface EventFormProps {
   initialData?: Partial<Event>;
-  onSubmit: (data: Partial<Event>) => Promise<void>;
+  onSubmit: (data: CreateEventData) => Promise<void>;
   isSubmitting: boolean;
 }
+
+type CreateEventData = {
+  title: string;
+  description: string;
+  location?: string;
+  price?: string;
+  event_date?: string;
+  image_url?: string;
+  reservation_link?: string;
+};
 
 export const EventForm = ({ 
   initialData, 
@@ -24,7 +33,7 @@ export const EventForm = ({
   const [revealDateLater, setRevealDateLater] = useState<boolean>(!initialData?.event_date);
   const [revealLocationLater, setRevealLocationLater] = useState<boolean>(!initialData?.location);
   
-  const form = useForm<Partial<Event>>({
+  const form = useForm<CreateEventData>({
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
@@ -35,11 +44,10 @@ export const EventForm = ({
     }
   });
 
-  const handleSubmit = async (data: Partial<Event>) => {
+  const handleSubmit = async (data: CreateEventData) => {
     const formattedData = {
       ...data,
       image_url: imagePreview,
-      // Handle the "reveal later" options
       event_date: revealDateLater ? null : data.event_date,
       location: revealLocationLater ? null : data.location
     };

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
@@ -14,10 +15,20 @@ import { EventForm } from "./EventForm";
 import { Event } from "@/types/event";
 import { useEvents } from "@/hooks/useEvents";
 
-// Update the EventManagement component to accept an onEventAdded prop
 interface EventManagementProps {
   onEventAdded?: () => void;
 }
+
+// Define a type for the form data that matches what createEvent expects
+type CreateEventData = {
+  title: string;
+  description: string;
+  location?: string;
+  price?: string;
+  event_date?: string;
+  image_url?: string;
+  reservation_link?: string;
+};
 
 export const EventManagement = ({ onEventAdded }: EventManagementProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -25,7 +36,7 @@ export const EventManagement = ({ onEventAdded }: EventManagementProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createEvent, updateEvent } = useEvents();
 
-  const handleSubmitEvent = async (data: Partial<Event>) => {
+  const handleSubmitEvent = async (data: CreateEventData) => {
     try {
       setIsSubmitting(true);
       if (editingEvent) {
@@ -36,7 +47,6 @@ export const EventManagement = ({ onEventAdded }: EventManagementProps) => {
       
       setIsDialogOpen(false);
       
-      // Call the onEventAdded callback if it exists
       if (onEventAdded) {
         onEventAdded();
       }
