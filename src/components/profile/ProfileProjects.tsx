@@ -1,6 +1,7 @@
 
 import { ExternalLink } from "lucide-react";
 import { Project } from "@/types/project";
+import { getCategoryLabel } from "../projects/utils/categoryOptions";
 
 interface ProfileProjectsProps {
   projects: Project[];
@@ -44,7 +45,7 @@ const ProfileProjects = ({ projects, currentLanguage, getCategoryTranslation }: 
                     key={index}
                     className="bg-club-beige px-2 py-1 rounded text-xs text-club-brown"
                   >
-                    {getCategoryTranslation(category)}
+                    {getCategoryLabel(category, currentLanguage)}
                   </span>
                 ))}
               </div>
