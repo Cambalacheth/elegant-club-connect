@@ -4,7 +4,7 @@ import { Calendar, Shield } from "lucide-react";
 import { useForumUser } from "@/hooks/useForumUser";
 import { Project } from "@/types/project";
 import ProjectImage from "./ProjectImage";
-import ProjectCategories from "./ProjectCategories";
+import ProjectCardCategories from "./ProjectCardCategories";
 import ProjectAuthor from "./ProjectAuthor";
 import ProjectActions from "./ProjectActions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -48,7 +48,7 @@ const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectC
       <ProjectImage imageUrl={project.image_url} name={project.name} />
 
       <div className="p-5">
-        <ProjectCategories categories={categoriesToDisplay} />
+        <ProjectCardCategories categories={categoriesToDisplay} />
 
         <h3 className="text-xl font-serif text-club-brown mb-2 line-clamp-2">
           {project.name}
