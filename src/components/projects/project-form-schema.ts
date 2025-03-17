@@ -33,4 +33,5 @@ export interface Project {
   username?: string;
   avatar_url?: string;
   created_at: string;
+  approved?: boolean;
 }
