@@ -94,10 +94,10 @@ const EventsSection = () => {
             }`}
           >
             <a 
-              href="#" 
+              href="/events" 
               className="inline-block bg-club-orange-mid text-club-white px-8 py-4 rounded-full text-lg font-medium btn-hover-effect"
             >
-              Ver Detalles
+              Ver Todos los Eventos
             </a>
           </div>
         </div>

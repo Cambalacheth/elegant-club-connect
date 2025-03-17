@@ -145,21 +145,19 @@ const Events = () => {
               locationToBeAnnouncedText={texts.locationToBeAnnouncedText}
             />
             
-            {pastEvents.length > 0 && (
-              <EventsSection 
-                title={texts.pastEventsText}
-                events={pastEvents}
-                isPast={true}
-                noEventsText={texts.noEventsText}
-                language={language}
-                isAdmin={isAdmin}
-                onEditClick={handleEditClick}
-                onDeleteClick={handleDeleteEvent}
-                registerText={texts.registerText}
-                dateToBeAnnouncedText={texts.dateToBeAnnouncedText}
-                locationToBeAnnouncedText={texts.locationToBeAnnouncedText}
-              />
-            )}
+            <EventsSection 
+              title={texts.pastEventsText}
+              events={pastEvents}
+              isPast={true}
+              noEventsText={texts.noEventsText}
+              language={language}
+              isAdmin={isAdmin}
+              onEditClick={handleEditClick}
+              onDeleteClick={handleDeleteEvent}
+              registerText={texts.registerText}
+              dateToBeAnnouncedText={texts.dateToBeAnnouncedText}
+              locationToBeAnnouncedText={texts.locationToBeAnnouncedText}
+            />
           </>
         )}
       </div>
