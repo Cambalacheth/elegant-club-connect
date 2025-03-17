@@ -80,6 +80,7 @@ export function useProjectSubmit({ language, userId, projectToEdit, onSubmitted 
         category: values.categories[0], // Keep primary category for backward compatibility
         categories: values.categories, // Store all selected categories
         tags: tagsArray,
+        approved: isEditing ? projectToEdit?.approved : false, // New projects start as unapproved
       };
 
       let error;
@@ -102,6 +103,15 @@ export function useProjectSubmit({ language, userId, projectToEdit, onSubmitted 
       }
 
       if (error) throw error;
+
+      const successMessage = isEditing
+        ? (language === "en" ? "Project updated successfully" : "Proyecto actualizado con éxito")
+        : (language === "en" ? "Project submitted for approval" : "Proyecto enviado para aprobación");
+
+      toast({
+        title: language === "en" ? "Success" : "Éxito",
+        description: successMessage,
+      });
 
       onSubmitted();
     } catch (error) {

@@ -37,7 +37,7 @@ const Projects = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl md:text-4xl font-bold text-club-brown">Proyectos</h1>
-            <NewProjectButton user={user} language="es" />
+            {user && <NewProjectButton user={user} language="es" />}
           </div>
           
           {/* Search Bar - Optimized for mobile */}
