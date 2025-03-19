@@ -87,7 +87,11 @@ const ProfileFormFields = ({ form, texts }: ProfileFormFieldsProps) => {
             <FormItem>
               <FormLabel>{texts.birthDateLabel}</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input 
+                  type="date" 
+                  {...field} 
+                  value={field.value || ''} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

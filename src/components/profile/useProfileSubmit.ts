@@ -48,21 +48,25 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
         finalAvatarUrl = publicUrl;
       }
       
+      // Prepare the profile update data
+      const profileData = {
+        username: values.username,
+        description: values.description,
+        email_visible: values.email_visible,
+        website: values.website,
+        gender: values.gender,
+        // Only include birth_date if it's not empty
+        ...(values.birth_date ? { birth_date: values.birth_date } : { birth_date: null }),
+        category: values.categories && values.categories.length > 0 ? values.categories[0] : null,
+        categories: values.categories || [],
+        avatar_url: finalAvatarUrl,
+        updated_at: new Date().toISOString(),
+      };
+      
       // Update profile
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({
-          username: values.username,
-          description: values.description,
-          email_visible: values.email_visible,
-          website: values.website,
-          gender: values.gender,
-          birth_date: values.birth_date,
-          category: values.categories && values.categories.length > 0 ? values.categories[0] : null,
-          categories: values.categories || [],
-          avatar_url: finalAvatarUrl,
-          updated_at: new Date().toISOString(),
-        })
+        .update(profileData)
         .eq("id", userId);
         
       if (updateError) {
@@ -155,11 +159,21 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
       return true;
     } catch (error: any) {
       console.error("Error updating profile:", error);
+      
+      // Provide more specific error messages
+      let errorMessage = error.message || "Unknown error";
+      
+      if (error.code === "22007") {
+        errorMessage = currentLanguage === "en"
+          ? "Invalid date format"
+          : "Formato de fecha inválido";
+      }
+      
       toast({
         title: "Error",
         description: currentLanguage === "en"
-          ? `There was an error updating your profile: ${error.message || "Unknown error"}`
-          : `Hubo un error al actualizar tu perfil: ${error.message || "Error desconocido"}`,
+          ? `There was an error updating your profile: ${errorMessage}`
+          : `Hubo un error al actualizar tu perfil: ${errorMessage}`,
         variant: "destructive",
       });
       
