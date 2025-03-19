@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import EditProfileForm from "@/components/EditProfileForm";
+import ProfileForm from "@/components/profile/ProfileForm";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileAbout from "@/components/profile/ProfileAbout";
 import ProfileProjects from "@/components/profile/ProfileProjects";

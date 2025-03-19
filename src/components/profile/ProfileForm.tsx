@@ -6,31 +6,15 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { SocialPlatform } from "@/types/profile";
-import ProfileAvatarUpload from "./profile/ProfileAvatarUpload";
-import SocialLinksSection from "./profile/SocialLinksSection";
-import CategoriesSection from "./profile/CategoriesSection";
-import { useProfileSubmit } from "./profile/useProfileSubmit";
-import { getProfileFormTexts } from "./profile/profileFormTexts";
+import ProfileFormFields from "./ProfileFormFields";
+import ProfileAvatarUpload from "./ProfileAvatarUpload";
+import SocialLinksSection from "./SocialLinksSection";
+import CategoriesSection from "./CategoriesSection";
+import { useProfileSubmit } from "./useProfileSubmit";
+import { getProfileFormTexts } from "./profileFormTexts";
+import { profileFormSchema } from "./profileFormSchema";
 
 interface SocialLink {
   id?: string;
@@ -38,13 +22,13 @@ interface SocialLink {
   url: string;
 }
 
-interface EditProfileFormProps {
+interface ProfileFormProps {
   userId: string;
   currentLanguage: string;
   onCancel: () => void;
 }
 
-const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormProps) => {
+const ProfileForm = ({ userId, currentLanguage, onCancel }: ProfileFormProps) => {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
@@ -72,23 +56,8 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     { id: "Salud", label: currentLanguage === "en" ? "Health" : "Salud" },
   ];
 
-  const formSchema = z.object({
-    username: z.string().min(3, {
-      message:
-        currentLanguage === "en"
-          ? "Username must be at least 3 characters."
-          : "El nombre de usuario debe tener al menos 3 caracteres.",
-    }),
-    description: z.string().optional(),
-    email_visible: z.boolean().default(false),
-    website: z.string().optional(),
-    gender: z.string().optional(),
-    birth_date: z.string().optional(),
-    categories: z.array(z.string()).optional(),
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof profileFormSchema>>({
+    resolver: zodResolver(profileFormSchema),
     defaultValues: {
       username: "",
       description: "",
@@ -154,7 +123,7 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
     fetchProfileData();
   }, [userId, form]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof profileFormSchema>) => {
     await submitProfile(values, avatarUrl, avatarFile, socialLinks);
   };
 
@@ -176,114 +145,15 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
               currentLanguage={currentLanguage}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{texts.usernameLabel}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{texts.websiteLabel}</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="https://your-website.com" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="gender"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{texts.genderLabel}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={texts.genderLabel} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="male">{texts.genderMale}</SelectItem>
-                        <SelectItem value="female">{texts.genderFemale}</SelectItem>
-                        <SelectItem value="other">{texts.genderOther}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="birth_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{texts.birthDateLabel}</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <ProfileFormFields 
+              form={form} 
+              texts={texts}
+            />
 
             <CategoriesSection 
               form={form} 
               currentLanguage={currentLanguage} 
               categoriesOptions={categoriesOptions} 
-            />
-
-            <FormField
-              control={form.control}
-              name="email_visible"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">{texts.emailVisibleLabel}</FormLabel>
-                    <FormDescription>{texts.emailVisibleDescription}</FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{texts.descriptionLabel}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={6}
-                      placeholder={currentLanguage === "en" ? "Tell us about yourself" : "Cuéntanos sobre ti"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
             />
 
             <SocialLinksSection 
@@ -325,4 +195,4 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
   );
 };
 
-export default EditProfileForm;
+export default ProfileForm;
