@@ -3,12 +3,7 @@ import { z } from "zod";
 
 export const getProfileFormSchema = (currentLanguage: string) => {
   return z.object({
-    username: z.string().min(3, {
-      message:
-        currentLanguage === "en"
-          ? "Username must be at least 3 characters."
-          : "El nombre de usuario debe tener al menos 3 caracteres.",
-    }),
+    username: z.string().optional(),
     description: z.string().optional(),
     email_visible: z.boolean().default(false),
     website: z.string().optional(),
@@ -19,9 +14,7 @@ export const getProfileFormSchema = (currentLanguage: string) => {
 };
 
 export const profileFormSchema = z.object({
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters.",
-  }),
+  username: z.string().optional(),
   description: z.string().optional(),
   email_visible: z.boolean().default(false),
   website: z.string().optional(),

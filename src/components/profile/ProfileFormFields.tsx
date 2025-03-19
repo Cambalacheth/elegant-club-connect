@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Eye, EyeOff } from "lucide-react";
 
 interface ProfileFormFieldsProps {
   form: UseFormReturn<any>;
@@ -100,13 +101,25 @@ const ProfileFormFields = ({ form, texts }: ProfileFormFieldsProps) => {
         render={({ field }) => (
           <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <FormLabel className="text-base">{texts.emailVisibleLabel}</FormLabel>
-              <FormDescription>{texts.emailVisibleDescription}</FormDescription>
+              <FormLabel className="text-base flex items-center gap-2">
+                {texts.emailVisibleLabel}
+                {field.value ? (
+                  <Eye className="h-4 w-4 text-club-orange" />
+                ) : (
+                  <EyeOff className="h-4 w-4 text-gray-500" />
+                )}
+              </FormLabel>
+              <FormDescription>
+                {field.value 
+                  ? texts.emailVisibleOnDescription || texts.emailVisibleDescription
+                  : texts.emailVisibleOffDescription || texts.emailVisibleDescription}
+              </FormDescription>
             </div>
             <FormControl>
               <Switch
                 checked={field.value}
                 onCheckedChange={field.onChange}
+                className={field.value ? "bg-club-orange" : ""}
               />
             </FormControl>
           </FormItem>

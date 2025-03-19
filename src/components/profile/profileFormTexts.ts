@@ -5,11 +5,19 @@ export const getProfileFormTexts = (currentLanguage: string) => ({
   cancelButton: currentLanguage === "en" ? "Cancel" : "Cancelar",
   usernameLabel: currentLanguage === "en" ? "Username" : "Nombre de usuario",
   descriptionLabel: currentLanguage === "en" ? "Bio" : "Biografía",
-  emailVisibleLabel: currentLanguage === "en" ? "Display Email to Others" : "Mostrar Email a Otros",
+  emailVisibleLabel: currentLanguage === "en" ? "Display Email" : "Mostrar Email",
   emailVisibleDescription:
     currentLanguage === "en"
-      ? "When enabled, your email address will be visible to other users on your profile page"
-      : "Cuando está activado, tu dirección de email será visible para otros usuarios en tu página de perfil",
+      ? "Choose whether to show or hide your email on your profile"
+      : "Elige si mostrar u ocultar tu email en tu perfil",
+  emailVisibleOnDescription:
+    currentLanguage === "en"
+      ? "Your email will be visible to others on your profile"
+      : "Tu email será visible para otros en tu perfil",
+  emailVisibleOffDescription:
+    currentLanguage === "en"
+      ? "Your email is hidden from other users"
+      : "Tu email está oculto para otros usuarios",
   websiteLabel: currentLanguage === "en" ? "Website" : "Sitio Web",
   genderLabel: currentLanguage === "en" ? "Gender" : "Género",
   genderMale: currentLanguage === "en" ? "Male" : "Masculino",
