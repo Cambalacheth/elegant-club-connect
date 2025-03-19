@@ -27,6 +27,7 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
     try {
       let finalAvatarUrl = avatarUrl;
       
+      // Upload new avatar if provided
       if (avatarFile) {
         const fileExt = avatarFile.name.split('.').pop();
         const fileName = `${userId}-${Date.now()}.${fileExt}`;
@@ -35,7 +36,10 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
           .from("avatars")
           .upload(fileName, avatarFile);
           
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Avatar upload error:", uploadError);
+          throw uploadError;
+        }
         
         const { data: { publicUrl } } = supabase.storage
           .from("avatars")
@@ -44,6 +48,7 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
         finalAvatarUrl = publicUrl;
       }
       
+      // Update profile
       const { error: updateError } = await supabase
         .from("profiles")
         .update({
@@ -54,58 +59,88 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
           gender: values.gender,
           birth_date: values.birth_date,
           category: values.categories && values.categories.length > 0 ? values.categories[0] : null,
-          categories: values.categories,
+          categories: values.categories || [],
           avatar_url: finalAvatarUrl,
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
         
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Profile update error:", updateError);
+        throw updateError;
+      }
       
+      // Handle social links
       const { data: existingLinks, error: fetchError } = await supabase
         .from("social_links")
         .select("id, platform")
         .eq("profile_id", userId);
         
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching existing social links:", fetchError);
+        throw fetchError;
+      }
       
       const existingLinksMap = new Map();
       existingLinks?.forEach(link => {
         existingLinksMap.set(link.platform, link.id);
       });
       
+      // Update or insert social links
       for (const link of socialLinks) {
         if (!link.url) continue;
         
         if (link.id) {
-          await supabase
+          const { error: updateLinkError } = await supabase
             .from("social_links")
             .update({ platform: link.platform, url: link.url })
             .eq("id", link.id);
+            
+          if (updateLinkError) {
+            console.error("Error updating social link:", updateLinkError);
+          }
             
           existingLinksMap.delete(link.platform);
         } else {
           const existingId = existingLinksMap.get(link.platform);
           
           if (existingId) {
-            await supabase
+            const { error: updateLinkError } = await supabase
               .from("social_links")
               .update({ url: link.url })
               .eq("id", existingId);
               
+            if (updateLinkError) {
+              console.error("Error updating existing social link:", updateLinkError);
+            }
+              
             existingLinksMap.delete(link.platform);
           } else {
-            await supabase.from("social_links").insert({
-              profile_id: userId,
-              platform: link.platform,
-              url: link.url,
-            });
+            const { error: insertLinkError } = await supabase
+              .from("social_links")
+              .insert({
+                profile_id: userId,
+                platform: link.platform,
+                url: link.url,
+              });
+              
+            if (insertLinkError) {
+              console.error("Error inserting social link:", insertLinkError);
+            }
           }
         }
       }
       
+      // Remove deleted social links
       for (const id of existingLinksMap.values()) {
-        await supabase.from("social_links").delete().eq("id", id);
+        const { error: deleteLinkError } = await supabase
+          .from("social_links")
+          .delete()
+          .eq("id", id);
+          
+        if (deleteLinkError) {
+          console.error("Error deleting social link:", deleteLinkError);
+        }
       }
       
       toast({
@@ -118,13 +153,13 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
       navigate(`/user/${values.username}`);
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({
         title: "Error",
         description: currentLanguage === "en"
-          ? "There was an error updating your profile"
-          : "Hubo un error al actualizar tu perfil",
+          ? `There was an error updating your profile: ${error.message || "Unknown error"}`
+          : `Hubo un error al actualizar tu perfil: ${error.message || "Error desconocido"}`,
         variant: "destructive",
       });
       

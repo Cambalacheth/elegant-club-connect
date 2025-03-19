@@ -5,11 +5,11 @@ export const getProfileFormTexts = (currentLanguage: string) => ({
   cancelButton: currentLanguage === "en" ? "Cancel" : "Cancelar",
   usernameLabel: currentLanguage === "en" ? "Username" : "Nombre de usuario",
   descriptionLabel: currentLanguage === "en" ? "Bio" : "Biografía",
-  emailVisibleLabel: currentLanguage === "en" ? "Email Visible" : "Email Visible",
+  emailVisibleLabel: currentLanguage === "en" ? "Display Email to Others" : "Mostrar Email a Otros",
   emailVisibleDescription:
     currentLanguage === "en"
-      ? "Make your email visible to other users"
-      : "Hacer tu email visible para otros usuarios",
+      ? "When enabled, your email address will be visible to other users on your profile page"
+      : "Cuando está activado, tu dirección de email será visible para otros usuarios en tu página de perfil",
   websiteLabel: currentLanguage === "en" ? "Website" : "Sitio Web",
   genderLabel: currentLanguage === "en" ? "Gender" : "Género",
   genderMale: currentLanguage === "en" ? "Male" : "Masculino",
@@ -22,7 +22,7 @@ export const getProfileFormTexts = (currentLanguage: string) => ({
   socialLinksLabel: currentLanguage === "en" ? "Social Links" : "Enlaces Sociales",
   addSocialLink: currentLanguage === "en" ? "Add Social Link" : "Añadir Enlace Social",
   platformLabel: currentLanguage === "en" ? "Platform" : "Plataforma",
-  urlLabel: currentLanguage === "en" ? "Username" : "Nombre de Usuario",
+  urlLabel: currentLanguage === "en" ? "Username or URL" : "Nombre de Usuario o URL",
   selectPlatform: currentLanguage === "en" ? "Select platform" : "Seleccionar plataforma",
   successMessage: currentLanguage === "en" ? "Success" : "Éxito",
   errorMessage: currentLanguage === "en" 

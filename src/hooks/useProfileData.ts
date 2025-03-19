@@ -21,29 +21,41 @@ export const useProfileData = (username: string | undefined, currentLanguage: st
     const fetchProfileData = async () => {
       setLoading(true);
       try {
+        // Get current session
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
           setCurrentUser(session.user);
           
-          const { data: currentUserProfile } = await supabase
+          // Get current user's profile to check if viewing own profile
+          const { data: currentUserProfile, error: currentUserError } = await supabase
             .from("profiles")
             .select("username")
             .eq("id", session.user.id)
-            .single();
+            .maybeSingle();
+            
+          if (currentUserError) {
+            console.error("Error fetching current user profile:", currentUserError);
+          }
             
           if (currentUserProfile && currentUserProfile.username === username) {
             setIsOwnProfile(true);
           }
         }
         
+        // Get profile data for the username being viewed
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("username", username)
           .maybeSingle();
         
-        if (profileError || !profileData) {
+        if (profileError) {
+          console.error("Profile fetch error:", profileError);
+          throw new Error(profileError.message);
+        }
+        
+        if (!profileData) {
           throw new Error("Profile not found");
         }
 
@@ -55,21 +67,27 @@ export const useProfileData = (username: string | undefined, currentLanguage: st
         
         setProfile(profileWithEmail);
         
-        const { data: socialData } = await supabase
+        // Get social links for this profile
+        const { data: socialData, error: socialError } = await supabase
           .from("social_links")
           .select("*")
           .eq("profile_id", profileData.id);
           
-        if (socialData) {
+        if (socialError) {
+          console.error("Social links fetch error:", socialError);
+        } else if (socialData) {
           setSocialLinks(socialData);
         }
         
-        const { data: projectsData } = await supabase
+        // Get projects for this profile
+        const { data: projectsData, error: projectsError } = await supabase
           .from("projects")
           .select("*")
           .eq("profile_id", profileData.id);
           
-        if (projectsData) {
+        if (projectsError) {
+          console.error("Projects fetch error:", projectsError);
+        } else if (projectsData) {
           setProjects(projectsData);
         }
       } catch (error) {

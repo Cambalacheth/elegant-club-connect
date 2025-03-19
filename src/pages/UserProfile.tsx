@@ -11,6 +11,8 @@ import ProfileSidebar from "@/components/profile/ProfileSidebar";
 import ProfileSkeleton from "@/components/profile/ProfileSkeleton";
 import { useProfileData } from "@/hooks/useProfileData";
 import { getCategoryTranslation } from "@/utils/translations";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "@/components/auth/InfoIcon";
 
 const UserProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -54,9 +56,17 @@ const UserProfile = () => {
         <Navbar currentLanguage={currentLanguage} />
         <div className="container mx-auto px-6 pt-32 pb-16">
           <div className="flex justify-center items-center h-64 flex-col gap-4">
-            <p className="text-club-brown text-xl">
-              {currentLanguage === "en" ? "Profile not found" : "Perfil no encontrado"}
-            </p>
+            <Alert variant="destructive" className="max-w-md">
+              <InfoIcon className="h-4 w-4" />
+              <AlertTitle>
+                {currentLanguage === "en" ? "Profile not found" : "Perfil no encontrado"}
+              </AlertTitle>
+              <AlertDescription>
+                {currentLanguage === "en" 
+                  ? "The requested profile could not be found." 
+                  : "El perfil solicitado no pudo ser encontrado."}
+              </AlertDescription>
+            </Alert>
             <button 
               onClick={() => navigate("/")}
               className="px-6 py-2 bg-club-orange rounded-md text-white hover:bg-club-terracota transition-colors"
