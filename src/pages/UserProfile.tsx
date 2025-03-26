@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { ArrowLeft } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ProfileForm from "@/components/profile/ProfileForm";
@@ -41,9 +42,22 @@ const UserProfile = () => {
 
   const translateCategory = (category: string) => getCategoryTranslation(category, currentLanguage);
 
+  // SEO title and description
+  const pageTitle = profile 
+    ? `${profile.username} - ${currentLanguage === "en" ? "Profile" : "Perfil"} | Terreta Hub` 
+    : currentLanguage === "en" ? "Profile | Terreta Hub" : "Perfil | Terreta Hub";
+  
+  const pageDescription = profile 
+    ? `${profile.description?.substring(0, 160) || (currentLanguage === "en" ? `${profile.username}'s profile` : `Perfil de ${profile.username}`)}` 
+    : currentLanguage === "en" ? "View member profiles on Terreta Hub" : "Ver perfiles de miembros en Terreta Hub";
+
   if (loading) {
     return (
       <div className="min-h-screen bg-club-beige">
+        <Helmet>
+          <title>{currentLanguage === "en" ? "Loading Profile | Terreta Hub" : "Cargando Perfil | Terreta Hub"}</title>
+          <meta name="description" content={currentLanguage === "en" ? "Loading profile information..." : "Cargando información del perfil..."} />
+        </Helmet>
         <Navbar currentLanguage={currentLanguage} />
         <ProfileSkeleton currentLanguage={currentLanguage} />
       </div>
@@ -53,8 +67,12 @@ const UserProfile = () => {
   if (!profile) {
     return (
       <div className="min-h-screen bg-club-beige">
+        <Helmet>
+          <title>{currentLanguage === "en" ? "Profile Not Found | Terreta Hub" : "Perfil No Encontrado | Terreta Hub"}</title>
+          <meta name="description" content={currentLanguage === "en" ? "The requested profile could not be found." : "El perfil solicitado no pudo ser encontrado."} />
+        </Helmet>
         <Navbar currentLanguage={currentLanguage} />
-        <div className="container mx-auto px-6 pt-32 pb-16">
+        <main className="container mx-auto px-6 pt-32 pb-16">
           <div className="flex justify-center items-center h-64 flex-col gap-4">
             <Alert variant="destructive" className="max-w-md">
               <InfoIcon className="h-4 w-4" />
@@ -74,32 +92,53 @@ const UserProfile = () => {
               {currentLanguage === "en" ? "Return to Home" : "Volver al Inicio"}
             </button>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-club-beige">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        {profile.avatar_url && <meta property="og:image" content={profile.avatar_url} />}
+        <meta property="og:type" content="profile" />
+        <meta property="profile:username" content={profile.username} />
+        {profile.categories && profile.categories.length > 0 && (
+          <meta name="keywords" content={profile.categories.join(', ')} />
+        )}
+        <link rel="canonical" href={`${window.location.origin}/user/${username}`} />
+      </Helmet>
+      
       <Navbar currentLanguage={currentLanguage} />
       
-      <div className="container mx-auto px-6 pt-32 pb-16">
-        <button 
-          onClick={() => navigate(-1)}
-          className="mb-8 flex items-center text-club-brown hover:text-club-terracota transition-colors"
-        >
-          <ArrowLeft size={20} className="mr-2" />
-          {currentLanguage === "en" ? "Back" : "Volver"}
-        </button>
+      <main className="container mx-auto px-6 pt-32 pb-16">
+        <nav aria-label="breadcrumb" className="mb-8">
+          <button 
+            onClick={() => navigate(-1)}
+            className="flex items-center text-club-brown hover:text-club-terracota transition-colors"
+          >
+            <ArrowLeft size={20} className="mr-2" />
+            <span>{currentLanguage === "en" ? "Back" : "Volver"}</span>
+          </button>
+        </nav>
 
         {isEditing ? (
-          <EditProfileForm 
-            userId={profile.id} 
-            currentLanguage={currentLanguage} 
-            onCancel={handleCancelEdit} 
-          />
+          <section aria-labelledby="edit-profile-heading">
+            <h1 id="edit-profile-heading" className="sr-only">
+              {currentLanguage === "en" ? "Edit Profile" : "Editar Perfil"}
+            </h1>
+            <ProfileForm 
+              userId={profile.id} 
+              currentLanguage={currentLanguage} 
+              onCancel={handleCancelEdit} 
+            />
+          </section>
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <article className="bg-white rounded-lg shadow-md overflow-hidden">
             <ProfileHeader 
               profile={profile}
               isOwnProfile={isOwnProfile}
@@ -133,9 +172,9 @@ const UserProfile = () => {
                 />
               </div>
             </div>
-          </div>
+          </article>
         )}
-      </div>
+      </main>
     </div>
   );
 };

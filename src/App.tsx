@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
@@ -29,33 +30,35 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:id" element={<ProjectDetail />} />
-            <Route path="/content" element={<Content />} />
-            <Route path="/content/:type/:id" element={<ContentDetail />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/events/:id" element={<EventDetail />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/user/me" element={<MeRedirect />} />
-            <Route path="/user/:username" element={<UserProfile />} />
-            <Route path="/members" element={<Members />} />
-            <Route path="/forum" element={<ForumPage />} />
-            <Route path="/forum/:id" element={<DebateDetailPage />} />
-            <Route path="/admin" element={<AdminPage />} />
-            <Route path="/asado" element={<AsadoRegistration />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <HelmetProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/projects/:id" element={<ProjectDetail />} />
+              <Route path="/content" element={<Content />} />
+              <Route path="/content/:type/:id" element={<ContentDetail />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/user/me" element={<MeRedirect />} />
+              <Route path="/user/:username" element={<UserProfile />} />
+              <Route path="/members" element={<Members />} />
+              <Route path="/forum" element={<ForumPage />} />
+              <Route path="/forum/:id" element={<DebateDetailPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/asado" element={<AsadoRegistration />} />
+              <Route path="/search" element={<SearchPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </HelmetProvider>
     </QueryClientProvider>
   );
 }

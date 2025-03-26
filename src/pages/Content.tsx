@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Video, Newspaper, BookOpen } from "lucide-react";
 import Navbar from "../components/Navbar";
@@ -35,14 +36,31 @@ const Content = () => {
   const resourcesText = language === "en" ? "Resources" : "Recursos";
   const managementText = language === "en" ? "Content Management" : "Gestión de Contenido";
 
+  // SEO title and meta description
+  const pageTitle = `${contentTitle} | Terreta Hub`;
+  const pageDescription = language === "en" 
+    ? "Explore community content including articles, videos, guides and resources."
+    : "Explora el contenido de la comunidad incluyendo artículos, videos, guías y recursos.";
+
   return (
-    <main className="min-h-screen bg-club-beige">
+    <div className="min-h-screen bg-club-beige">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:type" content="website" />
+        <link rel="canonical" href={`${window.location.origin}/content`} />
+      </Helmet>
+      
       <Navbar currentLanguage={language} />
       
-      <div className="container mx-auto px-6 pt-32 pb-16">
-        <h1 className="text-4xl md:text-5xl font-serif text-club-brown text-center mb-12">
-          {contentTitle}
-        </h1>
+      <main className="container mx-auto px-6 pt-32 pb-16">
+        <header className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-serif text-club-brown text-center">
+            {contentTitle}
+          </h1>
+        </header>
         
         <Tabs 
           defaultValue="article" 
@@ -51,13 +69,13 @@ const Content = () => {
           className="w-full"
         >
           <div className="flex justify-center mb-8">
-            <TabsList className="bg-white/50 p-1">
+            <TabsList className="bg-white/50 p-1" aria-label="Categorías de contenido">
               <TabsTrigger 
                 value="article" 
                 className="data-[state=active]:bg-club-orange data-[state=active]:text-white"
               >
                 <FileText className="mr-2 h-4 w-4" />
-                {articlesText}
+                <span>{articlesText}</span>
               </TabsTrigger>
               
               <TabsTrigger 
@@ -65,7 +83,7 @@ const Content = () => {
                 className="data-[state=active]:bg-club-orange data-[state=active]:text-white"
               >
                 <Video className="mr-2 h-4 w-4" />
-                {videosText}
+                <span>{videosText}</span>
               </TabsTrigger>
               
               <TabsTrigger 
@@ -73,7 +91,7 @@ const Content = () => {
                 className="data-[state=active]:bg-club-orange data-[state=active]:text-white"
               >
                 <BookOpen className="mr-2 h-4 w-4" />
-                {guidesText}
+                <span>{guidesText}</span>
               </TabsTrigger>
               
               <TabsTrigger 
@@ -81,7 +99,7 @@ const Content = () => {
                 className="data-[state=active]:bg-club-orange data-[state=active]:text-white"
               >
                 <Newspaper className="mr-2 h-4 w-4" />
-                {resourcesText}
+                <span>{resourcesText}</span>
               </TabsTrigger>
               
               {!isUserLoading && user && userRole === 'admin' && (
@@ -89,59 +107,74 @@ const Content = () => {
                   value="management" 
                   className="data-[state=active]:bg-club-orange data-[state=active]:text-white"
                 >
-                  {managementText}
+                  <span>{managementText}</span>
                 </TabsTrigger>
               )}
             </TabsList>
           </div>
           
           <TabsContent value="article" className="mt-6">
-            <ContentList 
-              items={content}
-              type="article"
-              isLoading={isContentLoading}
-              currentLanguage={language}
-            />
+            <section aria-labelledby="articles-heading">
+              <h2 id="articles-heading" className="sr-only">{articlesText}</h2>
+              <ContentList 
+                items={content}
+                type="article"
+                isLoading={isContentLoading}
+                currentLanguage={language}
+              />
+            </section>
           </TabsContent>
           
           <TabsContent value="video" className="mt-6">
-            <ContentList 
-              items={content}
-              type="video"
-              isLoading={isContentLoading}
-              currentLanguage={language}
-            />
+            <section aria-labelledby="videos-heading">
+              <h2 id="videos-heading" className="sr-only">{videosText}</h2>
+              <ContentList 
+                items={content}
+                type="video"
+                isLoading={isContentLoading}
+                currentLanguage={language}
+              />
+            </section>
           </TabsContent>
           
           <TabsContent value="guide" className="mt-6">
-            <ContentList 
-              items={content}
-              type="guide"
-              isLoading={isContentLoading}
-              currentLanguage={language}
-            />
+            <section aria-labelledby="guides-heading">
+              <h2 id="guides-heading" className="sr-only">{guidesText}</h2>
+              <ContentList 
+                items={content}
+                type="guide"
+                isLoading={isContentLoading}
+                currentLanguage={language}
+              />
+            </section>
           </TabsContent>
           
           <TabsContent value="resource" className="mt-6">
-            <ContentList 
-              items={content}
-              type="resource"
-              isLoading={isContentLoading}
-              currentLanguage={language}
-            />
+            <section aria-labelledby="resources-heading">
+              <h2 id="resources-heading" className="sr-only">{resourcesText}</h2>
+              <ContentList 
+                items={content}
+                type="resource"
+                isLoading={isContentLoading}
+                currentLanguage={language}
+              />
+            </section>
           </TabsContent>
           
           {!isUserLoading && user && userRole === 'admin' && (
             <TabsContent value="management" className="mt-6">
-              <ContentManagement 
-                userId={user.id} 
-                userRole={userRole}
-              />
+              <section aria-labelledby="management-heading">
+                <h2 id="management-heading" className="sr-only">{managementText}</h2>
+                <ContentManagement 
+                  userId={user.id} 
+                  userRole={userRole}
+                />
+              </section>
             </TabsContent>
           )}
         </Tabs>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 };
 
