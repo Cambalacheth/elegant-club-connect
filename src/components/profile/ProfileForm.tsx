@@ -12,6 +12,7 @@ import ProfileFormFields from "./ProfileFormFields";
 import ProfileAvatarUpload from "./ProfileAvatarUpload";
 import SocialLinksSection from "./SocialLinksSection";
 import CategoriesSection from "./CategoriesSection";
+import LanguageSection from "./LanguageSection";
 import { useProfileSubmit } from "./useProfileSubmit";
 import { getProfileFormTexts } from "./profileFormTexts";
 import { profileFormSchema } from "./profileFormSchema";
@@ -66,6 +67,9 @@ const ProfileForm = ({ userId, currentLanguage, onCancel }: ProfileFormProps) =>
       gender: "",
       birth_date: "",
       categories: [],
+      preferred_language: "",
+      speaks_languages: [],
+      learning_languages: [],
     },
   });
 
@@ -96,6 +100,9 @@ const ProfileForm = ({ userId, currentLanguage, onCancel }: ProfileFormProps) =>
             ? new Date(profile.birth_date).toISOString().split("T")[0]
             : "",
           categories: categories,
+          preferred_language: profile.preferred_language || "",
+          speaks_languages: profile.speaks_languages || [],
+          learning_languages: profile.learning_languages || [],
         });
 
         setAvatarUrl(profile.avatar_url);
@@ -148,6 +155,11 @@ const ProfileForm = ({ userId, currentLanguage, onCancel }: ProfileFormProps) =>
             <ProfileFormFields 
               form={form} 
               texts={texts}
+            />
+
+            <LanguageSection
+              form={form}
+              currentLanguage={currentLanguage}
             />
 
             <CategoriesSection 

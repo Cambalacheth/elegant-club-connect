@@ -1,4 +1,3 @@
-
 export interface Profile {
   id: string;
   username: string;
@@ -14,6 +13,9 @@ export interface Profile {
   updated_at: string;
   category?: string | null;
   categories?: string[] | null;
+  preferred_language?: string | null;
+  speaks_languages?: string[] | null;
+  learning_languages?: string[] | null;
 }
 
 export interface SocialLink {

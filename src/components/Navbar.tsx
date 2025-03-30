@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Menu, X, User, CheckCircle, ShieldAlert, ShieldCheck, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole, canAdminContent } from "@/types/user";
 import SearchBar from "./SearchBar";
+import LanguageSelection from "./LanguageSelection";
 
 interface NavbarProps {
   currentLanguage?: string;
@@ -172,20 +172,26 @@ const Navbar = ({ currentLanguage = "es" }: NavbarProps) => {
               {adminText}
             </Link>
           )}
-          <button 
-            onClick={handleAuthOrProfile}
-            className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect flex items-center gap-2"
-          >
-            {enterClubText}
-            <div className="flex items-center gap-1">
-              {user && <User size={16} />}
-              {renderRoleIcon()}
-            </div>
-          </button>
+          <div className="flex items-center">
+            <LanguageSelection currentLanguage={currentLanguage} />
+            <button 
+              onClick={handleAuthOrProfile}
+              className="bg-club-orange text-club-white px-6 py-2.5 rounded-full btn-hover-effect flex items-center gap-2 ml-2"
+            >
+              {enterClubText}
+              <div className="flex items-center gap-1">
+                {user && <User size={16} />}
+                {renderRoleIcon()}
+              </div>
+            </button>
+          </div>
         </nav>
 
         <div className="flex items-center md:hidden">
-          <div className="mr-4">
+          <div className="mr-2">
+            <LanguageSelection currentLanguage={currentLanguage} />
+          </div>
+          <div className="mr-2">
             <SearchBar currentLanguage={currentLanguage} />
           </div>
           <button 

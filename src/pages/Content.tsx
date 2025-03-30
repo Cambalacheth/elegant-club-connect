@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -39,8 +38,8 @@ const Content = () => {
   // SEO title and meta description
   const pageTitle = `${contentTitle} | Terreta Hub`;
   const pageDescription = language === "en" 
-    ? "Explore community content including articles, videos, guides and resources."
-    : "Explora el contenido de la comunidad incluyendo artículos, videos, guías y recursos.";
+    ? "Explore community-created content including articles, videos, guides and resources from Terreta Hub members."
+    : "Explora el contenido creado por la comunidad incluyendo artículos, videos, guías y recursos de los miembros de Terreta Hub.";
 
   return (
     <div className="min-h-screen bg-club-beige">
