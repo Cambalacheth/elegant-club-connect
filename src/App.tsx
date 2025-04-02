@@ -24,6 +24,8 @@ import SearchPage from './pages/SearchPage';
 import ContentDetail from "./pages/ContentDetail";
 import EventDetail from "./pages/EventDetail";
 import ProjectDetail from "./pages/ProjectDetail";
+import DomainPage from "./pages/DomainPage";
+import ElFotographerPage from "./pages/ElFotographerPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +56,8 @@ function App() {
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/asado" element={<AsadoRegistration />} />
               <Route path="/search" element={<SearchPage />} />
+              <Route path="/dominio" element={<DomainPage />} />
+              <Route path="/ElFotographer" element={<ElFotographerPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
