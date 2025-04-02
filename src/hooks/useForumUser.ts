@@ -60,18 +60,15 @@ export const useForumUser = () => {
       }
 
       // Handle the number to UserLevel conversion safely
-      const numericLevel = data?.level !== undefined ? (typeof data.level === 'string' 
-          ? parseInt(data.level, 10) 
-          : Number(data.level)) 
-        : 1;
+      const numericLevel = data?.level !== undefined ? 
+        (typeof data.level === 'string' ? parseInt(data.level, 10) : Number(data.level)) : 1;
       
       // Ensure the level is valid
-      const safeLevel = (numericLevel >= 1 && numericLevel <= 13) 
-        ? numericLevel as UserLevel 
-        : 1;
+      const safeLevel = (numericLevel >= 1 && numericLevel <= 13) ? 
+        numericLevel as UserLevel : 1;
       
       setUserLevel(safeLevel);
-      setUserExperience(data?.experience || 0);
+      setUserExperience(Number(data?.experience || 0));
     } catch (error) {
       console.error("Error fetching user profile:", error);
       setUserLevel(1);

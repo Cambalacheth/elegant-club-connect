@@ -3,14 +3,14 @@ import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import ForumSidebar from "@/components/forum/ForumSidebar";
 import DebateList from "@/components/forum/DebateList";
-import { useForumUser } from "@/hooks/useForumUser";
+import { useUser } from "@/hooks/useUser";
 import { useDebates } from "@/hooks/useDebates";
 import { useToast } from "@/hooks/use-toast";
 
 const ForumPage = () => {
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const { user, userRole, isLoading: isUserLoading } = useForumUser();
+  const { user, userRole, isLoading: isUserLoading } = useUser();
   const { 
     debates, 
     isLoading: isDebatesLoading, 

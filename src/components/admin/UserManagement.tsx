@@ -57,7 +57,11 @@ const UserManagement = () => {
         throw error;
       }
 
-      return data as Profile[];
+      return (data as unknown as Profile[]).map(profile => ({
+        ...profile,
+        experience: typeof profile.experience === 'number' ? profile.experience : 0,
+        level: typeof profile.level === 'number' ? profile.level : 1
+      }));
     },
   });
 
@@ -67,9 +71,9 @@ const UserManagement = () => {
 
   const handleEditUser = (user: Profile) => {
     setEditingUser(user);
-    const numericLevel = user.level ? Number(user.level) : 1;
+    const numericLevel = typeof user.level === 'number' ? user.level : 1;
     
-    setSelectedLevel(numericLevel || 1);
+    setSelectedLevel(numericLevel);
     setExperiencePoints(user.experience || 0);
   };
 

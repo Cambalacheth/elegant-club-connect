@@ -14,7 +14,7 @@ import DomainManagement from "@/components/admin/DomainManagement";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("users");
-  const { user, userLevel, isLoading } = useUser();
+  const { user, userLevel, userRole, isLoading } = useUser();
 
   // Redirect if user isn't admin
   if (!isLoading && (!user || !canAdminContent(userLevel))) {
@@ -62,7 +62,7 @@ const AdminPage = () => {
 
             <TabsContent value="content">
               {user && userLevel === 13 && (
-                <ContentManagement userId={user.id} userRole="admin" />
+                <ContentManagement userId={user.id} userRole={userRole} />
               )}
             </TabsContent>
             

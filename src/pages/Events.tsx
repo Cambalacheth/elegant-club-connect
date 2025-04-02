@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -11,6 +10,7 @@ import { useEventTexts } from "@/hooks/useEventTexts";
 import { EventsSection } from "@/components/events/EventsSection";
 import { EditEventDialog } from "@/components/events/EditEventDialog";
 import { useEvents } from "@/hooks/useEvents";
+import { useUser } from "@/hooks/useUser";
 
 const Events = () => {
   const location = useLocation();

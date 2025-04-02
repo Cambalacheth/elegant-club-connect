@@ -7,8 +7,8 @@ import { getLevelInfo } from "@/types/user";
 interface ProfileHeaderProps {
   profile: Profile;
   isOwnProfile: boolean;
-  onEdit: () => void;
-  onSignOut: () => void;
+  handleEditProfile: () => void;
+  handleSignOut: () => void;
   currentLanguage: string;
   currentUser: any;
 }
@@ -16,8 +16,8 @@ interface ProfileHeaderProps {
 const ProfileHeader = ({ 
   profile, 
   isOwnProfile, 
-  onEdit, 
-  onSignOut, 
+  handleEditProfile, 
+  handleSignOut, 
   currentLanguage,
   currentUser 
 }: ProfileHeaderProps) => {
@@ -57,14 +57,14 @@ const ProfileHeader = ({
           <div className="ml-auto mt-4 md:mt-0">
             <button 
               className="inline-flex items-center gap-2 bg-club-beige px-4 py-2 rounded-md text-club-brown hover:bg-club-beige-dark transition-colors"
-              onClick={onEdit}
+              onClick={handleEditProfile}
             >
               <Settings size={18} />
               {currentLanguage === "en" ? "Edit Profile" : "Editar Perfil"}
             </button>
             
             <button 
-              onClick={onSignOut}
+              onClick={handleSignOut}
               className="ml-3 inline-flex items-center gap-2 bg-club-terracota/10 px-4 py-2 rounded-md text-club-terracota hover:bg-club-terracota/20 transition-colors"
             >
               {currentLanguage === "en" ? "Sign Out" : "Cerrar Sesión"}

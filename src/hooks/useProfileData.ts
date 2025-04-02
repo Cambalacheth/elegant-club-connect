@@ -62,8 +62,8 @@ export const useProfileData = (username: string | undefined, currentLanguage: st
         // Create a new profile object with the email property and default values for missing fields
         const profileWithEmail: Profile = {
           ...profileData,
-          experience: profileData.experience || 0, // Ensure experience has a default value
-          level: profileData.level || 1, // Ensure level has a default value
+          experience: typeof profileData.experience === 'number' ? profileData.experience : 0,
+          level: typeof profileData.level === 'number' ? profileData.level : 1,
           email: session?.user && profileData.id === session.user.id ? session.user.email : null
         };
         
