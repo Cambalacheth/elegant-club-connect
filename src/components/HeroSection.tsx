@@ -1,16 +1,18 @@
 
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
   const handleIngresar = () => {
-    window.location.href = "/home";
+    navigate("/auth");
   };
 
   return (

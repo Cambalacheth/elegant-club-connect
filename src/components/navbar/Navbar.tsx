@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import NavLinks from "./NavLinks";
@@ -44,8 +44,17 @@ const useNavbarState = (): NavbarState => {
 };
 
 const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
-  const { isMenuOpen, toggleMenu, closeMenu, handleAuthOrProfile } = useNavbarState();
+  const { isMenuOpen, toggleMenu, closeMenu } = useNavbarState();
   const { user, userRole } = useUser();
+  const navigate = useNavigate();
+  
+  const handleAuthOrProfile = () => {
+    if (user) {
+      navigate("/user/me");
+    } else {
+      navigate("/auth");
+    }
+  };
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-club-beige/95 backdrop-blur-md shadow-sm">
