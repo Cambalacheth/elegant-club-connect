@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
-    content,
+    contentItems,
     isLoading,
     fetchAllContent,
     createContent,
@@ -124,7 +123,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
 
         <TabsContent value="article">
           <ContentTable
-            items={content}
+            items={contentItems}
             isLoading={isLoading}
             onUpdate={handleUpdateContent}
             onDelete={handleDeleteContent}
@@ -135,7 +134,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
         
         <TabsContent value="video">
           <ContentTable
-            items={content}
+            items={contentItems}
             isLoading={isLoading}
             onUpdate={handleUpdateContent}
             onDelete={handleDeleteContent}
@@ -146,7 +145,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
         
         <TabsContent value="guide">
           <ContentTable
-            items={content}
+            items={contentItems}
             isLoading={isLoading}
             onUpdate={handleUpdateContent}
             onDelete={handleDeleteContent}
@@ -157,7 +156,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
         
         <TabsContent value="resource">
           <ContentTable
-            items={content}
+            items={contentItems}
             isLoading={isLoading}
             onUpdate={handleUpdateContent}
             onDelete={handleDeleteContent}

@@ -1,23 +1,23 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Event } from "@/types/event";
 import { isPast } from "date-fns";
-import { useForumUser } from "@/hooks/useForumUser";
+import { useUser } from "@/hooks/useUser";
 import { EventManagement } from "@/components/events/EventManagement";
 import { canAdminContent } from "@/types/user";
 import { useEventTexts } from "@/hooks/useEventTexts";
 import { EventsSection } from "@/components/events/EventsSection";
 import { EditEventDialog } from "@/components/events/EditEventDialog";
 import { useEvents } from "@/hooks/useEvents";
-import { useUser } from "@/hooks/useUser";
 
 const Events = () => {
   const location = useLocation();
   const [language, setLanguage] = useState("es"); // Default to Spanish
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
-  const { user, userRole } = useForumUser();
+  const { userRole } = useUser();
   const isAdmin = canAdminContent(userRole);
   
   // Dialog state
