@@ -1,18 +1,16 @@
 
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
-import LanguageSelectionModal from "./LanguageSelectionModal";
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
   const handleIngresar = () => {
-    setIsLanguageModalOpen(true);
+    window.location.href = "https://terretahub.com/home";
   };
 
   return (
@@ -65,11 +63,6 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-
-      <LanguageSelectionModal 
-        isOpen={isLanguageModalOpen}
-        onClose={() => setIsLanguageModalOpen(false)}
-      />
     </section>
   );
 };
