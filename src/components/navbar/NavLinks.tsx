@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { MessageSquare, Settings } from "lucide-react";
 import { UserRole, canAdminContent } from "@/types/user";
 
 interface NavLinksProps {
@@ -17,6 +17,7 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
   const contentText = currentLanguage === "en" ? "Content" : "Contenido";
   const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
   const adminText = currentLanguage === "en" ? "Admin" : "Administración";
+  const feedbackText = currentLanguage === "en" ? "Feedback" : "Opiniones";
   
   const baseClass = isMobile 
     ? "text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300" 
@@ -60,6 +61,14 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
         onClick={handleClick}
       >
         {forumText}
+      </Link>
+      <Link 
+        to="/feedback"
+        className={`${baseClass} flex items-center gap-1`}
+        onClick={handleClick}
+      >
+        <MessageSquare size={16} />
+        {feedbackText}
       </Link>
       {canAdminContent(userRole) && (
         <Link 

@@ -26,6 +26,7 @@ import EventDetail from "./pages/EventDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import DomainPage from "./pages/DomainPage";
 import ElFotographerPage from "./pages/ElFotographerPage";
+import Feedback from "./pages/Feedback";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ function App() {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/dominio" element={<DomainPage />} />
               <Route path="/ElFotographer" element={<ElFotographerPage />} />
+              <Route path="/feedback" element={<Feedback />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

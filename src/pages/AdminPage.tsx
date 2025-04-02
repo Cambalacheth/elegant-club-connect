@@ -1,86 +1,78 @@
 
-import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
-import { UserRole, canAdminContent } from "@/types/user";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
-import { useForumUser } from "@/hooks/useForumUser";
+import { useState } from "react";
+import { Helmet } from "react-helmet-async";
+import NavbarWithDefaultLang from "@/components/Navbar";
 import UserManagement from "@/components/admin/UserManagement";
-import { ContentManagement } from "@/components/content/ContentManagement";
-import { EventManagement } from "@/components/events/EventManagement";
+import ContentManagement from "@/components/content/ContentManagement";
+import EventManagement from "@/components/events/EventManagement";
+import FeedbackManagement from "@/components/admin/FeedbackManagement";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useUser } from "@/hooks/useUser";
+import { canAdminContent } from "@/types/user";
+import { Navigate } from "react-router-dom";
 
 const AdminPage = () => {
-  const { toast } = useToast();
-  const { user, userRole, isLoading } = useForumUser();
+  const [activeTab, setActiveTab] = useState("users");
+  const { user, userRole, isLoading } = useUser();
 
-  // If the user is not an admin, redirect to the home page
+  // Redirect if user isn't admin
   if (!isLoading && (!user || !canAdminContent(userRole))) {
-    toast({
-      title: "Acceso denegado",
-      description: "No tienes permisos para acceder a esta página",
-      variant: "destructive",
-    });
     return <Navigate to="/" />;
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-club-brown"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <div className="container mx-auto px-4 pt-24 pb-12">
-        <h1 className="text-3xl font-bold text-club-brown mb-6">Panel de Administración</h1>
+    <>
+      <Helmet>
+        <title>Admin | Terreta Hub</title>
+      </Helmet>
+
+      <div className="min-h-screen bg-club-beige-light">
+        <NavbarWithDefaultLang />
         
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-orange"></div>
-          </div>
-        ) : (
-          <Tabs defaultValue="users">
-            <TabsList className="mb-6">
+        <main className="container mx-auto pt-24 pb-16 px-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-club-brown mb-6">
+            Panel de Administración
+          </h1>
+
+          <Tabs 
+            value={activeTab} 
+            onValueChange={setActiveTab}
+            className="space-y-8"
+          >
+            <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <TabsTrigger value="users">Usuarios</TabsTrigger>
               <TabsTrigger value="content">Contenido</TabsTrigger>
               <TabsTrigger value="events">Eventos</TabsTrigger>
-              <TabsTrigger value="debates">Debates</TabsTrigger>
-              <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+              <TabsTrigger value="feedback">Feedback</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="users">
               <UserManagement />
             </TabsContent>
-            
+
             <TabsContent value="content">
-              {user && <ContentManagement userId={user.id} userRole={userRole} />}
+              <ContentManagement />
             </TabsContent>
             
             <TabsContent value="events">
               <EventManagement />
             </TabsContent>
             
-            <TabsContent value="debates">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold mb-4">Gestión de Debates</h2>
-                <p className="text-gray-500">
-                  Funcionalidad en desarrollo. Pronto podrás gestionar todos los debates desde aquí.
-                </p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="stats">
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <h2 className="text-xl font-semibold mb-4">Estadísticas del Foro</h2>
-                <p className="text-gray-500">
-                  Funcionalidad en desarrollo. Pronto podrás ver estadísticas detalladas de uso del foro.
-                </p>
-              </div>
+            <TabsContent value="feedback">
+              <FeedbackManagement />
             </TabsContent>
           </Tabs>
-        )}
+        </main>
       </div>
-    </div>
+    </>
   );
 };
 

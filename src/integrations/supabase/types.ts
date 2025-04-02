@@ -236,6 +236,33 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_anonymous: boolean
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       otros_idiomas: {
         Row: {
           created_at: string
