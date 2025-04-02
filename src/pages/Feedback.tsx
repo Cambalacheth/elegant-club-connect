@@ -38,7 +38,7 @@ const Feedback = () => {
       
       const { error } = await supabase
         .from('feedback')
-        .insert([feedbackData]);
+        .insert([feedbackData as any]);
       
       if (error) throw error;
       

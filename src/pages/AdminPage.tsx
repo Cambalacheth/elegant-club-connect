@@ -3,8 +3,8 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import NavbarWithDefaultLang from "@/components/Navbar";
 import UserManagement from "@/components/admin/UserManagement";
-import ContentManagement from "@/components/content/ContentManagement";
-import EventManagement from "@/components/events/EventManagement";
+import { ContentManagement } from "@/components/content/ContentManagement";
+import { EventManagement } from "@/components/events/EventManagement";
 import FeedbackManagement from "@/components/admin/FeedbackManagement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/hooks/useUser";
@@ -59,7 +59,9 @@ const AdminPage = () => {
             </TabsContent>
 
             <TabsContent value="content">
-              <ContentManagement />
+              {user && userRole === 'admin' && (
+                <ContentManagement userId={user.id} userRole={userRole} />
+              )}
             </TabsContent>
             
             <TabsContent value="events">
