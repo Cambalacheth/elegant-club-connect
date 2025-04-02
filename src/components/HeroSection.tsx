@@ -10,7 +10,7 @@ const HeroSection = () => {
   }, []);
 
   const handleIngresar = () => {
-    window.location.href = "https://terretahub.com/home";
+    window.location.href = "/home";
   };
 
   return (

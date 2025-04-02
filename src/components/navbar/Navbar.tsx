@@ -52,7 +52,7 @@ const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
-            <Link to="/Index" className="flex items-center space-x-2">
+            <Link to="/home" className="flex items-center space-x-2">
               <img src="/logo.svg" alt="Terreta Hub Logo" className="h-8" />
               <span className="font-bold text-xl text-club-brown">Terreta Hub</span>
             </Link>
