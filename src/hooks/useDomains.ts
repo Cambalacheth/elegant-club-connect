@@ -11,79 +11,134 @@ export interface Domain {
   externalUrl?: string;
 }
 
-// Mock data for domains, in the future this could come from Supabase
+// Enhanced mock data for domains, removed elfotographer and added more domains
 const mockDomains: Domain[] = [
   {
     id: '1',
-    name: 'ElFotographer',
-    path: '/elfotographer',
-    description: 'Servicio de fotografía profesional',
-    status: 'used',
-    owner: 'Carlos Rodríguez',
-    externalUrl: 'https://stealthy-capture-experience.lovable.app/'
-  },
-  {
-    id: '2',
     name: 'Legal',
     path: '/legal',
     description: 'Servicios legales y consultoría jurídica',
     status: 'available'
   },
   {
-    id: '3',
+    id: '2',
     name: 'Juegos',
     path: '/juegos',
     description: 'Comunidad de desarrollo de videojuegos',
     status: 'available'
   },
   {
-    id: '4',
+    id: '3',
     name: 'Web3',
     path: '/web3',
     description: 'Recursos y proyectos relacionados con blockchain y Web3',
     status: 'available'
   },
   {
-    id: '5',
+    id: '4',
     name: 'Diseño',
     path: '/diseno',
     description: 'Servicios de diseño gráfico e industrial',
     status: 'reserved'
   },
   {
-    id: '6',
+    id: '5',
     name: 'Marketing',
     path: '/marketing',
     description: 'Estrategias y servicios de marketing digital',
     status: 'available'
   },
   {
-    id: '7',
+    id: '6',
     name: 'Programación',
     path: '/programacion',
     description: 'Recursos para desarrolladores de software',
     status: 'available'
   },
   {
-    id: '8',
+    id: '7',
     name: 'Emprendedores',
     path: '/emprendedores',
     description: 'Comunidad de startups y emprendimientos',
     status: 'reserved'
   },
   {
-    id: '9',
+    id: '8',
     name: 'Música',
     path: '/musica',
     description: 'Plataforma para músicos y productores',
     status: 'available'
   },
   {
-    id: '10',
+    id: '9',
     name: 'Educación',
     path: '/educacion',
     description: 'Recursos educativos y formación online',
     status: 'available'
+  },
+  {
+    id: '10',
+    name: 'Proyectos',
+    path: '/projects',
+    description: 'Proyectos de la comunidad',
+    status: 'used'
+  },
+  {
+    id: '11',
+    name: 'Miembros',
+    path: '/members',
+    description: 'Directorio de miembros de la comunidad',
+    status: 'used'
+  },
+  {
+    id: '12',
+    name: 'Foro',
+    path: '/forum',
+    description: 'Espacio para debates y discusiones',
+    status: 'used'
+  },
+  {
+    id: '13',
+    name: 'Contenido',
+    path: '/content',
+    description: 'Artículos, videos y recursos de la comunidad',
+    status: 'used'
+  },
+  {
+    id: '14',
+    name: 'Eventos',
+    path: '/events',
+    description: 'Calendario de eventos de la comunidad',
+    status: 'used'
+  },
+  {
+    id: '15',
+    name: 'Asado',
+    path: '/asado',
+    description: 'Registro para el evento de asado',
+    status: 'used'
+  },
+  {
+    id: '16',
+    name: 'Feedback',
+    path: '/feedback',
+    description: 'Sistema para enviar opiniones y comentarios',
+    status: 'used'
+  },
+  {
+    id: '17',
+    name: 'Admin',
+    path: '/admin',
+    description: 'Panel de administración',
+    status: 'used',
+    owner: 'Administradores'
+  },
+  {
+    id: '18',
+    name: 'Buscar',
+    path: '/search',
+    description: 'Sistema de búsqueda del sitio',
+    status: 'used'
   }
 ];
 
@@ -114,4 +169,3 @@ export const useDomains = () => {
 
   return { domains, loading, error };
 };
-
