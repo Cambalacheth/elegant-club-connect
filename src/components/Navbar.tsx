@@ -1,4 +1,9 @@
 
 import Navbar from "./navbar/Navbar";
 
-export default Navbar;
+// Default to Spanish if no language provided
+const NavbarWithDefaultLang = (props: { currentLanguage?: string }) => {
+  return <Navbar currentLanguage={props.currentLanguage || "es"} />;
+};
+
+export default NavbarWithDefaultLang;
