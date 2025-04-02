@@ -43,7 +43,7 @@ export const useForumUser = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("level, experience")
+        .select("level_numeric, experience")
         .eq("id", userId)
         .single();
 
@@ -60,8 +60,8 @@ export const useForumUser = () => {
       }
 
       // Handle the number to UserLevel conversion safely
-      const numericLevel = data?.level !== undefined ? 
-        (typeof data.level === 'string' ? parseInt(data.level, 10) : Number(data.level)) : 1;
+      const numericLevel = data?.level_numeric !== undefined ? 
+        Number(data.level_numeric) : 1;
       
       // Ensure the level is valid
       const safeLevel = (numericLevel >= 1 && numericLevel <= 13) ? 

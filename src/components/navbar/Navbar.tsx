@@ -7,7 +7,6 @@ import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import { useUser } from "@/hooks/useUser";
 import SearchBar from "../SearchBar";
-import UserLevelIcon from "./UserRoleIcon";
 
 interface NavbarProps {
   currentLanguage: string;
@@ -46,7 +45,7 @@ const useNavbarState = (): NavbarState => {
 
 const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
   const { isMenuOpen, toggleMenu, closeMenu, handleAuthOrProfile } = useNavbarState();
-  const { user, userLevel, userRole } = useUser();
+  const { user, userRole } = useUser();
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-club-beige/95 backdrop-blur-md shadow-sm">

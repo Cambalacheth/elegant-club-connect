@@ -9,7 +9,7 @@ export interface Profile {
   email?: string | null;
   gender: string | null;
   birth_date: string | null;
-  level: number; // Changed to number instead of string | number
+  level: number;  // This will now store the level_numeric value
   experience: number;
   created_at: string;
   updated_at: string;

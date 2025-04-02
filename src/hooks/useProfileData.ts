@@ -63,7 +63,7 @@ export const useProfileData = (username: string | undefined, currentLanguage: st
         const profileWithEmail: Profile = {
           ...profileData,
           experience: typeof profileData.experience === 'number' ? profileData.experience : 0,
-          level: typeof profileData.level === 'number' ? profileData.level : 1,
+          level: typeof profileData.level_numeric === 'number' ? profileData.level_numeric : 1,
           email: session?.user && profileData.id === session.user.id ? session.user.email : null
         };
         

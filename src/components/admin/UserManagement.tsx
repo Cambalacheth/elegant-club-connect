@@ -45,7 +45,7 @@ const UserManagement = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, level_numeric, experience")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -57,11 +57,11 @@ const UserManagement = () => {
         throw error;
       }
 
-      return (data as unknown as Profile[]).map(profile => ({
+      return data.map(profile => ({
         ...profile,
         experience: typeof profile.experience === 'number' ? profile.experience : 0,
-        level: typeof profile.level === 'number' ? profile.level : 1
-      }));
+        level: typeof profile.level_numeric === 'number' ? profile.level_numeric : 1
+      })) as Profile[];
     },
   });
 
@@ -71,9 +71,7 @@ const UserManagement = () => {
 
   const handleEditUser = (user: Profile) => {
     setEditingUser(user);
-    const numericLevel = typeof user.level === 'number' ? user.level : 1;
-    
-    setSelectedLevel(numericLevel);
+    setSelectedLevel(user.level || 1);
     setExperiencePoints(user.experience || 0);
   };
 
@@ -84,7 +82,7 @@ const UserManagement = () => {
       const { error } = await supabase
         .from("profiles")
         .update({ 
-          level: selectedLevel,
+          level_numeric: selectedLevel,
           experience: experiencePoints
         })
         .eq("id", editingUser.id);
@@ -207,7 +205,6 @@ const UserManagement = () => {
         </div>
       )}
 
-      {/* Edit User Dialog */}
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
         <DialogContent>
           <DialogHeader>

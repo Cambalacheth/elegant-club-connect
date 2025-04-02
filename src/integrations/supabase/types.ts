@@ -326,10 +326,12 @@ export type Database = {
           created_at: string | null
           description: string | null
           email_visible: boolean | null
+          experience: number | null
           gender: string | null
           id: string
           learning_languages: string[] | null
           level: string | null
+          level_numeric: number | null
           preferred_language: string | null
           speaks_languages: string[] | null
           updated_at: string | null
@@ -344,10 +346,12 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           email_visible?: boolean | null
+          experience?: number | null
           gender?: string | null
           id: string
           learning_languages?: string[] | null
           level?: string | null
+          level_numeric?: number | null
           preferred_language?: string | null
           speaks_languages?: string[] | null
           updated_at?: string | null
@@ -362,10 +366,12 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           email_visible?: boolean | null
+          experience?: number | null
           gender?: string | null
           id?: string
           learning_languages?: string[] | null
           level?: string | null
+          level_numeric?: number | null
           preferred_language?: string | null
           speaks_languages?: string[] | null
           updated_at?: string | null

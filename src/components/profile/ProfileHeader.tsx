@@ -48,7 +48,7 @@ const ProfileHeader = ({
           )}
           <div className="mt-2">
             <span className="inline-block bg-club-olive/20 px-3 py-1 rounded-full text-sm text-club-brown">
-              {profile.level || (profile.gender === "female" ? "Terretiana" : "Terretiano")}
+              {profile.gender === "female" ? "Terretiana" : "Terretiano"}
             </span>
           </div>
         </div>
