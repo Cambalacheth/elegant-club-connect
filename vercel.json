@@ -2,5 +2,9 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "redirects": [
+    { "source": "/elfotographer", "destination": "https://stealthy-capture-experience.lovable.app/", "permanent": true }
   ]
 }
+

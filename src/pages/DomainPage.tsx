@@ -6,20 +6,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useDomains } from "@/hooks/useDomains";
-import { useNavigate } from "react-router-dom";
-
-interface Domain {
-  id: string;
-  name: string;
-  path: string;
-  description: string;
-  status: "available" | "reserved" | "used";
-  owner?: string;
-}
+import { ExternalLink } from "lucide-react";
 
 const DomainPage = () => {
   const { domains, loading } = useDomains();
-  const navigate = useNavigate();
   const [currentLanguage, setCurrentLanguage] = useState("es");
   
   const title = currentLanguage === "en" ? "Domains - Terreta Hub" : "Dominios - Terreta Hub";
@@ -37,6 +27,14 @@ const DomainPage = () => {
     available: currentLanguage === "en" ? "Available" : "Disponible",
     reserved: currentLanguage === "en" ? "Reserved" : "Reservado",
     used: currentLanguage === "en" ? "In Use" : "En Uso",
+  };
+
+  const handleDomainAction = (domain: any) => {
+    if (domain.externalUrl) {
+      window.open(domain.externalUrl, '_blank');
+    } else if (domain.status === 'used') {
+      window.location.href = domain.path;
+    }
   };
 
   return (
@@ -81,12 +79,13 @@ const DomainPage = () => {
               </p>
               <div className="pt-4">
                 <Button 
-                  onClick={() => navigate('/ElFotographer')}
-                  className="bg-club-orange text-white hover:bg-club-terracotta"
+                  onClick={() => window.open('https://stealthy-capture-experience.lovable.app/', '_blank')}
+                  className="bg-club-orange text-white hover:bg-club-terracotta flex items-center gap-2"
                 >
                   {currentLanguage === "en"
                     ? "See Example: ElFotographer"
                     : "Ver Ejemplo: ElFotographer"}
+                  <ExternalLink size={16} />
                 </Button>
               </div>
             </CardContent>
@@ -132,10 +131,12 @@ const DomainPage = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => navigate(domain.path)}
-                          disabled={domain.status !== 'used'}
+                          onClick={() => handleDomainAction(domain)}
+                          disabled={domain.status === 'reserved'}
+                          className={domain.externalUrl ? "flex items-center gap-1" : ""}
                         >
-                          {currentLanguage === "en" ? "View" : "Ver"}
+                          {currentLanguage === "en" ? "Visit" : "Visitar"}
+                          {domain.externalUrl && <ExternalLink size={14} />}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -151,3 +152,4 @@ const DomainPage = () => {
 };
 
 export default DomainPage;
+

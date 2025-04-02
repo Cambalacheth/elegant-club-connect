@@ -8,53 +8,82 @@ export interface Domain {
   description: string;
   status: "available" | "reserved" | "used";
   owner?: string;
+  externalUrl?: string;
 }
 
-// This is mock data for now, in the future this could come from Supabase
+// Mock data for domains, in the future this could come from Supabase
 const mockDomains: Domain[] = [
   {
     id: '1',
     name: 'ElFotographer',
-    path: '/ElFotographer',
-    description: 'Dominio personalizado para un fotógrafo de la comunidad',
+    path: '/elfotographer',
+    description: 'Servicio de fotografía profesional',
     status: 'used',
-    owner: 'Carlos Rodríguez'
+    owner: 'Carlos Rodríguez',
+    externalUrl: 'https://stealthy-capture-experience.lovable.app/'
   },
   {
     id: '2',
-    name: 'CodeMaster',
-    path: '/CodeMaster',
-    description: 'Espacio para compartir recursos de programación',
-    status: 'reserved'
+    name: 'Legal',
+    path: '/legal',
+    description: 'Servicios legales y consultoría jurídica',
+    status: 'available'
   },
   {
     id: '3',
-    name: 'MenteTerra',
-    path: '/MenteTerra',
-    description: 'Blog sobre salud mental y bienestar',
+    name: 'Juegos',
+    path: '/juegos',
+    description: 'Comunidad de desarrollo de videojuegos',
     status: 'available'
   },
   {
     id: '4',
-    name: 'CocinaEspañola',
-    path: '/CocinaEspañola',
-    description: 'Recetas tradicionales de la gastronomía española',
+    name: 'Web3',
+    path: '/web3',
+    description: 'Recursos y proyectos relacionados con blockchain y Web3',
     status: 'available'
   },
   {
     id: '5',
-    name: 'ArteLatino',
-    path: '/ArteLatino',
-    description: 'Exposición virtual de arte latinoamericano',
+    name: 'Diseño',
+    path: '/diseno',
+    description: 'Servicios de diseño gráfico e industrial',
     status: 'reserved'
   },
   {
     id: '6',
-    name: 'EcoTerreta',
-    path: '/EcoTerreta',
-    description: 'Iniciativas ecológicas y sostenibles',
-    status: 'used',
-    owner: 'María González'
+    name: 'Marketing',
+    path: '/marketing',
+    description: 'Estrategias y servicios de marketing digital',
+    status: 'available'
+  },
+  {
+    id: '7',
+    name: 'Programación',
+    path: '/programacion',
+    description: 'Recursos para desarrolladores de software',
+    status: 'available'
+  },
+  {
+    id: '8',
+    name: 'Emprendedores',
+    path: '/emprendedores',
+    description: 'Comunidad de startups y emprendimientos',
+    status: 'reserved'
+  },
+  {
+    id: '9',
+    name: 'Música',
+    path: '/musica',
+    description: 'Plataforma para músicos y productores',
+    status: 'available'
+  },
+  {
+    id: '10',
+    name: 'Educación',
+    path: '/educacion',
+    description: 'Recursos educativos y formación online',
+    status: 'available'
   }
 ];
 
@@ -85,3 +114,4 @@ export const useDomains = () => {
 
   return { domains, loading, error };
 };
+
