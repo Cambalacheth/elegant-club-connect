@@ -31,13 +31,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-
-const levelOptions = [
-  { value: "Admin", label: "Admin" },
-  { value: "Terretiano", label: "Terretiano" },
-  { value: "Terretiana", label: "Terretiana" },
-  { value: "Moderador", label: "Moderador" },
-];
+import { UserLevel, getLevelName } from "@/types/user";
 
 const UserManagement = () => {
   const { toast } = useToast();
@@ -178,9 +172,9 @@ const UserManagement = () => {
                   <TableCell>
                     <Badge
                       className={
-                        user.level === "Admin"
+                        Number(user.level) === 13
                           ? "bg-red-100 text-red-800 hover:bg-red-200"
-                          : user.level === "Moderador"
+                          : Number(user.level) >= 8
                           ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
                       }
@@ -248,11 +242,14 @@ const UserManagement = () => {
                   <SelectValue placeholder="Selecciona un nivel" />
                 </SelectTrigger>
                 <SelectContent>
-                  {[...Array(13)].map((_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      Nivel {i + 1} - {getLevelName(i + 1 as UserLevel)}
-                    </SelectItem>
-                  ))}
+                  {[...Array(13)].map((_, i) => {
+                    const level = (i + 1) as UserLevel;
+                    return (
+                      <SelectItem key={level} value={level.toString()}>
+                        Nivel {level} - {getLevelName(level)}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

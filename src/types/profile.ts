@@ -9,7 +9,8 @@ export interface Profile {
   email?: string | null;
   gender: string | null;
   birth_date: string | null;
-  level: string;
+  level: string | number;
+  experience: number;
   created_at: string;
   updated_at: string;
   category?: string | null;

@@ -1,6 +1,9 @@
 
 export type UserLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 
+// For backward compatibility with components that expect the old role system
+export type UserRole = "registered" | "verified" | "moderator" | "admin";
+
 export interface User {
   id: string;
   username: string;

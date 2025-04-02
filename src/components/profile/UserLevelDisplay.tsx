@@ -50,8 +50,10 @@ const UserLevelDisplay = ({
       
       {level < 13 && (
         <>
-          <Progress value={progress} className="h-2 bg-gray-200" 
-            indicatorClassName="bg-gradient-to-r from-club-orange to-club-terracotta" />
+          <Progress 
+            value={progress} 
+            className="h-2 bg-gray-200"
+          />
           <div className="text-xs text-gray-500 text-right">
             {Math.round(progress)}% completado
           </div>

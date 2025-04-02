@@ -1,3 +1,4 @@
+
 import { User, Settings } from "lucide-react";
 import { Profile } from "@/types/profile";
 import UserLevelDisplay from "./UserLevelDisplay";
