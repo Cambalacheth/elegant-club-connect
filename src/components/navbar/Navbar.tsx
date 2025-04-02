@@ -7,6 +7,7 @@ import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import { useUser } from "@/hooks/useUser";
 import { UserRole } from "@/types/user";
+import SearchBar from "../SearchBar";
 
 interface NavbarProps {
   currentLanguage: string;
@@ -63,7 +64,7 @@ const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
           </nav>
           
           <div className="flex items-center space-x-4">
-            
+            <SearchBar currentLanguage={currentLanguage} />
             
             <AuthButton 
               currentLanguage={currentLanguage}

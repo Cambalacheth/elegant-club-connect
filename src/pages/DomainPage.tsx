@@ -79,7 +79,7 @@ const DomainPage = () => {
               </p>
               <div className="pt-4">
                 <Button 
-                  onClick={() => window.open('https://stealthy-capture-experience.lovable.app/', '_blank')}
+                  onClick={() => window.location.href = "/ElFotographer"}
                   className="bg-club-orange text-white hover:bg-club-terracotta flex items-center gap-2"
                 >
                   {currentLanguage === "en"

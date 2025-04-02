@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, User, Package, FileText, FileQuestion } from 'lucide-react';
+import { Search, X, User, Package, FileText, FileQuestion, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useClickOutside } from '@/hooks/use-click-outside';
+import { useDomains, Domain } from '@/hooks/useDomains';
 
 interface SearchBarProps {
   currentLanguage?: string;
@@ -15,7 +15,7 @@ interface SearchBarProps {
 interface SearchResult {
   id: string;
   title: string;
-  type: 'member' | 'project' | 'debate' | 'resource';
+  type: 'domain' | 'member' | 'project' | 'debate' | 'resource';
   subtitle?: string;
   url: string;
 }
@@ -32,6 +32,7 @@ const SearchBar = ({
   const [showResults, setShowResults] = useState(false);
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
+  const { domains } = useDomains();
   
   useClickOutside(searchRef, () => {
     setShowResults(false);
@@ -53,6 +54,20 @@ const SearchBar = ({
       setShowResults(true);
 
       try {
+        // Filter domains that match the search query
+        const filteredDomains = domains
+          .filter(domain => 
+            domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+          )
+          .map((domain): SearchResult => ({
+            id: domain.id,
+            title: domain.name,
+            subtitle: domain.description,
+            type: 'domain',
+            url: domain.path
+          }));
+
         // Search for members
         const { data: members } = await supabase
           .from('profiles')
@@ -78,8 +93,8 @@ const SearchBar = ({
         // For now, we'll mock an empty array
         const resources: any[] = [];
 
-        // Format results
-        const formattedResults: SearchResult[] = [
+        // Format other results
+        const otherResults: SearchResult[] = [
           ...(members || []).map((member): SearchResult => ({
             id: member.id,
             title: member.username,
@@ -110,7 +125,9 @@ const SearchBar = ({
           }))
         ];
 
-        setResults(formattedResults.slice(0, 8)); // Limit to 8 total results
+        // Prioritize domain results first, then other results
+        const allResults = [...filteredDomains, ...otherResults];
+        setResults(allResults.slice(0, 8)); // Limit to 8 total results
       } catch (error) {
         console.error('Error searching:', error);
         setResults([]);
@@ -125,7 +142,7 @@ const SearchBar = ({
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
+  }, [searchQuery, domains]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -160,6 +177,8 @@ const SearchBar = ({
 
   const getIconForType = (type: string) => {
     switch (type) {
+      case 'domain':
+        return <Globe size={14} className="text-club-orange" />;
       case 'member':
         return <User size={14} className="text-club-brown/70" />;
       case 'project':
@@ -175,9 +194,16 @@ const SearchBar = ({
 
   const getTypeName = (type: string) => {
     if (currentLanguage === 'en') {
-      return type.charAt(0).toUpperCase() + type.slice(1);
+      switch (type) {
+        case 'domain':
+          return 'Domain';
+        default:
+          return type.charAt(0).toUpperCase() + type.slice(1);
+      }
     } else {
       switch (type) {
+        case 'domain':
+          return 'Dominio';
         case 'member':
           return 'Miembro';
         case 'project':
@@ -246,32 +272,80 @@ const SearchBar = ({
             </div>
           ) : results.length > 0 ? (
             <div className="py-2">
-              {results.map((result) => (
-                <button
-                  key={`${result.type}-${result.id}`}
-                  className="w-full text-left px-4 py-2 hover:bg-club-beige/30 transition-colors"
-                  onClick={() => handleResultClick(result.url)}
-                >
-                  <div className="flex items-center">
-                    <div className="mr-2">
-                      {getIconForType(result.type)}
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <p className="font-medium text-club-brown text-sm truncate">
-                        {result.title}
-                      </p>
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs text-club-brown/70 truncate">
-                          {result.subtitle}
+              {/* Group results by type */}
+              {results.some(result => result.type === 'domain') && (
+                <div className="px-4 py-1 bg-club-beige/20 text-xs font-medium text-club-brown/80 uppercase tracking-wider">
+                  {currentLanguage === 'en' ? 'Domains' : 'Dominios'}
+                </div>
+              )}
+              
+              {/* Show domain results first */}
+              {results
+                .filter(result => result.type === 'domain')
+                .map((result) => (
+                  <button
+                    key={`${result.type}-${result.id}`}
+                    className="w-full text-left px-4 py-2 hover:bg-club-beige/30 transition-colors"
+                    onClick={() => handleResultClick(result.url)}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {getIconForType(result.type)}
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <p className="font-medium text-club-brown text-sm truncate">
+                          {result.title}
                         </p>
-                        <span className="text-xs bg-club-beige/50 px-1.5 py-0.5 rounded text-club-brown/80 ml-2 whitespace-nowrap">
-                          {getTypeName(result.type)}
-                        </span>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-club-brown/70 truncate">
+                            {result.subtitle || (currentLanguage === 'en' ? 'Terreta domain' : 'Dominio de Terreta')}
+                          </p>
+                          <span className="text-xs bg-club-beige/50 px-1.5 py-0.5 rounded text-club-brown/80 ml-2 whitespace-nowrap">
+                            {getTypeName(result.type)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                ))}
+
+              {/* Other category header if there are other results */}
+              {results.some(result => result.type !== 'domain') && (
+                <div className="px-4 py-1 bg-club-beige/20 text-xs font-medium text-club-brown/80 uppercase tracking-wider">
+                  {currentLanguage === 'en' ? 'Other Results' : 'Otros Resultados'}
+                </div>
+              )}
+              
+              {/* Other results */}
+              {results
+                .filter(result => result.type !== 'domain')
+                .map((result) => (
+                  <button
+                    key={`${result.type}-${result.id}`}
+                    className="w-full text-left px-4 py-2 hover:bg-club-beige/30 transition-colors"
+                    onClick={() => handleResultClick(result.url)}
+                  >
+                    <div className="flex items-center">
+                      <div className="mr-2">
+                        {getIconForType(result.type)}
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <p className="font-medium text-club-brown text-sm truncate">
+                          {result.title}
+                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-club-brown/70 truncate">
+                            {result.subtitle}
+                          </p>
+                          <span className="text-xs bg-club-beige/50 px-1.5 py-0.5 rounded text-club-brown/80 ml-2 whitespace-nowrap">
+                            {getTypeName(result.type)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+
               <div className="px-4 py-2 border-t border-club-beige">
                 <button 
                   className="w-full text-center text-sm text-club-orange hover:text-club-terracotta"

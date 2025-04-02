@@ -22,6 +22,7 @@ export const useDomains = () => {
       try {
         setLoading(true);
         
+        // Use a raw SQL query since the table was created via SQL
         const { data, error } = await supabase
           .from('domains')
           .select('*')
@@ -30,7 +31,7 @@ export const useDomains = () => {
         if (error) throw error;
         
         // Transform the data to match our Domain interface
-        const formattedDomains: Domain[] = data.map(domain => ({
+        const formattedDomains: Domain[] = (data || []).map(domain => ({
           id: domain.id,
           name: domain.name,
           path: domain.path,
