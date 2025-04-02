@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +43,8 @@ const UserManagement = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState<Profile | null>(null);
-  const [selectedLevel, setSelectedLevel] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState<number>(1);
+  const [experiencePoints, setExperiencePoints] = useState<number>(0);
 
   const { data: users, isLoading, refetch } = useQuery({
     queryKey: ["admin-users"],
@@ -73,16 +73,26 @@ const UserManagement = () => {
 
   const handleEditUser = (user: Profile) => {
     setEditingUser(user);
-    setSelectedLevel(user.level || "");
+    const numericLevel = user.level ? (
+      typeof user.level === 'string' 
+        ? parseInt(user.level, 10)
+        : Number(user.level)
+    ) : 1;
+    
+    setSelectedLevel(numericLevel || 1);
+    setExperiencePoints(user.experience || 0);
   };
 
   const handleSaveUser = async () => {
-    if (!editingUser || !selectedLevel) return;
+    if (!editingUser) return;
 
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ level: selectedLevel })
+        .update({ 
+          level: selectedLevel,
+          experience: experiencePoints
+        })
         .eq("id", editingUser.id);
 
       if (error) throw error;
@@ -209,7 +219,7 @@ const UserManagement = () => {
           <DialogHeader>
             <DialogTitle>Editar Usuario</DialogTitle>
             <DialogDescription>
-              Actualiza el nivel del usuario {editingUser?.username}
+              Actualiza el nivel y experiencia de {editingUser?.username}
             </DialogDescription>
           </DialogHeader>
 
@@ -231,20 +241,37 @@ const UserManagement = () => {
 
             <div className="space-y-2">
               <label htmlFor="user-level" className="text-sm font-medium">
-                Nivel de Usuario
+                Nivel de Usuario (1-13)
               </label>
-              <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+              <Select value={selectedLevel.toString()} onValueChange={(val) => setSelectedLevel(Number(val))}>
                 <SelectTrigger id="user-level">
                   <SelectValue placeholder="Selecciona un nivel" />
                 </SelectTrigger>
                 <SelectContent>
-                  {levelOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
+                  {[...Array(13)].map((_, i) => (
+                    <SelectItem key={i + 1} value={(i + 1).toString()}>
+                      Nivel {i + 1} - {getLevelName(i + 1 as UserLevel)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="user-xp" className="text-sm font-medium">
+                Puntos de Experiencia
+              </label>
+              <Input
+                id="user-xp"
+                type="number"
+                min="0"
+                value={experiencePoints}
+                onChange={(e) => setExperiencePoints(Number(e.target.value))}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500">
+                Level 2: 100 XP | Level 5: 1000 XP | Level 8: 3000 XP | Level 12: 10000 XP
+              </p>
             </div>
           </div>
 

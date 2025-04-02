@@ -1,24 +1,33 @@
 
-import { CheckCircle, ShieldAlert, ShieldCheck } from "lucide-react";
-import { UserRole } from "@/types/user";
+import { UserLevel } from "@/types/user";
 
-interface UserRoleIconProps {
-  userRole: UserRole;
+interface UserLevelIconProps {
+  userLevel: UserLevel;
 }
 
-const UserRoleIcon = ({ userRole }: UserRoleIconProps) => {
-  if (!userRole || userRole === "registered") return null;
+const UserLevelIcon = ({ userLevel }: UserLevelIconProps) => {
+  if (!userLevel || userLevel < 2) return null;
   
-  switch (userRole) {
-    case "verified":
-      return <CheckCircle size={16} className="text-club-orange" />;
-    case "moderator":
-      return <ShieldAlert size={16} className="text-club-orange" />;
-    case "admin":
-      return <ShieldCheck size={16} className="text-club-orange" />;
-    default:
-      return null;
+  // Different icon colors based on level ranges
+  let colorClass = "text-gray-500"; // Default for lower levels
+  
+  if (userLevel >= 13) {
+    colorClass = "text-red-500"; // Admin
+  } else if (userLevel >= 10) {
+    colorClass = "text-purple-500"; // Higher levels
+  } else if (userLevel >= 8) {
+    colorClass = "text-blue-500"; // Moderator levels
+  } else if (userLevel >= 5) {
+    colorClass = "text-green-500"; // Mid levels
+  } else if (userLevel >= 2) {
+    colorClass = "text-yellow-500"; // Beginning levels
   }
+  
+  return (
+    <div className={`font-bold text-xs ${colorClass} bg-gray-100 rounded-full w-5 h-5 flex items-center justify-center`}>
+      {userLevel}
+    </div>
+  );
 };
 
-export default UserRoleIcon;
+export default UserLevelIcon;

@@ -1,12 +1,13 @@
-
 import { User, Settings } from "lucide-react";
 import { Profile } from "@/types/profile";
+import UserLevelDisplay from "./UserLevelDisplay";
+import { getLevelInfo } from "@/types/user";
 
 interface ProfileHeaderProps {
   profile: Profile;
   isOwnProfile: boolean;
-  handleEditProfile: () => void;
-  handleSignOut: () => void;
+  onEdit: () => void;
+  onSignOut: () => void;
   currentLanguage: string;
   currentUser: any;
 }
@@ -14,11 +15,14 @@ interface ProfileHeaderProps {
 const ProfileHeader = ({ 
   profile, 
   isOwnProfile, 
-  handleEditProfile, 
-  handleSignOut, 
+  onEdit, 
+  onSignOut, 
   currentLanguage,
   currentUser 
 }: ProfileHeaderProps) => {
+  const userExperience = profile?.experience || 0;
+  const levelInfo = getLevelInfo(userExperience);
+  
   return (
     <div className="bg-club-olive/20 p-8">
       <div className="flex flex-col md:flex-row items-center gap-6">
@@ -52,14 +56,14 @@ const ProfileHeader = ({
           <div className="ml-auto mt-4 md:mt-0">
             <button 
               className="inline-flex items-center gap-2 bg-club-beige px-4 py-2 rounded-md text-club-brown hover:bg-club-beige-dark transition-colors"
-              onClick={handleEditProfile}
+              onClick={onEdit}
             >
               <Settings size={18} />
               {currentLanguage === "en" ? "Edit Profile" : "Editar Perfil"}
             </button>
             
             <button 
-              onClick={handleSignOut}
+              onClick={onSignOut}
               className="ml-3 inline-flex items-center gap-2 bg-club-terracota/10 px-4 py-2 rounded-md text-club-terracota hover:bg-club-terracota/20 transition-colors"
             >
               {currentLanguage === "en" ? "Sign Out" : "Cerrar Sesión"}
@@ -67,6 +71,17 @@ const ProfileHeader = ({
           </div>
         )}
       </div>
+      
+      {profile && (
+        <div className="mt-4">
+          <UserLevelDisplay 
+            level={levelInfo.level} 
+            experience={userExperience}
+            progress={levelInfo.progress}
+            nextLevelXP={levelInfo.nextLevelXP}
+          />
+        </div>
+      )}
     </div>
   );
 };

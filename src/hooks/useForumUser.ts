@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/types/user";
+import { User, UserLevel, getLevelInfo } from "@/types/user";
 import { useToast } from "@/hooks/use-toast";
 
 export const useForumUser = () => {
   const [user, setUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<UserRole>("registered");
+  const [userLevel, setUserLevel] = useState<UserLevel>(1);
+  const [userExperience, setUserExperience] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -15,9 +16,10 @@ export const useForumUser = () => {
       (_event, session) => {
         setUser(session?.user || null);
         if (session?.user) {
-          fetchUserRole(session.user.id);
+          fetchUserProfile(session.user.id);
         } else {
-          setUserRole("registered");
+          setUserLevel(1);
+          setUserExperience(0);
           setIsLoading(false);
         }
       }
@@ -27,7 +29,7 @@ export const useForumUser = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        fetchUserProfile(session.user.id);
       } else {
         setIsLoading(false);
       }
@@ -36,43 +38,57 @@ export const useForumUser = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user role from Supabase
-  const fetchUserRole = async (userId: string) => {
+  // Fetch user profile from Supabase
+  const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("level")
+        .select("level, experience")
         .eq("id", userId)
         .single();
 
       if (error) {
-        console.error("Error fetching user role:", error);
-        setUserRole("registered");
+        console.error("Error fetching user profile:", error);
+        setUserLevel(1);
+        setUserExperience(0);
         toast({
           title: "Error",
-          description: "No se pudo cargar tu rol de usuario",
+          description: "No se pudo cargar tu perfil de usuario",
           variant: "destructive",
         });
         return;
       }
 
-      // Map Supabase level to UserRole
-      if (data?.level === "Verificado") {
-        setUserRole("verified");
-      } else if (data?.level === "Moderador") {
-        setUserRole("moderator");
-      } else if (data?.level === "Admin") {
-        setUserRole("admin");
-      } else {
-        setUserRole("registered");
-      }
+      // Handle the number to UserLevel conversion safely
+      const numericLevel = data?.level ? (typeof data.level === 'string' 
+          ? parseInt(data.level, 10) 
+          : Number(data.level)) 
+        : 1;
+      
+      // Ensure the level is valid
+      const safeLevel = (numericLevel >= 1 && numericLevel <= 13) 
+        ? numericLevel as UserLevel 
+        : 1;
+      
+      setUserLevel(safeLevel);
+      setUserExperience(data?.experience || 0);
     } catch (error) {
-      console.error("Error fetching user role:", error);
-      setUserRole("registered");
+      console.error("Error fetching user profile:", error);
+      setUserLevel(1);
+      setUserExperience(0);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return { user, userRole, isLoading };
+  // Get the level information based on user's experience
+  const levelInfo = getLevelInfo(userExperience);
+
+  return { 
+    user, 
+    userLevel, 
+    userExperience,
+    levelInfo,
+    isLoading 
+  };
 };
