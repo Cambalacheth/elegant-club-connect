@@ -197,6 +197,42 @@ export type Database = {
         }
         Relationships: []
       }
+      domains: {
+        Row: {
+          created_at: string
+          description: string | null
+          external_url: string | null
+          id: string
+          name: string
+          owner: string | null
+          path: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          name: string
+          owner?: string | null
+          path: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          id?: string
+          name?: string
+          owner?: string | null
+          path?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
@@ -458,6 +494,42 @@ export type Database = {
       }
     }
     Views: {
+      admin_domains_view: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          external_url: string | null
+          id: string | null
+          name: string | null
+          owner: string | null
+          path: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          id?: string | null
+          name?: string | null
+          owner?: string | null
+          path?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          id?: string | null
+          name?: string | null
+          owner?: string | null
+          path?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       comments_with_authors: {
         Row: {
           author_avatar: string | null

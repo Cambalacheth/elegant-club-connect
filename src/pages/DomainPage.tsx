@@ -112,7 +112,7 @@ const DomainPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {domains.map((domain) => (
+                  {domains.filter(domain => domain.name.toLowerCase() !== "elfotographer").map((domain) => (
                     <TableRow key={domain.id}>
                       <TableCell className="font-medium">{domain.name}</TableCell>
                       <TableCell>{domain.path}</TableCell>
@@ -152,4 +152,3 @@ const DomainPage = () => {
 };
 
 export default DomainPage;
-

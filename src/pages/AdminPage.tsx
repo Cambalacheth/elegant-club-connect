@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/hooks/useUser";
 import { canAdminContent } from "@/types/user";
 import { Navigate } from "react-router-dom";
+import DomainManagement from "@/components/admin/DomainManagement";
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("users");
@@ -47,11 +48,12 @@ const AdminPage = () => {
             onValueChange={setActiveTab}
             className="space-y-8"
           >
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
               <TabsTrigger value="users">Usuarios</TabsTrigger>
               <TabsTrigger value="content">Contenido</TabsTrigger>
               <TabsTrigger value="events">Eventos</TabsTrigger>
               <TabsTrigger value="feedback">Feedback</TabsTrigger>
+              <TabsTrigger value="domains">Dominios</TabsTrigger>
             </TabsList>
 
             <TabsContent value="users">
@@ -70,6 +72,10 @@ const AdminPage = () => {
             
             <TabsContent value="feedback">
               <FeedbackManagement />
+            </TabsContent>
+
+            <TabsContent value="domains">
+              <DomainManagement />
             </TabsContent>
           </Tabs>
         </main>
