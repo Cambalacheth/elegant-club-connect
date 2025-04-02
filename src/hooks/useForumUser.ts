@@ -43,7 +43,7 @@ export const useForumUser = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("level_numeric, experience")
+        .select("*")
         .eq("id", userId)
         .single();
 

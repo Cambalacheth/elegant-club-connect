@@ -12,7 +12,7 @@ import {
 import { filterContentById } from "@/utils/contentUtils";
 
 export const useContent = (type?: ContentType) => {
-  const [content, setContent] = useState<ContentItem[]>([]);
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -27,7 +27,7 @@ export const useContent = (type?: ContentType) => {
 
     try {
       const transformedData = await fetchPublishedContent(type);
-      setContent(transformedData);
+      setContentItems(transformedData);
     } catch (error: any) {
       console.error("Error fetching content:", error);
       setError(error.message);
@@ -47,7 +47,7 @@ export const useContent = (type?: ContentType) => {
 
     try {
       const transformedData = await fetchAllContentData(type);
-      setContent(transformedData);
+      setContentItems(transformedData);
     } catch (error: any) {
       console.error("Error fetching all content:", error);
       setError(error.message);
@@ -106,7 +106,7 @@ export const useContent = (type?: ContentType) => {
         title: "Éxito",
         description: "Contenido eliminado correctamente",
       });
-      setContent(filterContentById(content, id));
+      setContentItems(filterContentById(contentItems, id));
     } catch (error: any) {
       console.error("Error deleting content:", error);
       toast({
@@ -119,7 +119,7 @@ export const useContent = (type?: ContentType) => {
   };
 
   return {
-    content,
+    contentItems,
     isLoading,
     error,
     refetch: fetchContent,
