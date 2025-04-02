@@ -67,11 +67,7 @@ const UserManagement = () => {
 
   const handleEditUser = (user: Profile) => {
     setEditingUser(user);
-    const numericLevel = user.level ? (
-      typeof user.level === 'string' 
-        ? parseInt(user.level, 10)
-        : Number(user.level)
-    ) : 1;
+    const numericLevel = user.level ? Number(user.level) : 1;
     
     setSelectedLevel(numericLevel || 1);
     setExperiencePoints(user.experience || 0);

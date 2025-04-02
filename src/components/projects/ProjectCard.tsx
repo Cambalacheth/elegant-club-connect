@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Calendar, Shield } from "lucide-react";
-import { useForumUser } from "@/hooks/useForumUser";
+import { useUser } from "@/hooks/useUser";
 import { Project } from "@/types/project";
 import ProjectImage from "./ProjectImage";
 import ProjectCardCategories from "./ProjectCardCategories";
@@ -19,7 +19,7 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project, viewText, onDelete, onEdit, language }: ProjectCardProps) => {
-  const { user, userRole } = useForumUser();
+  const { user, userRole } = useUser();
   
   const formattedDate = new Date(project.created_at).toLocaleDateString(undefined, {
     year: "numeric",

@@ -9,7 +9,7 @@ export interface Profile {
   email?: string | null;
   gender: string | null;
   birth_date: string | null;
-  level: string | number;
+  level: number; // Changed to number instead of string | number
   experience: number;
   created_at: string;
   updated_at: string;

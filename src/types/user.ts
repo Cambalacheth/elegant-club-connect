@@ -13,19 +13,35 @@ export interface User {
   category?: string | null;
 }
 
-export const canCreateContent = (level: UserLevel): boolean => {
+export const canCreateContent = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // Convert UserRole to UserLevel
+    return ['verified', 'moderator', 'admin'].includes(level);
+  }
   return level >= 2;
 };
 
-export const canModerateContent = (level: UserLevel): boolean => {
+export const canModerateContent = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // Convert UserRole to UserLevel
+    return ['moderator', 'admin'].includes(level);
+  }
   return level >= 8;
 };
 
-export const canManageContent = (level: UserLevel): boolean => {
+export const canManageContent = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // Convert UserRole to UserLevel
+    return level === 'admin';
+  }
   return level >= 10;
 };
 
-export const canAdminContent = (level: UserLevel): boolean => {
+export const canAdminContent = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // Convert UserRole to UserLevel
+    return level === 'admin';
+  }
   return level === 13;
 };
 
@@ -46,7 +62,7 @@ export const LEVEL_THRESHOLDS = [
 ];
 
 export const getLevelInfo = (xp: number): { level: UserLevel, currentXP: number, nextLevelXP: number, progress: number } => {
-  let level = 1;
+  let level = 1 as UserLevel;
   
   for (let i = 1; i < LEVEL_THRESHOLDS.length; i++) {
     if (xp >= LEVEL_THRESHOLDS[i]) {
@@ -90,4 +106,22 @@ export const LEVEL_NAMES = {
 
 export const getLevelName = (level: UserLevel): string => {
   return LEVEL_NAMES[level] || "Desconocido";
+};
+
+// Helper to convert UserRole to UserLevel for backward compatibility
+export const roleToLevel = (role: UserRole): UserLevel => {
+  switch (role) {
+    case 'admin': return 13 as UserLevel;
+    case 'moderator': return 8 as UserLevel;
+    case 'verified': return 2 as UserLevel;
+    default: return 1 as UserLevel;
+  }
+};
+
+// Helper to convert UserLevel to UserRole for backward compatibility
+export const levelToRole = (level: UserLevel): UserRole => {
+  if (level >= 13) return 'admin';
+  if (level >= 8) return 'moderator';
+  if (level >= 2) return 'verified';
+  return 'registered';
 };

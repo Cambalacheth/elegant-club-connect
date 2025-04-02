@@ -18,13 +18,13 @@ const UserRoleIcon = ({ userRole, userLevel }: UserRoleIconProps) => {
   // If only userRole is passed, convert it to an equivalent userLevel
   if (!level && userRole) {
     if (userRole === "admin") {
-      level = 13;
+      level = 13 as UserLevel;
     } else if (userRole === "moderator") {
-      level = 8;
+      level = 8 as UserLevel;
     } else if (userRole === "verified") {
-      level = 2;
+      level = 2 as UserLevel;
     } else {
-      level = 1;
+      level = 1 as UserLevel;
     }
   }
   

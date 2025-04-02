@@ -60,7 +60,7 @@ export const useForumUser = () => {
       }
 
       // Handle the number to UserLevel conversion safely
-      const numericLevel = data?.level ? (typeof data.level === 'string' 
+      const numericLevel = data?.level !== undefined ? (typeof data.level === 'string' 
           ? parseInt(data.level, 10) 
           : Number(data.level)) 
         : 1;
