@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MessageSquare, Settings, Globe, FileCode, MailOpen } from "lucide-react";
-import { UserRole, canAdminContent } from "@/types/user";
+import { UserLevel, UserRole, canAdminContent } from "@/types/user";
 import { useDomains } from "@/hooks/useDomains";
 
 interface NavLinksProps {
@@ -53,7 +53,8 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
         { name: currentLanguage === "en" ? "Events" : "Eventos", path: "/events" },
         { name: currentLanguage === "en" ? "Members" : "Miembros", path: "/members" },
         { name: currentLanguage === "en" ? "Feedback" : "Opiniones", path: "/feedback" },
-        { name: "Asado", path: "/asado" }
+        { name: "Asado", path: "/asado" },
+        { name: currentLanguage === "en" ? "Vote" : "Votación", path: "/vote" }
       ].filter(domain => !fixedLinks.some(link => link.path === domain.path));
       
       const allDomains = [...availableDomains, ...additionalDomains];
@@ -108,7 +109,7 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
         </Link>
       )}
       
-      {/* Admin link - always show if user has admin role */}
+      {/* Admin link - always shown if user has admin privileges */}
       {canAdminContent(userRole) && (
         <Link 
           to="/admin"
