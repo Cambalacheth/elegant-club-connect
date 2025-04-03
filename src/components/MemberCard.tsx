@@ -9,9 +9,10 @@ interface MemberCardProps {
     category: string;
     avatar_url: string | null;
   };
+  isAdmin?: boolean;
 }
 
-const MemberCard = ({ member }: MemberCardProps) => {
+const MemberCard = ({ member, isAdmin = false }: MemberCardProps) => {
   return (
     <Link to={`/user/${member.username}`}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer h-full">
@@ -30,9 +31,15 @@ const MemberCard = ({ member }: MemberCardProps) => {
             )}
           </div>
           
-          {/* Member Info - removed level display */}
+          {/* Member Info */}
           <div className="text-center">
             <h3 className="font-medium text-base md:text-lg text-club-brown mb-2">{member.username}</h3>
+            
+            {/* Only show level to admins */}
+            {isAdmin && (
+              <div className="text-xs md:text-sm text-club-brown/80 mb-2">{member.level}</div>
+            )}
+            
             <span className="inline-block bg-club-beige px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-medium text-club-brown">
               {member.category}
             </span>

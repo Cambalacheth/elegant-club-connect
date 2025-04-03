@@ -76,8 +76,8 @@ const ProfileHeader = ({
         )}
       </div>
       
-      {/* Only show level information for admins */}
-      {profile && isAdmin && (
+      {/* Only show level information for admins or if it's the user's own profile */}
+      {profile && (isAdmin || isOwnProfile) && (
         <div className="mt-4">
           <UserLevelDisplay 
             level={levelInfo.level} 

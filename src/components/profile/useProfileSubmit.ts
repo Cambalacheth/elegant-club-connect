@@ -9,6 +9,46 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const calculateExperiencePoints = (values: any, avatarUrl: string | null, socialLinks: { id?: string; platform: string; url: string }[]) => {
+    let points = 0;
+    
+    // Profile picture: +50 pts
+    if (avatarUrl) {
+      points += 50;
+    }
+    
+    // Username: +30 pts (only if it's not default from email)
+    const usernameFromEmail = values.email?.split('@')[0];
+    if (values.username && values.username !== usernameFromEmail) {
+      points += 30;
+    }
+    
+    // Website: +25 pts
+    if (values.website && values.website.trim() !== '') {
+      points += 25;
+    }
+    
+    // Bio/Description: +25 pts
+    if (values.description && values.description.trim() !== '') {
+      points += 25;
+    }
+    
+    // Social networks: +5 pts each (max 20 pts)
+    const validSocialLinks = socialLinks.filter(link => link.url && link.url.trim() !== '');
+    points += Math.min(validSocialLinks.length * 5, 20);
+    
+    // Languages: +5 pts each
+    if (values.speaks_languages && Array.isArray(values.speaks_languages)) {
+      points += values.speaks_languages.length * 5;
+    }
+    
+    if (values.learning_languages && Array.isArray(values.learning_languages)) {
+      points += values.learning_languages.length * 5;
+    }
+    
+    return points;
+  };
+
   const handleSubmit = async (
     values: any,
     avatarUrl: string | null,
@@ -42,6 +82,34 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
         ? values.birth_date
         : null;
 
+      // Get current profile to compare and calculate experience points
+      const { data: currentProfile, error: profileError } = await supabase
+        .from("profiles")
+        .select("avatar_url, username, website, description, experience")
+        .eq("id", userId)
+        .single();
+        
+      if (profileError) {
+        throw profileError;
+      }
+      
+      // Calculate experience points to award
+      const experiencePoints = calculateExperiencePoints(values, finalAvatarUrl, socialLinks);
+      
+      // Only award points for new additions
+      let pointsToAward = experiencePoints;
+      
+      // If user already had these fields filled, don't award points again
+      if (currentProfile.avatar_url) pointsToAward -= 50;
+      if (currentProfile.username && currentProfile.username !== values.email?.split('@')[0]) pointsToAward -= 30;
+      if (currentProfile.website) pointsToAward -= 25;
+      if (currentProfile.description) pointsToAward -= 25;
+      
+      // Ensure we don't deduct points if the user didn't previously have these items
+      pointsToAward = Math.max(0, pointsToAward);
+      
+      const newExperience = (currentProfile.experience || 0) + pointsToAward;
+
       // Update profile data
       const { error: updateError } = await supabase
         .from("profiles")
@@ -57,6 +125,7 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
           preferred_language: values.preferred_language,
           speaks_languages: values.speaks_languages,
           learning_languages: values.learning_languages,
+          experience: newExperience,  // Update the experience points
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
@@ -80,7 +149,7 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
           if (linkUpdateError) {
             throw linkUpdateError;
           }
-        } else {
+        } else if (link.url && link.url.trim() !== '') {
           // Add new link
           const { error: linkInsertError } = await supabase
             .from("social_links")
@@ -96,11 +165,20 @@ export const useProfileSubmit = (userId: string, currentLanguage: string) => {
         }
       }
 
+      let toastMessage = currentLanguage === "en" 
+        ? "Your profile has been updated successfully" 
+        : "Tu perfil ha sido actualizado con éxito";
+        
+      // Add experience points message if points were awarded
+      if (pointsToAward > 0) {
+        toastMessage += currentLanguage === "en"
+          ? `. You earned +${pointsToAward} XP!`
+          : `. ¡Has ganado +${pointsToAward} XP!`;
+      }
+
       toast({
         title: currentLanguage === "en" ? "Success" : "Éxito",
-        description: currentLanguage === "en"
-          ? "Your profile has been updated successfully"
-          : "Tu perfil ha sido actualizado con éxito",
+        description: toastMessage,
       });
 
       navigate(`/user/${values.username}`);
