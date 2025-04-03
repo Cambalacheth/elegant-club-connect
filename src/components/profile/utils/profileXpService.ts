@@ -72,18 +72,36 @@ export const awardProfileChangeXp = async (
   }
   
   try {
-    // Call the backend function to award XP, using custom xpAmount if provided
-    const { data, error } = await supabase.rpc(
-      'add_user_xp',
-      { 
-        _user_id: userId, 
-        _action_name: action,
-        _custom_description: description,
-        _custom_amount: xpAmount
-      }
-    );
+    // Call the backend function to award XP
+    let result;
     
-    if (error) throw error;
+    if (xpAmount !== undefined) {
+      // Use custom SQL RPC call with the custom amount parameter
+      const { data, error } = await supabase.rpc(
+        'add_user_xp',
+        { 
+          _user_id: userId, 
+          _action_name: action,
+          _custom_description: description
+        }
+      );
+      
+      if (error) throw error;
+      result = data;
+    } else {
+      // Standard call without custom amount
+      const { data, error } = await supabase.rpc(
+        'add_user_xp',
+        { 
+          _user_id: userId, 
+          _action_name: action,
+          _custom_description: description 
+        }
+      );
+      
+      if (error) throw error;
+      result = data;
+    }
     
     // Create localized message for this XP reward
     const messageMap: Record<string, {en: string, es: string}> = {
@@ -99,7 +117,7 @@ export const awardProfileChangeXp = async (
       ? (currentLanguage === "en" ? messageMap[changeType].en : messageMap[changeType].es)
       : changeType;
       
-    const xpValue = xpAmount || data || 0;
+    const xpValue = xpAmount || result || 0;
     return {
       xp: xpValue,
       message: xpValue > 0 ? `+${xpValue} XP (${localizedName})` : ""
@@ -181,4 +199,3 @@ export const processProfileChanges = async (
 
   return { totalXp: totalXpEarned, messages: xpEarnedMessages };
 };
-

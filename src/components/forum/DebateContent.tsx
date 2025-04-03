@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Clock, Tag, Trash2 } from "lucide-react";
 import { Debate } from "@/types/forum";
-import { canModerateContent } from "@/types/user";
+import { canModerateContent, UserRole, UserLevel } from "@/types/user";
 
 interface DebateContentProps {
   debate: Debate;
@@ -26,13 +26,16 @@ const DebateContent: React.FC<DebateContentProps> = ({
   onVote,
   onDelete
 }) => {
+  // Convert string userRole to UserRole type for type safety
+  const typedUserRole = userRole as UserRole;
+  
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
       <div className="p-6">
         <div className="flex justify-between items-start mb-4">
           <h1 className="text-2xl font-bold text-club-brown">{debate.title}</h1>
           
-          {(canModerateContent(userRole) || userId === debate.author_id) && (
+          {(canModerateContent(typedUserRole) || userId === debate.author_id) && (
             <Button
               variant="ghost"
               size="sm"

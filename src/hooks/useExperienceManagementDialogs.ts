@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Profile } from "@/types/profile";
+import { UserLevel } from "@/types/user";
 import { useToast } from "@/hooks/use-toast";
 
 export const useExperienceManagementDialogs = (onUpdate: () => void) => {

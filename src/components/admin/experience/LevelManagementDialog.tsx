@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Profile } from "@/types/profile";
 import { UserLevel, LEVEL_NAMES, LEVEL_THRESHOLDS } from "@/types/user";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,15 +29,15 @@ const LevelManagementDialog = ({
   onSuccess,
 }: LevelManagementDialogProps) => {
   const { toast } = useToast();
-  const [selectedLevel, setSelectedLevel] = useState<UserLevel>(user?.level || 1);
+  const [selectedLevel, setSelectedLevel] = useState<UserLevel>(user?.level as UserLevel || 1 as UserLevel);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Reset selected level when user changes
-  useState(() => {
+  useEffect(() => {
     if (user) {
-      setSelectedLevel(user.level || 1);
+      setSelectedLevel((user.level as UserLevel) || 1 as UserLevel);
     }
-  });
+  }, [user]);
 
   const handleLevelChange = async () => {
     if (!user) return;
@@ -119,7 +119,7 @@ const LevelManagementDialog = ({
             </label>
             <div className="grid grid-cols-7 gap-2">
               {[...Array(13)].map((_, i) => {
-                const level = i + 1;
+                const level = (i + 1) as UserLevel;
                 return (
                   <Button
                     key={level}
@@ -127,7 +127,7 @@ const LevelManagementDialog = ({
                     className={selectedLevel === level 
                       ? "bg-club-orange text-white hover:bg-club-terracotta" 
                       : "border-club-beige text-club-brown hover:bg-club-beige/20"}
-                    onClick={() => setSelectedLevel(level as UserLevel)}
+                    onClick={() => setSelectedLevel(level)}
                   >
                     {level}
                   </Button>
@@ -135,7 +135,7 @@ const LevelManagementDialog = ({
               })}
             </div>
             <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
-              <div className="text-sm font-medium">{LEVEL_NAMES[selectedLevel as keyof typeof LEVEL_NAMES]}</div>
+              <div className="text-sm font-medium">{LEVEL_NAMES[selectedLevel]}</div>
               <div className="text-xs text-gray-500 mt-1">
                 XP mínima requerida: {LEVEL_THRESHOLDS[selectedLevel - 1]}
               </div>
