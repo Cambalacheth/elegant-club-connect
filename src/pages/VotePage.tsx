@@ -5,13 +5,14 @@ import NavbarWithDefaultLang from "@/components/Navbar";
 import { useUser } from "@/hooks/useUser";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowRight, Check, Vote, Award, Star } from "lucide-react";
+import { ArrowRight, Check, Vote, Award, Star, Code, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const VotePage = () => {
   const { user, userLevel, isLoading } = useUser();
   const { toast } = useToast();
   const [isVoting, setIsVoting] = useState(false);
+  const apiBaseUrl = "https://hunlwxpizenlsqcghffy.supabase.co/functions/v1/polls-api";
 
   const handleVoteClick = async () => {
     if (!user) {
@@ -49,11 +50,10 @@ const VotePage = () => {
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">
               <h1 className="text-4xl font-bold text-club-brown mb-4">
-                Sistema de Votación
+                Sistema de Votación API
               </h1>
               <p className="text-lg text-gray-600">
-                Tu voz es importante en la comunidad de Terreta. Participa en nuestro 
-                sistema de votación para influir en las decisiones futuras.
+                Integra nuestro sistema de votaciones en tu propia plataforma mediante nuestra API REST.
               </p>
             </div>
             
@@ -62,16 +62,45 @@ const VotePage = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Vote className="h-5 w-5 text-club-orange" />
-                    Votaciones Activas
+                    Endpoints de la API
                   </CardTitle>
                   <CardDescription>
-                    Participa en las decisiones de la comunidad
+                    Endpoints disponibles para integrar en tu aplicación
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="bg-club-beige/20 rounded-lg p-4 text-center">
-                    <p className="text-gray-500">No hay votaciones activas en este momento</p>
-                    <p className="text-sm mt-2">Las nuevas votaciones se anunciarán pronto</p>
+                  <div className="space-y-4">
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-mono text-sm font-medium">GET /polls</div>
+                        <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">GET</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Obtener todas las encuestas</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-mono text-sm font-medium">GET /polls/:id</div>
+                        <span className="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">GET</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Obtener una encuesta específica</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-mono text-sm font-medium">POST /polls</div>
+                        <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">POST</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Crear una nueva encuesta</p>
+                    </div>
+                    
+                    <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-mono text-sm font-medium">POST /vote</div>
+                        <span className="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded">POST</span>
+                      </div>
+                      <p className="text-sm text-gray-600">Registrar un voto en una encuesta</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -79,28 +108,46 @@ const VotePage = () => {
               <Card className="bg-white shadow-sm border-club-beige hover:shadow-md transition-shadow">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-club-orange" />
-                    Recompensas
+                    <Code className="h-5 w-5 text-club-orange" />
+                    Ejemplos de Código
                   </CardTitle>
                   <CardDescription>
-                    Gana XP y desbloquea beneficios por participar
+                    Ejemplos para integrar en tu aplicación
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2">
-                    <li className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>+5 XP por cada voto en un debate o comentario</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>+10 XP por cada comentario que publiques</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                      <span>+50 XP por cada debate que inicies</span>
-                    </li>
-                  </ul>
+                  <pre className="bg-gray-900 text-gray-100 p-4 rounded-md overflow-x-auto text-xs leading-relaxed">
+                    {`// Obtener todas las encuestas
+fetch('${apiBaseUrl}/polls')
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+// Obtener encuesta específica
+fetch('${apiBaseUrl}/polls/[ID]')
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+// Crear encuesta
+fetch('${apiBaseUrl}/polls', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    title: 'Tu pregunta',
+    options: ['Opción 1', 'Opción 2']
+  })
+});
+
+// Registrar voto
+fetch('${apiBaseUrl}/vote', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    pollId: '[POLL_ID]',
+    optionId: '[OPTION_ID]',
+    userId: '[USER_ID]'
+  })
+});`}
+                  </pre>
                 </CardContent>
               </Card>
             </div>
@@ -110,19 +157,17 @@ const VotePage = () => {
                 <div>
                   <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
                     <Star className="h-6 w-6" />
-                    Promoción especial
+                    Documentación completa
                   </h2>
                   <p className="text-white/90">
-                    Participa en nuestro foro y gana el doble de XP durante este mes
+                    Visita nuestra documentación para obtener información detallada sobre cómo integrar nuestro sistema de votaciones
                   </p>
                 </div>
                 <Button 
                   variant="secondary" 
                   className="mt-4 md:mt-0 bg-white text-club-brown hover:bg-club-beige transition-colors"
-                  onClick={handleVoteClick}
-                  disabled={isVoting}
                 >
-                  {isVoting ? "Procesando..." : "Participar ahora"} <ArrowRight className="ml-2 h-4 w-4" />
+                  Ver documentación <ExternalLink className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
