@@ -3,14 +3,17 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { useDomains } from "@/hooks/useDomains";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 const DomainPage = () => {
   const { domains, loading } = useDomains();
   const [currentLanguage, setCurrentLanguage] = useState("es");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [hoveredDomain, setHoveredDomain] = useState<string | null>(null);
   
   const title = currentLanguage === "en" ? "Domains - Terreta Hub" : "Dominios - Terreta Hub";
   const description = currentLanguage === "en" 
@@ -23,17 +26,37 @@ const DomainPage = () => {
     : "En Terreta Hub, hemos reimaginado cómo los miembros de la comunidad pueden establecer su presencia.";
   
   const domainsTitle = currentLanguage === "en" ? "Available Domains" : "Dominios Disponibles";
+  const searchPlaceholder = currentLanguage === "en" ? "Search domains..." : "Buscar dominios...";
+  
   const statusLabels = {
     available: currentLanguage === "en" ? "Available" : "Disponible",
     reserved: currentLanguage === "en" ? "Reserved" : "Reservado",
     used: currentLanguage === "en" ? "In Use" : "En Uso",
   };
 
+  const filteredDomains = domains.filter(domain => 
+    domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   const handleDomainAction = (domain: any) => {
     if (domain.externalUrl) {
       window.open(domain.externalUrl, '_blank');
     } else if (domain.status === 'used') {
       window.location.href = domain.path;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'available': 
+        return 'bg-green-100 border-green-300 text-green-800';
+      case 'reserved': 
+        return 'bg-amber-100 border-amber-300 text-amber-800';
+      case 'used': 
+        return 'bg-blue-100 border-blue-300 text-blue-800';
+      default: 
+        return 'bg-gray-100 border-gray-300 text-gray-800';
     }
   };
 
@@ -77,72 +100,94 @@ const DomainPage = () => {
                   ? "This creates a unique ecosystem where each member can have their own branded space within the larger Terreta community."
                   : "Esto crea un ecosistema único donde cada miembro puede tener su propio espacio personalizado dentro de la comunidad Terreta más amplia."}
               </p>
-              <div className="pt-4">
-                <Button 
-                  onClick={() => window.location.href = "/ElFotographer"}
-                  className="bg-club-orange text-white hover:bg-club-terracotta flex items-center gap-2"
-                >
-                  {currentLanguage === "en"
-                    ? "See Example: ElFotographer"
-                    : "Ver Ejemplo: ElFotographer"}
-                  <ExternalLink size={16} />
-                </Button>
-              </div>
             </CardContent>
           </Card>
           
-          <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4">
-            {domainsTitle}
-          </h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+            <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4 md:mb-0">
+              {domainsTitle}
+            </h2>
+            
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-club-brown/50" size={18} />
+              <Input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="pl-10 pr-4 py-2 border border-club-beige-dark focus:border-club-orange transition-all"
+              />
+            </div>
+          </div>
           
           {loading ? (
             <div className="text-center py-8">
-              <p>{currentLanguage === "en" ? "Loading domains..." : "Cargando dominios..."}</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-club-brown mx-auto"></div>
+              <p className="mt-2 text-club-brown/70">
+                {currentLanguage === "en" ? "Loading domains..." : "Cargando dominios..."}
+              </p>
+            </div>
+          ) : filteredDomains.length === 0 ? (
+            <div className="text-center py-16 bg-club-beige/50 rounded-lg">
+              <Search size={48} className="mx-auto text-club-brown/30" />
+              <p className="mt-4 text-club-brown/70">
+                {currentLanguage === "en" 
+                  ? "No domains found matching your search." 
+                  : "No se encontraron dominios que coincidan con tu búsqueda."}
+              </p>
+              {searchQuery && (
+                <Button 
+                  variant="link" 
+                  onClick={() => setSearchQuery("")}
+                  className="mt-2 text-club-orange"
+                >
+                  {currentLanguage === "en" ? "Clear search" : "Limpiar búsqueda"}
+                </Button>
+              )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{currentLanguage === "en" ? "Domain Name" : "Nombre de Dominio"}</TableHead>
-                    <TableHead>{currentLanguage === "en" ? "Path" : "Ruta"}</TableHead>
-                    <TableHead>{currentLanguage === "en" ? "Description" : "Descripción"}</TableHead>
-                    <TableHead>{currentLanguage === "en" ? "Status" : "Estado"}</TableHead>
-                    <TableHead>{currentLanguage === "en" ? "Action" : "Acción"}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {domains.filter(domain => domain.name.toLowerCase() !== "elfotographer").map((domain) => (
-                    <TableRow key={domain.id}>
-                      <TableCell className="font-medium">{domain.name}</TableCell>
-                      <TableCell>{domain.path}</TableCell>
-                      <TableCell>{domain.description}</TableCell>
-                      <TableCell>
-                        <span 
-                          className={`px-2 py-1 rounded-full text-xs font-semibold
-                            ${domain.status === 'available' ? 'bg-green-100 text-green-800' : 
-                              domain.status === 'reserved' ? 'bg-amber-100 text-amber-800' : 
-                              'bg-blue-100 text-blue-800'}`}
-                        >
-                          {statusLabels[domain.status]}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDomainAction(domain)}
-                          disabled={domain.status === 'reserved'}
-                          className={domain.externalUrl ? "flex items-center gap-1" : ""}
-                        >
-                          {currentLanguage === "en" ? "Visit" : "Visitar"}
-                          {domain.externalUrl && <ExternalLink size={14} />}
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredDomains.map((domain) => (
+                <div 
+                  key={domain.id}
+                  className={cn(
+                    "border rounded-lg p-4 transition-all duration-300",
+                    getStatusColor(domain.status),
+                    hoveredDomain === domain.id ? "shadow-md transform -translate-y-1" : ""
+                  )}
+                  onMouseEnter={() => setHoveredDomain(domain.id)}
+                  onMouseLeave={() => setHoveredDomain(null)}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-serif font-bold text-lg">{domain.name}</h3>
+                    <span className="text-xs rounded-full px-3 py-1 bg-white/50">
+                      {statusLabels[domain.status]}
+                    </span>
+                  </div>
+                  
+                  <p className="text-sm mb-3 line-clamp-2">{domain.description || "-"}</p>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-mono text-club-brown/60">
+                      {domain.path}
+                    </span>
+                    
+                    <Button 
+                      variant={domain.status === "available" ? "default" : "outline"} 
+                      size="sm"
+                      onClick={() => handleDomainAction(domain)}
+                      disabled={domain.status === 'reserved'}
+                      className={domain.externalUrl ? "flex items-center gap-1" : ""}
+                    >
+                      {domain.status === "available" 
+                        ? (currentLanguage === "en" ? "Claim" : "Reclamar")
+                        : (currentLanguage === "en" ? "Visit" : "Visitar")
+                      }
+                      {domain.externalUrl && <ExternalLink size={14} />}
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
