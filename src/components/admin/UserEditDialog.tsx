@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Profile } from "@/types/profile";
 import { Check, X } from "lucide-react";
-import { UserLevel, getLevelName } from "@/types/user";
+import { UserLevel, getLevelName, LEVEL_THRESHOLDS } from "@/types/user";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,24 +36,53 @@ const UserEditDialog = ({ user, onClose, onSave }: UserEditDialogProps) => {
   const { toast } = useToast();
   const [selectedLevel, setSelectedLevel] = useState<number>(user?.level || 1);
   const [experiencePoints, setExperiencePoints] = useState<number>(user?.experience || 0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update local state when user changes
+  useEffect(() => {
+    if (user) {
+      setSelectedLevel(user.level || 1);
+      setExperiencePoints(user.experience || 0);
+    }
+  }, [user]);
 
   const handleSaveUser = async () => {
     if (!user) return;
 
     try {
+      setIsSubmitting(true);
+
+      // Calculate minimum XP required for selected level
+      const minXpForLevel = LEVEL_THRESHOLDS[selectedLevel - 1] || 0;
+      const finalXp = Math.max(experiencePoints, minXpForLevel);
+      
+      // Update the user's level and XP
       const { error } = await supabase
         .from("profiles")
         .update({ 
           level_numeric: selectedLevel,
-          experience: experiencePoints
+          experience: finalXp
         })
         .eq("id", user.id);
 
       if (error) throw error;
 
+      // If we had to adjust XP to meet minimum level requirements, add an XP history entry
+      if (finalXp > experiencePoints) {
+        const xpDifference = finalXp - experiencePoints;
+        
+        await supabase
+          .from("user_xp_history")
+          .insert({
+            user_id: user.id,
+            xp_amount: xpDifference,
+            description: `Admin: Ajuste automático para nivel ${selectedLevel}`
+          });
+      }
+
       toast({
         title: "Usuario actualizado",
-        description: `El nivel de ${user.username} ha sido actualizado a ${selectedLevel}`,
+        description: `${user.username} ahora es nivel ${selectedLevel} con ${finalXp} XP`,
       });
 
       onSave();
@@ -64,6 +93,8 @@ const UserEditDialog = ({ user, onClose, onSave }: UserEditDialogProps) => {
         description: "No se pudo actualizar el usuario",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -114,6 +145,10 @@ const UserEditDialog = ({ user, onClose, onSave }: UserEditDialogProps) => {
                 })}
               </SelectContent>
             </Select>
+            <p className="text-xs text-amber-600 mt-1 bg-amber-50 p-2 rounded">
+              <strong>Nota:</strong> Si el XP actual es menor que el mínimo requerido para este nivel, 
+              se ajustará automáticamente.
+            </p>
           </div>
           
           <div className="space-y-2 bg-white p-4 rounded-md border border-gray-100">
@@ -140,9 +175,10 @@ const UserEditDialog = ({ user, onClose, onSave }: UserEditDialogProps) => {
           </Button>
           <Button 
             onClick={handleSaveUser} 
+            disabled={isSubmitting}
             className="bg-club-orange hover:bg-club-terracotta text-white"
           >
-            Guardar Cambios
+            {isSubmitting ? "Guardando..." : "Guardar Cambios"}
           </Button>
         </DialogFooter>
       </DialogContent>

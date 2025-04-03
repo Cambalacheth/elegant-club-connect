@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, PlusCircle, MinusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import EmptyUserState from "./EmptyUserState";
 import useAdminUsers from "@/hooks/useAdminUsers";
 import { Profile } from "@/types/profile";
 import { supabase } from "@/integrations/supabase/client";
-import { LEVEL_THRESHOLDS, LEVEL_NAMES, getLevelInfo } from "@/types/user";
+import { UserLevel, LEVEL_THRESHOLDS, LEVEL_NAMES, getLevelInfo } from "@/types/user";
 import { 
   Table, 
   TableBody, 
@@ -35,6 +35,9 @@ const ExperienceManagement = () => {
   const [xpAmount, setXpAmount] = useState<number>(50);
   const [xpDescription, setXpDescription] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // New state for level management dialog
+  const [levelDialogOpen, setLevelDialogOpen] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState<UserLevel>(1);
 
   const handleModifyExperience = async () => {
     if (!selectedUser || !xpDescription.trim() || xpAmount === 0) {
@@ -81,8 +84,69 @@ const ExperienceManagement = () => {
     }
   };
 
+  // New function to handle level change
+  const handleLevelChange = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setIsSubmitting(true);
+
+      // Calculate minimum XP required for this level
+      const minXpForLevel = LEVEL_THRESHOLDS[selectedLevel - 1] || 0;
+      
+      // First update the level in the profiles table
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ 
+          level_numeric: selectedLevel,
+          experience: Math.max(minXpForLevel, selectedUser.experience || 0)
+        })
+        .eq("id", selectedUser.id);
+
+      if (updateError) throw updateError;
+
+      // Add XP history entry for admin level change
+      const xpDifference = minXpForLevel - (selectedUser.experience || 0);
+      
+      if (xpDifference > 0) {
+        const { error: xpError } = await supabase
+          .from("user_xp_history")
+          .insert({
+            user_id: selectedUser.id,
+            xp_amount: xpDifference,
+            description: `Admin: Ajuste de nivel a ${selectedLevel}`
+          });
+        
+        if (xpError) throw xpError;
+      }
+
+      toast({
+        title: "Nivel actualizado",
+        description: `${selectedUser.username} ahora es nivel ${selectedLevel} (${LEVEL_NAMES[selectedLevel]})`,
+      });
+
+      setLevelDialogOpen(false);
+      refetch();
+    } catch (error: any) {
+      console.error("Error updating level:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el nivel del usuario",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleUserClick = (user: Profile) => {
     setSelectedUser(user);
+  };
+
+  const openLevelDialog = (user: Profile) => {
+    setSelectedUser(user);
+    setSelectedLevel(user.level || 1);
+    setLevelDialogOpen(true);
   };
 
   const levelData = LEVEL_THRESHOLDS.map((threshold, index) => {
@@ -131,7 +195,53 @@ const ExperienceManagement = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-club-orange"></div>
           </div>
         ) : users && users.length > 0 ? (
-          <UserTable users={users} onEditUser={handleUserClick} />
+          <div>
+            <div className="mb-4 space-y-2">
+              <h3 className="text-lg font-medium">Acciones rápidas</h3>
+              <div className="flex flex-wrap gap-3">
+                <Button 
+                  variant="outline" 
+                  className="border-club-beige text-club-brown"
+                  onClick={() => selectedUser && openLevelDialog(selectedUser)}
+                  disabled={!selectedUser}
+                >
+                  Cambiar nivel directamente
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-club-beige text-club-brown"
+                  onClick={() => {
+                    if (selectedUser) {
+                      setXpAmount(100);
+                      setXpDescription("Bonificación manual");
+                    }
+                  }}
+                  disabled={!selectedUser}
+                >
+                  +100 XP
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-red-200 text-red-600"
+                  onClick={() => {
+                    if (selectedUser) {
+                      setXpAmount(-50);
+                      setXpDescription("Penalización manual");
+                    }
+                  }}
+                  disabled={!selectedUser}
+                >
+                  -50 XP
+                </Button>
+              </div>
+            </div>
+            
+            <UserTable 
+              users={users} 
+              onEditUser={handleUserClick} 
+              selectedUserId={selectedUser?.id || null}
+            />
+          </div>
         ) : (
           <EmptyUserState searchTerm={searchTerm} />
         )}
@@ -165,10 +275,10 @@ const ExperienceManagement = () => {
       </div>
 
       {/* Dialog for modifying user experience */}
-      <Dialog open={!!selectedUser} onOpenChange={(open) => !open && setSelectedUser(null)}>
-        <DialogContent className="sm:max-w-[425px]">
+      <Dialog open={!!selectedUser && !levelDialogOpen} onOpenChange={(open) => !open && setSelectedUser(null)}>
+        <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-md border-2 border-club-beige shadow-xl">
           <DialogHeader>
-            <DialogTitle>Modificar Experiencia</DialogTitle>
+            <DialogTitle className="text-xl font-serif text-club-brown">Modificar Experiencia</DialogTitle>
             <DialogDescription>
               {selectedUser ? (
                 <>
@@ -177,7 +287,7 @@ const ExperienceManagement = () => {
                   Experiencia actual: <span className="font-semibold">{selectedUser.experience} XP</span>
                   <br />
                   Nivel actual: <span className="font-semibold">
-                    {selectedUser.level} ({getLevelInfo(selectedUser.experience).level})
+                    {selectedUser.level} ({getLevelInfo(selectedUser.experience || 0).level})
                   </span>
                 </>
               ) : (
@@ -234,6 +344,80 @@ const ExperienceManagement = () => {
               className={xpAmount > 0 ? "bg-club-orange hover:bg-club-terracotta text-white" : "bg-red-500 hover:bg-red-600 text-white"}
             >
               {isSubmitting ? "Procesando..." : xpAmount > 0 ? "Añadir XP" : "Quitar XP"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New dialog for directly changing user level */}
+      <Dialog open={levelDialogOpen} onOpenChange={setLevelDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] bg-white/95 backdrop-blur-md border-2 border-club-beige shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-serif text-club-brown">Cambiar Nivel</DialogTitle>
+            <DialogDescription>
+              {selectedUser ? (
+                <>
+                  Asignar nuevo nivel para <span className="font-semibold">{selectedUser.username}</span>.
+                  <br />
+                  Nivel actual: <span className="font-semibold">{selectedUser.level}</span>
+                  <br />
+                  Experiencia actual: <span className="font-semibold">{selectedUser.experience} XP</span>
+                </>
+              ) : (
+                "Cargando datos del usuario..."
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="space-y-2">
+              <label htmlFor="level-select" className="text-sm font-medium text-gray-600">
+                Selecciona un nivel (1-13)
+              </label>
+              <div className="grid grid-cols-7 gap-2">
+                {[...Array(13)].map((_, i) => {
+                  const level = i + 1;
+                  return (
+                    <Button
+                      key={level}
+                      variant={selectedLevel === level ? "default" : "outline"}
+                      className={selectedLevel === level 
+                        ? "bg-club-orange text-white hover:bg-club-terracotta" 
+                        : "border-club-beige text-club-brown hover:bg-club-beige/20"}
+                      onClick={() => setSelectedLevel(level as UserLevel)}
+                    >
+                      {level}
+                    </Button>
+                  );
+                })}
+              </div>
+              <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div className="text-sm font-medium">{LEVEL_NAMES[selectedLevel as keyof typeof LEVEL_NAMES]}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  XP mínima requerida: {LEVEL_THRESHOLDS[selectedLevel - 1]}
+                </div>
+              </div>
+              <div className="mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded-md">
+                <strong>Nota:</strong> Si el usuario tiene menos XP de la requerida para este nivel, 
+                se añadirán los puntos necesarios automáticamente.
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setLevelDialogOpen(false)}
+              className="border-club-beige text-club-brown"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleLevelChange}
+              disabled={isSubmitting || !selectedUser || selectedLevel === selectedUser.level}
+              className="bg-club-orange hover:bg-club-terracotta text-white"
+            >
+              {isSubmitting ? "Guardando..." : "Cambiar nivel"}
             </Button>
           </DialogFooter>
         </DialogContent>

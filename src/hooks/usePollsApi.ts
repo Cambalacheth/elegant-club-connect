@@ -51,7 +51,7 @@ export const usePollsApi = () => {
       }
       
       return await response.json();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "No se pudieron cargar las encuestas",
@@ -77,7 +77,7 @@ export const usePollsApi = () => {
       }
       
       return await response.json();
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "No se pudo cargar la encuesta",
@@ -116,7 +116,7 @@ export const usePollsApi = () => {
       });
       
       return newPoll;
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "No se pudo crear la encuesta",
@@ -163,7 +163,7 @@ export const usePollsApi = () => {
       });
       
       return { success: true, results: result.results };
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "No se pudo registrar el voto",
