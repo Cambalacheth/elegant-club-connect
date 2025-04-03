@@ -299,6 +299,27 @@ export type Database = {
         }
         Relationships: []
       }
+      levels: {
+        Row: {
+          description: string | null
+          level_id: number
+          min_xp: number
+          name: string
+        }
+        Insert: {
+          description?: string | null
+          level_id: number
+          min_xp: number
+          name: string
+        }
+        Update: {
+          description?: string | null
+          level_id?: number
+          min_xp?: number
+          name?: string
+        }
+        Relationships: []
+      }
       otros_idiomas: {
         Row: {
           created_at: string
@@ -471,6 +492,44 @@ export type Database = {
           },
         ]
       }
+      user_xp_history: {
+        Row: {
+          action_id: string | null
+          created_at: string | null
+          custom_action: string | null
+          description: string | null
+          id: string
+          user_id: string
+          xp_amount: number
+        }
+        Insert: {
+          action_id?: string | null
+          created_at?: string | null
+          custom_action?: string | null
+          description?: string | null
+          id?: string
+          user_id: string
+          xp_amount: number
+        }
+        Update: {
+          action_id?: string | null
+          created_at?: string | null
+          custom_action?: string | null
+          description?: string | null
+          id?: string
+          user_id?: string
+          xp_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_xp_history_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "xp_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       votes: {
         Row: {
           created_at: string
@@ -495,6 +554,36 @@ export type Database = {
           reference_type?: string
           user_id?: string
           vote_type?: string
+        }
+        Relationships: []
+      }
+      xp_actions: {
+        Row: {
+          action_name: string
+          created_at: string | null
+          description: string
+          id: string
+          max_times: number | null
+          repeatable: boolean | null
+          xp_value: number
+        }
+        Insert: {
+          action_name: string
+          created_at?: string | null
+          description: string
+          id?: string
+          max_times?: number | null
+          repeatable?: boolean | null
+          xp_value: number
+        }
+        Update: {
+          action_name?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          max_times?: number | null
+          repeatable?: boolean | null
+          xp_value?: number
         }
         Relationships: []
       }
@@ -588,6 +677,14 @@ export type Database = {
       }
     }
     Functions: {
+      add_user_xp: {
+        Args: {
+          _user_id: string
+          _action_name: string
+          _custom_description?: string
+        }
+        Returns: number
+      }
       is_admin: {
         Args: {
           user_id: string
