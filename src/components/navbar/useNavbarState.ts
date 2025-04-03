@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole, levelToRole } from "@/types/user";
+import { UserRole, levelToRole, UserLevel } from "@/types/user";
 
 export const useNavbarState = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -58,7 +58,9 @@ export const useNavbarState = () => {
 
       // Convert numeric level to role using the levelToRole helper
       const numericLevel = data?.level_numeric || 1;
-      const derivedRole = levelToRole(numericLevel);
+      // Ensure the level is safely cast to UserLevel
+      const safeLevel = numericLevel as UserLevel;
+      const derivedRole = levelToRole(safeLevel);
       setUserRole(derivedRole);
       
       console.log("User level:", numericLevel, "User role:", derivedRole);
