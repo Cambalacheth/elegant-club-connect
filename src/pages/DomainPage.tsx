@@ -5,15 +5,31 @@ import Navbar from "@/components/Navbar";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useDomains } from "@/hooks/useDomains";
-import { ExternalLink, Search } from "lucide-react";
+import { ExternalLink, Search, GlobeIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 
 const DomainPage = () => {
-  const { domains, loading } = useDomains();
   const [currentLanguage, setCurrentLanguage] = useState("es");
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredDomain, setHoveredDomain] = useState<string | null>(null);
+  
+  // Use the enhanced useDomains hook with randomized order and pagination
+  const { 
+    domains, 
+    loading, 
+    currentPage, 
+    setCurrentPage, 
+    totalPages 
+  } = useDomains({ randomize: true, pageSize: 12 });
   
   const title = currentLanguage === "en" ? "Domains - Terreta Hub" : "Dominios - Terreta Hub";
   const description = currentLanguage === "en" 
@@ -60,6 +76,11 @@ const DomainPage = () => {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <>
       <Helmet>
@@ -90,11 +111,6 @@ const DomainPage = () => {
                   ? "Traditional websites offer standard pages like /events or /projects. At Terreta Hub, we go beyond by allowing members to create branded domains - custom pages that represent their personal brand or project."
                   : "Los sitios web tradicionales ofrecen páginas estándar como /eventos o /proyectos. En Terreta Hub, vamos más allá al permitir a los miembros crear dominios personalizados - páginas a medida que representan su marca personal o proyecto."}
               </p>
-              <p>
-                {currentLanguage === "en"
-                  ? "For example, a photographer might have terretahub.com/ElFotographer as their personal branded domain, while a developer might have terretahub.com/CodeMaster."
-                  : "Por ejemplo, un fotógrafo podría tener terretahub.com/ElFotographer como su dominio personalizado, mientras que un desarrollador podría tener terretahub.com/CodeMaster."}
-              </p>
               <p className="font-semibold">
                 {currentLanguage === "en"
                   ? "This creates a unique ecosystem where each member can have their own branded space within the larger Terreta community."
@@ -108,15 +124,30 @@ const DomainPage = () => {
               {domainsTitle}
             </h2>
             
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-club-brown/50" size={18} />
-              <Input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={searchPlaceholder}
-                className="pl-10 pr-4 py-2 border border-club-beige-dark focus:border-club-orange transition-all"
-              />
+            <div className="relative w-full md:w-72">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-club-brown/50" size={18} />
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="pl-10 pr-4 py-2 border border-club-beige-dark focus:border-club-orange transition-all"
+                />
+                {searchQuery && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2" 
+                    onClick={() => setSearchQuery("")}>
+                    <span className="sr-only">Clear search</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x text-club-brown/50">
+                      <path d="M18 6 6 18"/>
+                      <path d="m6 6 12 12"/>
+                    </svg>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
           
@@ -146,49 +177,95 @@ const DomainPage = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredDomains.map((domain) => (
-                <div 
-                  key={domain.id}
-                  className={cn(
-                    "border rounded-lg p-4 transition-all duration-300",
-                    getStatusColor(domain.status),
-                    hoveredDomain === domain.id ? "shadow-md transform -translate-y-1" : ""
-                  )}
-                  onMouseEnter={() => setHoveredDomain(domain.id)}
-                  onMouseLeave={() => setHoveredDomain(null)}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-serif font-bold text-lg">{domain.name}</h3>
-                    <span className="text-xs rounded-full px-3 py-1 bg-white/50">
-                      {statusLabels[domain.status]}
-                    </span>
-                  </div>
-                  
-                  <p className="text-sm mb-3 line-clamp-2">{domain.description || "-"}</p>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs font-mono text-club-brown/60">
-                      {domain.path}
-                    </span>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                {filteredDomains.map((domain) => (
+                  <div 
+                    key={domain.id}
+                    className={cn(
+                      "border rounded-lg p-4 transition-all duration-300",
+                      getStatusColor(domain.status),
+                      hoveredDomain === domain.id ? "shadow-md transform -translate-y-1" : "",
+                      "flex flex-col justify-between"
+                    )}
+                    onMouseEnter={() => setHoveredDomain(domain.id)}
+                    onMouseLeave={() => setHoveredDomain(null)}
+                  >
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-serif font-bold text-lg flex items-center">
+                          <GlobeIcon size={16} className="mr-1.5 opacity-70" />
+                          {domain.name}
+                        </h3>
+                        <span className="text-xs rounded-full px-3 py-1 bg-white/50 font-medium">
+                          {statusLabels[domain.status]}
+                        </span>
+                      </div>
+                      
+                      <p className="text-sm mb-3 line-clamp-2 min-h-[40px]">{domain.description || "-"}</p>
+                    </div>
                     
-                    <Button 
-                      variant={domain.status === "available" ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => handleDomainAction(domain)}
-                      disabled={domain.status === 'reserved'}
-                      className={domain.externalUrl ? "flex items-center gap-1" : ""}
-                    >
-                      {domain.status === "available" 
-                        ? (currentLanguage === "en" ? "Claim" : "Reclamar")
-                        : (currentLanguage === "en" ? "Visit" : "Visitar")
-                      }
-                      {domain.externalUrl && <ExternalLink size={14} />}
-                    </Button>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs font-mono text-club-brown/60">
+                        {domain.path}
+                      </span>
+                      
+                      <Button 
+                        variant={domain.status === "available" ? "default" : "outline"} 
+                        size="sm"
+                        onClick={() => handleDomainAction(domain)}
+                        disabled={domain.status === 'reserved'}
+                        className={cn(
+                          domain.externalUrl ? "flex items-center gap-1" : "",
+                          domain.status === "available" ? "bg-club-orange hover:bg-club-orange/90" : ""
+                        )}
+                      >
+                        {domain.status === "available" 
+                          ? (currentLanguage === "en" ? "Claim" : "Reclamar")
+                          : (currentLanguage === "en" ? "Visit" : "Visitar")
+                        }
+                        {domain.externalUrl && <ExternalLink size={14} />}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              
+              {totalPages > 1 && (
+                <Pagination className="mt-8">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                        className={cn(currentPage === 1 ? "pointer-events-none opacity-50" : "")}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => handlePageChange(page)}
+                          isActive={page === currentPage}
+                          className={cn(
+                            "cursor-pointer",
+                            page === currentPage ? "bg-club-orange text-white border-club-orange hover:bg-club-orange/90" : ""
+                          )}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                        className={cn(currentPage === totalPages ? "pointer-events-none opacity-50" : "")}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           )}
         </div>
       </div>

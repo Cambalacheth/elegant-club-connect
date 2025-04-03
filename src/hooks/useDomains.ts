@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Domain {
@@ -12,23 +12,51 @@ export interface Domain {
   externalUrl?: string;
 }
 
-export const useDomains = () => {
+interface UseDomainProps {
+  randomize?: boolean;
+  pageSize?: number;
+}
+
+export const useDomains = ({ randomize = false, pageSize = 12 }: UseDomainProps = {}) => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchDomains = async () => {
       try {
         setLoading(true);
         
-        // Use a raw SQL query since the table was created via SQL
-        const { data, error } = await supabase
+        // Count total domains for pagination
+        const { count, error: countError } = await supabase
           .from('domains')
-          .select('*')
-          .order('name');
+          .select('*', { count: 'exact', head: true });
           
-        if (error) throw error;
+        if (countError) throw countError;
+        if (count !== null) setTotalCount(count);
+        
+        // Use a raw SQL query since the table was created via SQL
+        let query = supabase
+          .from('domains')
+          .select('*');
+          
+        // Add ordering - random if specified, otherwise by name
+        if (randomize) {
+          query = query.order('id', { ascending: false });
+        } else {
+          query = query.order('name');
+        }
+        
+        // Add pagination
+        const from = (currentPage - 1) * pageSize;
+        const to = from + pageSize - 1;
+        query = query.range(from, to);
+        
+        const { data, error: fetchError } = await query;
+        
+        if (fetchError) throw fetchError;
         
         // Transform the data to match our Domain interface
         const formattedDomains: Domain[] = (data || []).map(domain => ({
@@ -46,7 +74,6 @@ export const useDomains = () => {
       } catch (err) {
         console.error('Error fetching domains:', err);
         setError('Failed to load domains');
-        // Fall back to empty array
         setDomains([]);
       } finally {
         setLoading(false);
@@ -54,7 +81,17 @@ export const useDomains = () => {
     };
 
     fetchDomains();
-  }, []);
+  }, [randomize, pageSize, currentPage]);
 
-  return { domains, loading, error };
+  const totalPages = useMemo(() => Math.ceil(totalCount / pageSize), [totalCount, pageSize]);
+
+  return { 
+    domains, 
+    loading, 
+    error, 
+    currentPage, 
+    setCurrentPage, 
+    totalPages,
+    totalCount
+  };
 };

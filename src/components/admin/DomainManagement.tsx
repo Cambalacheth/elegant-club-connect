@@ -1,216 +1,159 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription 
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Table, 
-  TableHeader, 
-  TableRow, 
-  TableHead, 
-  TableBody, 
-  TableCell 
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useDomains, Domain } from '@/hooks/useDomains';
-import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle, Edit, Trash, Check, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useState, useCallback } from "react";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useDomains } from "@/hooks/useDomains";
+import { ExternalLink, Edit, Trash2, Plus, Search, RefreshCw, Globe } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+const ITEMS_PER_PAGE = 10;
 
 const DomainManagement = () => {
-  const { domains, loading: loadingDomains } = useDomains();
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [editingDomain, setEditingDomain] = useState<Domain | null>(null);
-  const [deletingDomain, setDeletingDomain] = useState<Domain | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentDomain, setCurrentDomain] = useState<any>(null);
+  const [name, setName] = useState("");
+  const [path, setPath] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<"available" | "reserved" | "used">("available");
+  const [externalUrl, setExternalUrl] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const { toast } = useToast();
-  
-  // New domain form state
-  const [newDomain, setNewDomain] = useState<Omit<Domain, 'id'>>({
-    name: '',
-    path: '',
-    description: '',
-    status: 'available',
-    owner: '',
-    externalUrl: '',
+  const { domains, loading, totalCount, totalPages } = useDomains({
+    pageSize: ITEMS_PER_PAGE,
+    randomize: false
   });
-  
-  // Handle form input changes for new domain
-  const handleNewDomainChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewDomain(prev => ({ ...prev, [name]: value }));
+
+  const filteredDomains = domains.filter(domain =>
+    domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    domain.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const resetForm = useCallback(() => {
+    setName("");
+    setPath("");
+    setDescription("");
+    setStatus("available");
+    setExternalUrl("");
+    setCurrentDomain(null);
+    setIsEditing(false);
+  }, []);
+
+  const handleEditDomain = (domain: any) => {
+    setCurrentDomain(domain);
+    setName(domain.name);
+    setPath(domain.path);
+    setDescription(domain.description || "");
+    setStatus(domain.status);
+    setExternalUrl(domain.externalUrl || "");
+    setIsEditing(true);
+    setDialogOpen(true);
   };
-  
-  // Handle select changes for new domain
-  const handleStatusChange = (value: string) => {
-    setNewDomain(prev => ({ 
-      ...prev, 
-      status: value as 'available' | 'reserved' | 'used' 
-    }));
+
+  const handleAddNew = () => {
+    resetForm();
+    setDialogOpen(true);
   };
-  
-  // Handle form input changes for editing domain
-  const handleEditDomainChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (editingDomain) {
-      setEditingDomain({ ...editingDomain, [name]: value });
-    }
-  };
-  
-  // Handle select changes for editing domain
-  const handleEditStatusChange = (value: string) => {
-    if (editingDomain) {
-      setEditingDomain({ 
-        ...editingDomain, 
-        status: value as 'available' | 'reserved' | 'used' 
-      });
-    }
-  };
-  
-  // Handle creating a new domain
-  const handleAddDomain = async () => {
+
+  const handleSubmit = async () => {
     try {
-      // Ensure path starts with /
-      const formattedPath = newDomain.path.startsWith('/') 
-        ? newDomain.path 
-        : `/${newDomain.path}`;
-      
-      const domainToCreate = {
-        name: newDomain.name,
-        path: formattedPath,
-        description: newDomain.description,
-        status: newDomain.status,
-        owner: newDomain.owner || null,
-        external_url: newDomain.externalUrl || null
-      };
-      
-      const { error } = await supabase
-        .from('domains')
-        .insert([domainToCreate]);
-      
-      if (error) {
-        throw error;
+      setIsSubmitting(true);
+
+      if (!name || !path) {
+        toast({
+          title: "Error",
+          description: "Nombre y ruta son campos obligatorios",
+          variant: "destructive"
+        });
+        return;
       }
+
+      const domainData = {
+        name,
+        path: path.startsWith("/") ? path : `/${path}`,
+        description,
+        status,
+        external_url: externalUrl || null
+      };
+
+      let result;
       
+      if (isEditing && currentDomain) {
+        result = await supabase
+          .from("domains")
+          .update(domainData)
+          .eq("id", currentDomain.id);
+      } else {
+        result = await supabase
+          .from("domains")
+          .insert([domainData]);
+      }
+
+      if (result.error) {
+        throw result.error;
+      }
+
       toast({
-        title: "Dominio creado",
-        description: `El dominio ${newDomain.name} ha sido creado correctamente.`
+        title: isEditing ? "Dominio actualizado" : "Dominio creado",
+        description: isEditing 
+          ? `El dominio ${name} ha sido actualizado correctamente.`
+          : `El dominio ${name} ha sido creado correctamente.`,
       });
       
-      // Reset form and close dialog
-      setNewDomain({
-        name: '',
-        path: '',
-        description: '',
-        status: 'available',
-        owner: '',
-        externalUrl: ''
-      });
-      setIsAddDialogOpen(false);
+      resetForm();
+      setDialogOpen(false);
       
-      // Reload the page to refresh the domains list
-      window.location.reload();
+      // Force reload domains
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
     } catch (error) {
-      console.error("Error creating domain:", error);
+      console.error("Error saving domain:", error);
       toast({
         title: "Error",
-        description: "Ha ocurrido un error al crear el dominio.",
+        description: `Ha ocurrido un error al ${isEditing ? "actualizar" : "crear"} el dominio.`,
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
-  
-  // Handle updating a domain
-  const handleUpdateDomain = async () => {
-    if (!editingDomain) return;
-    
-    try {
-      // Ensure path starts with /
-      const formattedPath = editingDomain.path.startsWith('/') 
-        ? editingDomain.path 
-        : `/${editingDomain.path}`;
-      
-      const domainToUpdate = {
-        name: editingDomain.name,
-        path: formattedPath,
-        description: editingDomain.description,
-        status: editingDomain.status,
-        owner: editingDomain.owner || null,
-        external_url: editingDomain.externalUrl || null
-      };
-      
-      const { error } = await supabase
-        .from('domains')
-        .update(domainToUpdate)
-        .eq('id', editingDomain.id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Dominio actualizado",
-        description: `El dominio ${editingDomain.name} ha sido actualizado correctamente.`
-      });
-      
-      // Reset and close dialog
-      setEditingDomain(null);
-      setIsEditDialogOpen(false);
-      
-      // Reload the page to refresh the domains list
-      window.location.reload();
-      
-    } catch (error) {
-      console.error("Error updating domain:", error);
-      toast({
-        title: "Error",
-        description: "Ha ocurrido un error al actualizar el dominio.",
-        variant: "destructive"
-      });
+
+  const handleDeleteDomain = async (domain: any) => {
+    if (!confirm(`¿Estás seguro que deseas eliminar el dominio ${domain.name}?`)) {
+      return;
     }
-  };
-  
-  // Handle deleting a domain
-  const handleDeleteDomain = async () => {
-    if (!deletingDomain) return;
-    
+
     try {
       const { error } = await supabase
-        .from('domains')
+        .from("domains")
         .delete()
-        .eq('id', deletingDomain.id);
-      
-      if (error) {
-        throw error;
-      }
-      
+        .eq("id", domain.id);
+
+      if (error) throw error;
+
       toast({
         title: "Dominio eliminado",
-        description: `El dominio ${deletingDomain.name} ha sido eliminado correctamente.`
+        description: `El dominio ${domain.name} ha sido eliminado correctamente.`
       });
-      
-      // Reset and close dialog
-      setDeletingDomain(null);
-      setIsDeleteDialogOpen(false);
-      
-      // Reload the page to refresh the domains list
-      window.location.reload();
+
+      // Force reload domains
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
       
     } catch (error) {
       console.error("Error deleting domain:", error);
@@ -221,164 +164,223 @@ const DomainManagement = () => {
       });
     }
   };
-  
-  // Get status badge color based on status
-  const getStatusBadgeColor = (status: string) => {
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-800';
-      case 'reserved':
-        return 'bg-amber-100 text-amber-800';
-      case 'used':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+      case 'available': return 'bg-green-100 text-green-800';
+      case 'reserved': return 'bg-amber-100 text-amber-800';
+      case 'used': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
-  
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Gestión de Dominios</CardTitle>
-          <CardDescription>
-            Administra los dominios disponibles en Terreta Hub
-          </CardDescription>
-        </div>
-        <Button 
-          onClick={() => setIsAddDialogOpen(true)} 
-          className="bg-club-orange hover:bg-club-terracotta text-white"
-        >
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Añadir Dominio
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {loadingDomains ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-club-brown mx-auto"></div>
-            <p className="mt-2 text-club-brown/70">Cargando dominios...</p>
+    <div className="space-y-6">
+      <Card className="bg-white shadow-sm border-club-beige">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="text-2xl font-serif text-club-brown">Gestión de Dominios</CardTitle>
+              <CardDescription>
+                Administra los dominios disponibles en la plataforma
+              </CardDescription>
+            </div>
+            <Button 
+              onClick={handleAddNew} 
+              className="bg-club-orange hover:bg-club-orange/90 text-white gap-2"
+            >
+              <Plus size={16} />
+              Nuevo Dominio
+            </Button>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
+        </CardHeader>
+        
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-club-brown/50" size={16} />
+              <Input
+                placeholder="Buscar dominios..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="rounded-md border">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead>Nombre</TableHead>
+                  <TableHead className="w-[200px]">Nombre</TableHead>
                   <TableHead>Ruta</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Propietario</TableHead>
-                  <TableHead>URL Externa</TableHead>
-                  <TableHead>Acciones</TableHead>
+                  <TableHead className="w-[150px]">Estado</TableHead>
+                  <TableHead className="text-right w-[120px]">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
+              
               <TableBody>
-                {domains.map((domain) => (
-                  <TableRow key={domain.id}>
-                    <TableCell className="font-medium">{domain.name}</TableCell>
-                    <TableCell>{domain.path}</TableCell>
-                    <TableCell>
-                      {domain.description.length > 30 
-                        ? `${domain.description.substring(0, 30)}...` 
-                        : domain.description}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusBadgeColor(domain.status)}`}>
-                        {domain.status === 'available' ? 'Disponible' : 
-                         domain.status === 'reserved' ? 'Reservado' : 'En Uso'}
-                      </span>
-                    </TableCell>
-                    <TableCell>{domain.owner || '-'}</TableCell>
-                    <TableCell>{domain.externalUrl ? (
-                      <a 
-                        href={domain.externalUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-club-orange hover:underline"
-                      >
-                        Ver enlace
-                      </a>
-                    ) : '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => {
-                            setEditingDomain(domain);
-                            setIsEditDialogOpen(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => {
-                            setDeletingDomain(domain);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <RefreshCw className="h-6 w-6 animate-spin text-club-brown/70" />
+                        <span className="mt-2 text-sm text-club-brown/70">Cargando dominios...</span>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filteredDomains.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      <p className="text-club-brown/70">
+                        {searchQuery.length > 0 
+                          ? "No se encontraron dominios que coincidan con la búsqueda."
+                          : "No hay dominios registrados."}
+                      </p>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDomains.map((domain) => (
+                    <TableRow key={domain.id} className="hover:bg-gray-50/50">
+                      <TableCell className="font-medium flex items-center gap-2">
+                        <Globe size={16} className="text-club-brown/70" />
+                        {domain.name}
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{domain.path}</TableCell>
+                      <TableCell>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(domain.status)}`}>
+                          {domain.status === "available" ? "Disponible" : 
+                           domain.status === "reserved" ? "Reservado" : "En Uso"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditDomain(domain)}
+                          >
+                            <Edit size={16} />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleDeleteDomain(domain)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 size={16} />
+                            <span className="sr-only">Eliminar</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
-        )}
-      </CardContent>
-      
-      {/* Add Domain Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+          
+          {totalPages > 1 && (
+            <Pagination className="mt-4">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => 
+                    page === 1 || 
+                    page === totalPages || 
+                    (page >= currentPage - 1 && page <= currentPage + 1)
+                  )
+                  .map((page, i, array) => (
+                    <>
+                      {i > 0 && array[i-1] !== page - 1 && (
+                        <PaginationItem key={`ellipsis-${page}`}>
+                          <span className="px-2">...</span>
+                        </PaginationItem>
+                      )}
+                      <PaginationItem key={page}>
+                        <PaginationLink 
+                          onClick={() => handlePageChange(page)}
+                          isActive={page === currentPage}
+                          className={page === currentPage ? "bg-club-orange text-white border-club-orange" : ""}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    </>
+                  ))
+                }
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Añadir nuevo dominio</DialogTitle>
+            <DialogTitle>
+              {isEditing ? `Editar Dominio: ${currentDomain?.name}` : "Nuevo Dominio"}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">Nombre</label>
-              <Input 
-                id="name" 
-                name="name" 
-                value={newDomain.name} 
-                onChange={handleNewDomainChange}
-                placeholder="Ej. Proyectos"
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nombre</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nombre del dominio"
+                autoComplete="off"
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="path" className="text-sm font-medium">Ruta</label>
-              <Input 
-                id="path" 
-                name="path" 
-                value={newDomain.path} 
-                onChange={handleNewDomainChange}
-                placeholder="Ej. /projects"
+            
+            <div className="grid gap-2">
+              <Label htmlFor="path">Ruta</Label>
+              <Input
+                id="path"
+                value={path}
+                onChange={(e) => setPath(e.target.value)}
+                placeholder="/ruta-del-dominio"
+                autoComplete="off"
               />
+              <p className="text-xs text-club-brown/70">Ejemplo: /mi-proyecto</p>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="description" className="text-sm font-medium">Descripción</label>
-              <Textarea 
-                id="description" 
-                name="description" 
-                value={newDomain.description} 
-                onChange={handleNewDomainChange}
-                placeholder="Descripción del dominio"
+            
+            <div className="grid gap-2">
+              <Label htmlFor="description">Descripción</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Breve descripción del dominio"
                 rows={3}
               />
             </div>
-            <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">Estado</label>
-              <Select 
-                onValueChange={handleStatusChange} 
-                defaultValue={newDomain.status}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue placeholder="Seleccione un estado" />
+            
+            <div className="grid gap-2">
+              <Label htmlFor="status">Estado</Label>
+              <Select value={status} onValueChange={(val: "available" | "reserved" | "used") => setStatus(val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona un estado" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="available">Disponible</SelectItem>
@@ -387,149 +389,43 @@ const DomainManagement = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="owner" className="text-sm font-medium">Propietario (opcional)</label>
-              <Input 
-                id="owner" 
-                name="owner" 
-                value={newDomain.owner || ''} 
-                onChange={handleNewDomainChange}
-                placeholder="Nombre del propietario"
+            
+            <div className="grid gap-2">
+              <Label htmlFor="externalUrl" className="flex items-center gap-2">
+                URL Externa <ExternalLink size={14} />
+              </Label>
+              <Input
+                id="externalUrl"
+                value={externalUrl}
+                onChange={(e) => setExternalUrl(e.target.value)}
+                placeholder="https://ejemplo.com (opcional)"
+                autoComplete="off"
               />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="externalUrl" className="text-sm font-medium">URL Externa (opcional)</label>
-              <Input 
-                id="externalUrl" 
-                name="externalUrl" 
-                value={newDomain.externalUrl || ''} 
-                onChange={handleNewDomainChange}
-                placeholder="https://example.com"
-              />
+              <p className="text-xs text-club-brown/70">
+                Opcional. Si se proporciona, el dominio redireccionará a esta URL.
+              </p>
             </div>
           </div>
+          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancelar</Button>
             <Button 
-              onClick={handleAddDomain}
-              className="bg-club-orange hover:bg-club-terracotta text-white"
-              disabled={!newDomain.name || !newDomain.path}
+              variant="outline" 
+              onClick={() => setDialogOpen(false)}
+              disabled={isSubmitting}
             >
-              Añadir Dominio
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={isSubmitting || !name || !path}
+              className="bg-club-orange hover:bg-club-orange/90 text-white"
+            >
+              {isSubmitting ? "Guardando..." : isEditing ? "Actualizar" : "Crear"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Edit Domain Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar dominio</DialogTitle>
-          </DialogHeader>
-          {editingDomain && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="edit-name" className="text-sm font-medium">Nombre</label>
-                <Input 
-                  id="edit-name" 
-                  name="name" 
-                  value={editingDomain.name} 
-                  onChange={handleEditDomainChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-path" className="text-sm font-medium">Ruta</label>
-                <Input 
-                  id="edit-path" 
-                  name="path" 
-                  value={editingDomain.path} 
-                  onChange={handleEditDomainChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-description" className="text-sm font-medium">Descripción</label>
-                <Textarea 
-                  id="edit-description" 
-                  name="description" 
-                  value={editingDomain.description} 
-                  onChange={handleEditDomainChange}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-status" className="text-sm font-medium">Estado</label>
-                <Select 
-                  onValueChange={handleEditStatusChange} 
-                  defaultValue={editingDomain.status}
-                >
-                  <SelectTrigger id="edit-status">
-                    <SelectValue placeholder="Seleccione un estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="available">Disponible</SelectItem>
-                    <SelectItem value="reserved">Reservado</SelectItem>
-                    <SelectItem value="used">En Uso</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-owner" className="text-sm font-medium">Propietario (opcional)</label>
-                <Input 
-                  id="edit-owner" 
-                  name="owner" 
-                  value={editingDomain.owner || ''} 
-                  onChange={handleEditDomainChange}
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="edit-externalUrl" className="text-sm font-medium">URL Externa (opcional)</label>
-                <Input 
-                  id="edit-externalUrl" 
-                  name="externalUrl" 
-                  value={editingDomain.externalUrl || ''} 
-                  onChange={handleEditDomainChange}
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
-            <Button 
-              onClick={handleUpdateDomain}
-              className="bg-club-orange hover:bg-club-terracotta text-white"
-              disabled={!editingDomain?.name || !editingDomain?.path}
-            >
-              Actualizar Dominio
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Domain Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Confirmar eliminación</DialogTitle>
-          </DialogHeader>
-          {deletingDomain && (
-            <div className="py-4">
-              <p className="mb-4">¿Estás seguro de que quieres eliminar el dominio <strong>{deletingDomain.name}</strong>?</p>
-              <p className="text-red-500 text-sm">Esta acción no se puede deshacer.</p>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteDomain}
-            >
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Card>
+    </div>
   );
 };
 
