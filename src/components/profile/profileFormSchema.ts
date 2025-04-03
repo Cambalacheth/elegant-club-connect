@@ -12,4 +12,3 @@ export const profileFormSchema = z.object({
     message: "Debes seleccionar al menos una categoría",
   }),
 });
-
