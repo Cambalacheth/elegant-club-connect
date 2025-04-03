@@ -21,7 +21,7 @@ export const EditEventDialog = ({
 }: EditEventDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white p-0 border-2 shadow-xl">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto bg-white/95 backdrop-blur-sm border-2 border-club-beige/50 shadow-xl">
         <DialogHeader className="px-6 pt-6 pb-2 sticky top-0 bg-white z-10 border-b">
           <DialogTitle className="text-xl font-serif text-club-brown">
             {editingEvent ? 'Editar evento' : 'Nuevo Evento'}

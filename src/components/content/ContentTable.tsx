@@ -124,7 +124,7 @@ export const ContentTable = ({
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
+                  <AlertDialogContent className="bg-white/95 backdrop-blur-md border-2 border-red-100">
                     <AlertDialogHeader>
                       <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                       <AlertDialogDescription>
@@ -150,7 +150,7 @@ export const ContentTable = ({
 
       {editingItem && (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[700px]">
+          <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border-club-beige shadow-xl">
             <ContentForm
               initialData={editingItem}
               onSubmit={handleUpdate}

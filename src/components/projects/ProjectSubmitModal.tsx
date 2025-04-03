@@ -35,12 +35,12 @@ const ProjectSubmitModal = ({ onClose, onSubmitted, language, projectToEdit }: P
     : (language === "en" ? "Submit Project" : "Enviar Proyecto");
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white z-10 flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-serif text-club-brown">{modalTitle}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X className="h-6 w-6" />
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl border-2 border-club-beige/50">
+        <div className="sticky top-0 bg-gradient-to-r from-club-olive/90 to-club-green/90 z-10 flex justify-between items-center p-6 border-b rounded-t-lg">
+          <h2 className="text-2xl font-serif text-white">{modalTitle}</h2>
+          <button onClick={onClose} className="text-white/80 hover:text-white bg-black/20 rounded-full p-1.5 transition-colors">
+            <X className="h-5 w-5" />
           </button>
         </div>
         

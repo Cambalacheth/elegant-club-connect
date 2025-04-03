@@ -65,30 +65,34 @@ export const ContentForm = ({
 
   return (
     <Card className="w-full border-0 shadow-none">
-      <CardHeader className="bg-gradient-to-r from-club-orange/90 to-club-terracotta/90 text-white rounded-t-lg">
+      <CardHeader className="bg-gradient-to-r from-club-orange to-club-terracotta text-white rounded-t-lg py-5">
         <CardTitle className="text-xl font-semibold">
           {getFormTitle()}
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-6">
+      <CardContent className="p-6 bg-white">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6">
+              <div className="space-y-6 bg-gray-50 p-4 rounded-md border border-gray-100">
                 <BasicInfoFields form={form} categories={categories} />
                 <ContentTypeFields form={form} contentType={contentType} />
               </div>
 
               <div className="space-y-6">
-                <ImageUploadField 
-                  initialImage={initialData?.imageUrl} 
-                  onChange={(url) => setImagePreview(url)} 
-                />
-                <PublishSwitch form={form} />
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <ImageUploadField 
+                    initialImage={initialData?.imageUrl} 
+                    onChange={(url) => setImagePreview(url)} 
+                  />
+                </div>
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <PublishSwitch form={form} />
+                </div>
               </div>
             </div>
 
-            <CardFooter className="flex justify-end p-0 pt-4">
+            <CardFooter className="flex justify-end p-0 pt-4 border-t mt-4">
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
