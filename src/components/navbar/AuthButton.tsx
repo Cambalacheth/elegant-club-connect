@@ -1,7 +1,6 @@
 
 import { Link } from "react-router-dom";
 import { User } from "lucide-react";
-import UserRoleIcon from "./UserRoleIcon";
 import { UserRole } from "@/types/user";
 
 interface AuthButtonProps {
@@ -24,10 +23,7 @@ const AuthButton = ({ currentLanguage, user, userRole, onClick, isMobile = false
   return (
     <button onClick={onClick} className={baseClass}>
       {enterClubText}
-      <div className="flex items-center gap-1">
-        {user && <User size={16} />}
-        <UserRoleIcon userRole={userRole} />
-      </div>
+      {user && <User size={16} className="ml-1" />}
     </button>
   );
 };

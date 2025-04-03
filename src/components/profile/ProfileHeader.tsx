@@ -2,7 +2,7 @@
 import { User, Settings } from "lucide-react";
 import { Profile } from "@/types/profile";
 import UserLevelDisplay from "./UserLevelDisplay";
-import { getLevelInfo } from "@/types/user";
+import { getLevelInfo, canAdminContent } from "@/types/user";
 
 interface ProfileHeaderProps {
   profile: Profile;
@@ -23,6 +23,9 @@ const ProfileHeader = ({
 }: ProfileHeaderProps) => {
   const userExperience = profile?.experience || 0;
   const levelInfo = getLevelInfo(userExperience);
+  
+  // Check if the current user is an admin
+  const isAdmin = currentUser && canAdminContent(levelInfo.level);
   
   return (
     <div className="bg-club-olive/20 p-8">
@@ -73,7 +76,8 @@ const ProfileHeader = ({
         )}
       </div>
       
-      {profile && (
+      {/* Only show level information for admins */}
+      {profile && isAdmin && (
         <div className="mt-4">
           <UserLevelDisplay 
             level={levelInfo.level} 

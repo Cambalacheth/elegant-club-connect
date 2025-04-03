@@ -30,10 +30,9 @@ const MemberCard = ({ member }: MemberCardProps) => {
             )}
           </div>
           
-          {/* Member Info */}
+          {/* Member Info - removed level display */}
           <div className="text-center">
-            <h3 className="font-medium text-base md:text-lg text-club-brown mb-1">{member.username}</h3>
-            <div className="text-xs md:text-sm text-club-brown/80 mb-2">{member.level}</div>
+            <h3 className="font-medium text-base md:text-lg text-club-brown mb-2">{member.username}</h3>
             <span className="inline-block bg-club-beige px-2 py-0.5 md:px-3 md:py-1 rounded-full text-xs font-medium text-club-brown">
               {member.category}
             </span>
