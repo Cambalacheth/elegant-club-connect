@@ -11,7 +11,7 @@ interface DebateContentProps {
   userId?: string;
   isDeleting: boolean;
   formatDate: (date: string) => string;
-  renderRoleBadge: (role: string) => React.ReactNode;
+  renderRoleBadge: (role: string) => { className: string; text: string } | null;
   onVote: (voteType: "up" | "down") => void;
   onDelete: () => void;
 }
@@ -70,7 +70,12 @@ const DebateContent: React.FC<DebateContentProps> = ({
             <div>
               <div className="flex items-center">
                 <span className="font-medium text-gray-700">{debate.author_username}</span>
-                {renderRoleBadge(debate.author_role)}
+                {/* Render role badge using the new format */}
+                {renderRoleBadge(debate.author_role) && (
+                  <span className={renderRoleBadge(debate.author_role)?.className || ""}>
+                    {renderRoleBadge(debate.author_role)?.text}
+                  </span>
+                )}
               </div>
             </div>
           </div>

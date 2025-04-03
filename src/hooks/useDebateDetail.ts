@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Debate, Comment } from "@/types/forum";
@@ -377,14 +376,24 @@ export const useDebateDetail = (debateId: string) => {
     }
   };
 
+  // Modified to return a badge type instead of JSX directly
   const renderRoleBadge = (role: string) => {
     switch (role) {
       case "verified":
-        return <span className="bg-club-orange/20 text-club-orange text-xs px-2 py-0.5 rounded-full ml-2">Verificado</span>;
+        return {
+          className: "bg-club-orange/20 text-club-orange text-xs px-2 py-0.5 rounded-full ml-2",
+          text: "Verificado"
+        };
       case "moderator":
-        return <span className="bg-club-green/20 text-club-green text-xs px-2 py-0.5 rounded-full ml-2">Moderador</span>;
+        return {
+          className: "bg-club-green/20 text-club-green text-xs px-2 py-0.5 rounded-full ml-2",
+          text: "Moderador"
+        };
       case "admin":
-        return <span className="bg-club-brown/20 text-club-brown text-xs px-2 py-0.5 rounded-full ml-2">Admin</span>;
+        return {
+          className: "bg-club-brown/20 text-club-brown text-xs px-2 py-0.5 rounded-full ml-2",
+          text: "Admin"
+        };
       default:
         return null;
     }
