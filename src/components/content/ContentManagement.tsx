@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { ContentTable } from "./ContentTable";
 import { ContentItem, ContentType } from "@/types/content";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useContent } from "@/hooks/useContent";
-import { UserRole, canManageContent } from "@/types/user";
+import { UserRole, canManageContent, canAdminContent } from "@/types/user";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ContentManagementProps {
@@ -70,7 +71,8 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
     }
   };
 
-  if (userRole !== 'admin') {
+  // Update this condition to use canAdminContent for consistency
+  if (!canAdminContent(userRole)) {
     return (
       <Alert variant="destructive" className="bg-red-50 border border-red-200 text-red-800">
         <AlertTitle className="text-lg font-medium">Acceso restringido</AlertTitle>

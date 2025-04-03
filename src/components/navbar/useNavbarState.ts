@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { UserRole } from "@/types/user";
+import { UserRole, levelToRole } from "@/types/user";
 
 export const useNavbarState = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -46,25 +46,22 @@ export const useNavbarState = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("level")
+        .select("level_numeric")
         .eq("id", userId)
         .single();
 
       if (error) {
-        console.error("Error fetching user role:", error);
+        console.error("Error fetching user level:", error);
         setUserRole("registered");
         return;
       }
 
-      if (data?.level === "Verificado") {
-        setUserRole("verified");
-      } else if (data?.level === "Moderador") {
-        setUserRole("moderator");
-      } else if (data?.level === "Admin") {
-        setUserRole("admin");
-      } else {
-        setUserRole("registered");
-      }
+      // Convert numeric level to role using the levelToRole helper
+      const numericLevel = data?.level_numeric || 1;
+      const derivedRole = levelToRole(numericLevel);
+      setUserRole(derivedRole);
+      
+      console.log("User level:", numericLevel, "User role:", derivedRole);
     } catch (error) {
       console.error("Error fetching user role:", error);
       setUserRole("registered");

@@ -17,8 +17,8 @@ const AdminPage = () => {
   const [activeTab, setActiveTab] = useState("users");
   const { user, userLevel, userRole, isLoading } = useUser();
 
-  // Redirect if user isn't admin
-  if (!isLoading && (!user || !canAdminContent(userLevel))) {
+  // Redirect if user isn't admin - update this to check both userRole and userLevel
+  if (!isLoading && (!user || !canAdminContent(userRole))) {
     return <Navigate to="/" />;
   }
 
@@ -63,7 +63,7 @@ const AdminPage = () => {
             </TabsContent>
 
             <TabsContent value="content">
-              {user && userLevel === 13 && (
+              {user && (
                 <ContentManagement userId={user.id} userRole={userRole} />
               )}
             </TabsContent>
