@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MessageSquare, Settings, Globe } from "lucide-react";
+import { MessageSquare, Settings, Globe, FileCode, MailOpen } from "lucide-react";
 import { UserRole, canAdminContent } from "@/types/user";
 import { useDomains } from "@/hooks/useDomains";
 
@@ -13,42 +14,60 @@ interface NavLinksProps {
 
 const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick = () => {} }: NavLinksProps) => {
   const { domains } = useDomains();
-  const [randomDomains, setRandomDomains] = useState<Array<{ name: string; path: string }>>([]);
+  const [rotatingDomain, setRotatingDomain] = useState<{ name: string; path: string } | null>(null);
   
-  // Update random domains on initial render or when domains change
+  // Define fixed links
+  const fixedLinks = [
+    {
+      name: currentLanguage === "en" ? "Domain" : "Dominio",
+      path: "/dominio",
+      icon: <Globe size={16} />
+    },
+    {
+      name: currentLanguage === "en" ? "Projects" : "Proyectos",
+      path: "/projects",
+      icon: <FileCode size={16} />
+    },
+    {
+      name: currentLanguage === "en" ? "Forum" : "Foro",
+      path: "/forum",
+      icon: <MessageSquare size={16} />
+    },
+  ];
+
+  // Update rotating domain on initial render or when domains change
   useEffect(() => {
     if (domains.length > 0) {
-      // Filter out elfotographer and filter to all available domains that could be shown
+      // Filter domains to exclude those in fixed links and elfotographer
       const availableDomains = domains
-        .filter(domain => domain.name.toLowerCase() !== "elfotographer")
+        .filter(domain => {
+          // Exclude domains that match any fixed link path or elfotographer
+          return !fixedLinks.some(link => link.path === domain.path) && 
+                 domain.name.toLowerCase() !== "elfotographer";
+        })
         .map(domain => ({ name: domain.name, path: domain.path }));
       
       // Add additional domains that might not be in the useDomains hook
       const additionalDomains = [
-        { name: "Proyectos", path: "/projects" },
-        { name: "Contenido", path: "/content" },
-        { name: "Eventos", path: "/events" },
-        { name: "Miembros", path: "/members" },
-        { name: "Foro", path: "/forum" },
+        { name: currentLanguage === "en" ? "Content" : "Contenido", path: "/content" },
+        { name: currentLanguage === "en" ? "Events" : "Eventos", path: "/events" },
+        { name: currentLanguage === "en" ? "Members" : "Miembros", path: "/members" },
+        { name: currentLanguage === "en" ? "Feedback" : "Opiniones", path: "/feedback" },
         { name: "Asado", path: "/asado" }
-      ];
+      ].filter(domain => !fixedLinks.some(link => link.path === domain.path));
       
       const allDomains = [...availableDomains, ...additionalDomains];
       
-      // Shuffle and pick 3 random domains
-      const shuffled = [...allDomains].sort(() => 0.5 - Math.random());
-      setRandomDomains(shuffled.slice(0, 3));
+      if (allDomains.length > 0) {
+        // Pick a random domain from the available ones
+        const randomIndex = Math.floor(Math.random() * allDomains.length);
+        setRotatingDomain(allDomains[randomIndex]);
+      }
     }
-  }, [domains]);
+  }, [domains, currentLanguage]);
 
-  const projectsText = currentLanguage === "en" ? "Projects" : "Proyectos";
-  const membersText = currentLanguage === "en" ? "Members" : "Miembros";
-  const forumText = currentLanguage === "en" ? "Forum" : "Foro";
-  const contentText = currentLanguage === "en" ? "Content" : "Contenido";
-  const eventsText = currentLanguage === "en" ? "Events" : "Eventos";
-  const adminText = currentLanguage === "en" ? "Admin" : "Administración";
   const feedbackText = currentLanguage === "en" ? "Feedback" : "Opiniones";
-  const dominioText = currentLanguage === "en" ? "Domain" : "Dominio";
+  const adminText = currentLanguage === "en" ? "Admin" : "Administración";
   
   const baseClass = isMobile 
     ? "text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300" 
@@ -56,54 +75,40 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
 
   const handleClick = isMobile ? onMobileClick : undefined;
 
-  // Helper to get the display name based on path
-  const getDisplayName = (path: string, name: string): string => {
-    switch (path) {
-      case '/projects': return projectsText;
-      case '/members': return membersText;
-      case '/forum': return forumText;
-      case '/content': return contentText;
-      case '/events': return eventsText;
-      case '/asado': return "Asado";
-      default: return name;
-    }
+  // Helper to get icon based on path
+  const getIconForPath = (path: string) => {
+    if (path === "/feedback") return <MailOpen size={16} />;
+    return null;
   };
 
   return (
     <>
-      {/* Dominio link (always first) */}
-      <Link 
-        to="/dominio"
-        className={`${baseClass} flex items-center gap-1`}
-        onClick={handleClick}
-      >
-        <Globe size={16} />
-        {dominioText}
-      </Link>
-      
-      {/* Three random domains */}
-      {randomDomains.map((domain, index) => (
+      {/* Fixed links */}
+      {fixedLinks.map((link, index) => (
         <Link 
-          key={`domain-${index}`}
-          to={domain.path}
-          className={baseClass}
+          key={`fixed-link-${index}`}
+          to={link.path}
+          className={`${baseClass} flex items-center gap-1`}
           onClick={handleClick}
         >
-          {getDisplayName(domain.path, domain.name)}
+          {link.icon}
+          {link.name}
         </Link>
       ))}
       
-      {/* Feedback link - keep it as it was */}
-      <Link 
-        to="/feedback"
-        className={`${baseClass} flex items-center gap-1`}
-        onClick={handleClick}
-      >
-        <MessageSquare size={16} />
-        {feedbackText}
-      </Link>
+      {/* Rotating domain link */}
+      {rotatingDomain && (
+        <Link 
+          to={rotatingDomain.path}
+          className={baseClass}
+          onClick={handleClick}
+        >
+          {getIconForPath(rotatingDomain.path)}
+          {rotatingDomain.name}
+        </Link>
+      )}
       
-      {/* Admin link - keep it as it was */}
+      {/* Admin link - always show if user has admin role */}
       {canAdminContent(userRole) && (
         <Link 
           to="/admin"
