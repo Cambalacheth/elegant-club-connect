@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Profile, SocialLink } from "@/types/profile";
 import { Project } from "@/types/project";
+import { getLevelInfo } from "@/types/user";
 
 export const useProfileData = (username: string | undefined, currentLanguage: string) => {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -59,6 +60,9 @@ export const useProfileData = (username: string | undefined, currentLanguage: st
           throw new Error("Profile not found");
         }
 
+        // Process profile data with level info
+        const levelInfo = getLevelInfo(profileData.experience || 0);
+        
         // Create a new profile object with the email property and default values for missing fields
         const profileWithEmail: Profile = {
           ...profileData,
