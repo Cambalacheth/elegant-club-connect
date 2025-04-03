@@ -1,5 +1,5 @@
 
-import { FormField, FormItem, FormLabel, FormMessage, FormControl } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormMessage, FormControl, FormDescription } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
@@ -20,15 +20,15 @@ const CategoriesSection = ({ form, currentLanguage, categoriesOptions }: Categor
     <FormField
       control={form.control}
       name="categories"
-      render={() => (
+      render={({ field, fieldState }) => (
         <FormItem>
-          <FormLabel>{currentLanguage === "en" ? "Categories" : "Categorías"}</FormLabel>
+          <FormLabel>{currentLanguage === "en" ? "Categories" : "Categorías"} <span className="text-red-500">*</span></FormLabel>
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
+            <FormDescription className="text-sm text-muted-foreground">
               {currentLanguage === "en" 
-                ? "Select categories of interest" 
-                : "Selecciona categorías de interés"}
-            </p>
+                ? "Select at least one category of interest" 
+                : "Selecciona al menos una categoría de interés"}
+            </FormDescription>
             <div className="grid grid-cols-2 gap-2">
               {categoriesOptions.map((category) => (
                 <FormField
@@ -65,7 +65,9 @@ const CategoriesSection = ({ form, currentLanguage, categoriesOptions }: Categor
               ))}
             </div>
           </div>
-          <FormMessage />
+          {fieldState.error && (
+            <FormMessage>{fieldState.error.message}</FormMessage>
+          )}
         </FormItem>
       )}
     />

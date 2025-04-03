@@ -26,9 +26,6 @@ const ProfileForm = ({ userId, currentLanguage, onCancel }: ProfileFormProps) =>
       gender: "",
       birth_date: "",
       categories: [],
-      preferred_language: "",
-      speaks_languages: [],
-      learning_languages: [],
     },
   });
   
@@ -68,7 +65,7 @@ const ProfileForm = ({ userId, currentLanguage, onCancel }: ProfileFormProps) =>
       currentLanguage={currentLanguage}
       texts={texts}
       categoriesOptions={categoriesOptions}
-      showLanguageSection={true}
+      showLanguageSection={false}
     />
   );
 };

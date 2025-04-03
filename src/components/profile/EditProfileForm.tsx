@@ -26,9 +26,6 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       gender: "",
       birth_date: "",
       categories: [],
-      preferred_language: "",
-      speaks_languages: [],
-      learning_languages: [],
     },
   });
   
@@ -68,7 +65,7 @@ const EditProfileForm = ({ userId, currentLanguage, onCancel }: EditProfileFormP
       currentLanguage={currentLanguage}
       texts={texts}
       categoriesOptions={categoriesOptions}
-      showLanguageSection={true}
+      showLanguageSection={false}
     />
   );
 };

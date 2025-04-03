@@ -8,8 +8,8 @@ export const profileFormSchema = z.object({
   website: z.string().optional(),
   gender: z.string().optional(),
   birth_date: z.string().optional(),
-  categories: z.array(z.string()).optional(),
-  preferred_language: z.string().optional(),
-  speaks_languages: z.array(z.string()).optional(),
-  learning_languages: z.array(z.string()).optional(),
+  categories: z.array(z.string()).min(1, {
+    message: "Debes seleccionar al menos una categoría",
+  }),
 });
+

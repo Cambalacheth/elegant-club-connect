@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface ProfileXpMapping {
   action: string;
   description: string;
+  xpAmount?: number;
 }
 
 // Map profile fields to action names and XP descriptions
@@ -28,13 +29,10 @@ const profileXpMapping: Record<string, ProfileXpMapping> = {
     action: "profile_add_socials", 
     description: "Profile: Added Social Networks" 
   },
-  speaks_languages: { 
-    action: "profile_add_languages", 
-    description: "Profile: Added Languages" 
-  },
-  learning_languages: { 
-    action: "profile_add_learning_languages", 
-    description: "Profile: Added Learning Languages" 
+  categories: { 
+    action: "profile_set_categories", 
+    description: "Profile: Selected Categories",
+    xpAmount: 50
   }
 };
 
@@ -66,7 +64,7 @@ export const awardProfileChangeXp = async (
 
   // Get the XP history to check if this change has already been awarded
   const xpHistory = await fetchXpHistory(userId);
-  const { action, description } = profileXpMapping[changeType];
+  const { action, description, xpAmount } = profileXpMapping[changeType];
   
   // Check if this specific change has already been awarded
   if (xpHistory.some(item => item === description)) {
@@ -74,13 +72,14 @@ export const awardProfileChangeXp = async (
   }
   
   try {
-    // Call the backend function to award XP
+    // Call the backend function to award XP, using custom xpAmount if provided
     const { data, error } = await supabase.rpc(
       'add_user_xp',
       { 
         _user_id: userId, 
         _action_name: action,
-        _custom_description: description
+        _custom_description: description,
+        _custom_amount: xpAmount
       }
     );
     
@@ -93,15 +92,14 @@ export const awardProfileChangeXp = async (
       website: { en: "Website", es: "Sitio web" },
       description: { en: "Bio", es: "Biografía" },
       social_links: { en: "Social Links", es: "Redes Sociales" },
-      speaks_languages: { en: "Languages", es: "Idiomas" },
-      learning_languages: { en: "Learning Languages", es: "Idiomas Aprendiendo" }
+      categories: { en: "Categories", es: "Categorías" }
     };
     
     const localizedName = messageMap[changeType] 
       ? (currentLanguage === "en" ? messageMap[changeType].en : messageMap[changeType].es)
       : changeType;
       
-    const xpValue = data || 0;
+    const xpValue = xpAmount || data || 0;
     return {
       xp: xpValue,
       message: xpValue > 0 ? `+${xpValue} XP (${localizedName})` : ""
@@ -172,17 +170,9 @@ export const processProfileChanges = async (
     }
   }
   
-  // Check for languages
-  if (values.speaks_languages && Array.isArray(values.speaks_languages) && values.speaks_languages.length > 0) {
-    const result = await awardProfileChangeXp(userId, "speaks_languages", currentLanguage);
-    if (result.xp > 0) {
-      totalXpEarned += result.xp;
-      xpEarnedMessages.push(result.message);
-    }
-  }
-  
-  if (values.learning_languages && Array.isArray(values.learning_languages) && values.learning_languages.length > 0) {
-    const result = await awardProfileChangeXp(userId, "learning_languages", currentLanguage);
+  // Check for categories selection
+  if (values.categories && Array.isArray(values.categories) && values.categories.length > 0) {
+    const result = await awardProfileChangeXp(userId, "categories", currentLanguage);
     if (result.xp > 0) {
       totalXpEarned += result.xp;
       xpEarnedMessages.push(result.message);
@@ -191,3 +181,4 @@ export const processProfileChanges = async (
 
   return { totalXp: totalXpEarned, messages: xpEarnedMessages };
 };
+

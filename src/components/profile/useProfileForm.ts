@@ -52,9 +52,6 @@ export const useProfileForm = ({ userId, form }: UseProfileFormProps) => {
             ? new Date(profile.birth_date).toISOString().split("T")[0]
             : "",
           categories: categories,
-          preferred_language: profile.preferred_language || "",
-          speaks_languages: profile.speaks_languages || [],
-          learning_languages: profile.learning_languages || [],
         });
 
         setAvatarUrl(profile.avatar_url);
