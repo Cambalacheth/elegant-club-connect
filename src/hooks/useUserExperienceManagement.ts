@@ -7,27 +7,7 @@ import { UserLevel, LEVEL_THRESHOLDS } from "@/types/user";
 
 export const useUserExperienceManagement = (onUpdate: () => void) => {
   const { toast } = useToast();
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
-  const [levelDialogOpen, setLevelDialogOpen] = useState(false);
-  const [xpDialogOpen, setXpDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Handle user selection
-  const handleSelectUser = (user: Profile) => {
-    setSelectedUser(user);
-  };
-
-  // Open level management dialog
-  const openLevelDialog = (user: Profile) => {
-    setSelectedUser(user);
-    setLevelDialogOpen(true);
-  };
-
-  // Open XP modification dialog
-  const openXpDialog = (user: Profile) => {
-    setSelectedUser(user);
-    setXpDialogOpen(true);
-  };
 
   // Update user level
   const updateUserLevel = async (userId: string, newLevel: UserLevel) => {
@@ -79,9 +59,7 @@ export const useUserExperienceManagement = (onUpdate: () => void) => {
         description: `El nivel del usuario se ha actualizado correctamente`,
       });
       
-      // Reset state and refresh data
-      setLevelDialogOpen(false);
-      setSelectedUser(null);
+      // Refresh data
       onUpdate();
       
     } catch (error: any) {
@@ -126,9 +104,7 @@ export const useUserExperienceManagement = (onUpdate: () => void) => {
         description: `Se han ${amount > 0 ? "añadido" : "removido"} ${Math.abs(amount)} puntos de experiencia`,
       });
 
-      // Reset state and refresh data
-      setXpDialogOpen(false);
-      setSelectedUser(null);
+      // Refresh data
       onUpdate();
       
     } catch (error: any) {
@@ -150,15 +126,7 @@ export const useUserExperienceManagement = (onUpdate: () => void) => {
   };
 
   return {
-    selectedUser,
-    levelDialogOpen,
-    xpDialogOpen,
     isSubmitting,
-    handleSelectUser,
-    openLevelDialog,
-    openXpDialog,
-    setLevelDialogOpen,
-    setXpDialogOpen,
     updateUserLevel,
     modifyUserXp,
     handleQuickXpAction

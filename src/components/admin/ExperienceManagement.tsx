@@ -10,23 +10,29 @@ import LevelsTable from "./experience/LevelsTable";
 import LevelManagementDialog from "./experience/LevelManagementDialog";
 import ExperienceModificationDialog from "./experience/ExperienceModificationDialog";
 import useUserExperienceManagement from "@/hooks/useUserExperienceManagement";
+import useExperienceManagementDialogs from "@/hooks/useExperienceManagementDialogs";
 
 const ExperienceManagement = () => {
   const { users, isLoading, refetch, searchTerm, setSearchTerm } = useAdminUsers();
+  const {
+    updateUserLevel,
+    modifyUserXp,
+    handleQuickXpAction
+  } = useUserExperienceManagement(refetch);
+
   const {
     selectedUser,
     levelDialogOpen,
     xpDialogOpen,
     isSubmitting,
+    setIsSubmitting,
     handleSelectUser,
     openLevelDialog,
     openXpDialog,
     setLevelDialogOpen,
     setXpDialogOpen,
-    updateUserLevel,
-    modifyUserXp,
-    handleQuickXpAction
-  } = useUserExperienceManagement(refetch);
+    handleDialogSuccess
+  } = useExperienceManagementDialogs(refetch);
 
   return (
     <div className="space-y-6">
@@ -85,6 +91,7 @@ const ExperienceManagement = () => {
             50, // Default amount
             "Modificación manual" // Default description
           );
+          handleDialogSuccess();
         }}
       />
 
@@ -97,6 +104,7 @@ const ExperienceManagement = () => {
             selectedUser?.id || '', 
             selectedUser?.level || 1
           );
+          handleDialogSuccess();
         }}
       />
     </div>
