@@ -1,4 +1,3 @@
-
 export type UserLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 
 // For backward compatibility with components that expect the old role system
@@ -18,7 +17,15 @@ export const canCreateContent = (level: UserLevel | UserRole): boolean => {
     // Convert UserRole to UserLevel
     return ['verified', 'moderator', 'admin'].includes(level);
   }
-  return level >= 2;
+  return level >= 2; // Level 2+ can comment and vote
+};
+
+export const canCreateForum = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // Convert UserRole to UserLevel based on previous implementation
+    return ['moderator', 'admin'].includes(level);
+  }
+  return level >= 4; // Level 4+ can create forum posts
 };
 
 export const canModerateContent = (level: UserLevel | UserRole): boolean => {

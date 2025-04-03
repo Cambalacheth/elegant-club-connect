@@ -32,7 +32,7 @@ const CommentForm = ({ debateId, userRole, userId, onSubmit }: CommentFormProps)
     if (!canCreateContent(userRole)) {
       toast({
         title: "Acceso denegado",
-        description: "Solo usuarios verificados pueden comentar",
+        description: "Necesitas ser nivel 2 o superior para comentar",
         variant: "destructive",
       });
       return;
@@ -73,7 +73,7 @@ const CommentForm = ({ debateId, userRole, userId, onSubmit }: CommentFormProps)
       
       {!canCreateContent(userRole) && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md mb-4">
-          Solo los usuarios verificados pueden comentar. Contacta al administrador para verificar tu cuenta.
+          Necesitas ser nivel 2 o superior para comentar. Continúa participando para subir de nivel.
         </div>
       )}
       

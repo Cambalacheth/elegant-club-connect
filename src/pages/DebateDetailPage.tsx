@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +24,6 @@ const DebateDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Get user session
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
@@ -38,7 +36,6 @@ const DebateDetailPage = () => {
       }
     );
 
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       if (session?.user) {
@@ -49,7 +46,6 @@ const DebateDetailPage = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch user role from Supabase
   const fetchUserRole = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -64,7 +60,6 @@ const DebateDetailPage = () => {
         return;
       }
 
-      // Map Supabase level to UserRole
       if (data?.level === "Verificado") {
         setUserRole("verified");
       } else if (data?.level === "Moderador") {
@@ -80,14 +75,12 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Load debate and comments
   useEffect(() => {
     if (!id) return;
 
     const fetchDebateAndComments = async () => {
       setIsLoading(true);
       try {
-        // Fetch debate
         const { data: debateData, error: debateError } = await supabase
           .from("debates_with_authors")
           .select("*")
@@ -100,7 +93,6 @@ const DebateDetailPage = () => {
 
         setDebate(debateData as Debate);
 
-        // Fetch comments
         const { data: commentsData, error: commentsError } = await supabase
           .from("comments_with_authors")
           .select("*")
@@ -123,7 +115,6 @@ const DebateDetailPage = () => {
     fetchDebateAndComments();
   }, [id]);
 
-  // Format date
   const formatDate = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), {
       addSuffix: true,
@@ -131,7 +122,6 @@ const DebateDetailPage = () => {
     });
   };
 
-  // Handle vote on debate
   const handleDebateVote = async (voteType: "up" | "down") => {
     if (!user || !debate) {
       toast({
@@ -142,8 +132,16 @@ const DebateDetailPage = () => {
       return;
     }
 
+    if (userRole === "registered") {
+      toast({
+        title: "Nivel insuficiente",
+        description: "Necesitas ser nivel 2 o superior para votar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Insert vote into votes table
       const { error } = await supabase
         .from("votes")
         .insert([
@@ -156,8 +154,6 @@ const DebateDetailPage = () => {
         ]);
 
       if (error) {
-        // If the error is because of a unique constraint violation,
-        // it means the user already voted
         if (error.code === "23505") {
           toast({
             title: "Voto duplicado",
@@ -174,12 +170,17 @@ const DebateDetailPage = () => {
         return;
       }
 
-      // Optimistic update of UI
       if (voteType === "up") {
         setDebate({ ...debate, votes_up: debate.votes_up + 1 });
       } else {
         setDebate({ ...debate, votes_down: debate.votes_down + 1 });
       }
+
+      await supabase.rpc('add_user_xp', { 
+        _user_id: user.id,
+        _action_name: 'vote_forum',
+        _custom_description: `Voto en debate: ${debate.title}`
+      });
 
       toast({
         title: "Voto registrado",
@@ -195,7 +196,6 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Handle vote on comment
   const handleCommentVote = async (commentId: string, voteType: "up" | "down") => {
     if (!user) {
       toast({
@@ -206,8 +206,16 @@ const DebateDetailPage = () => {
       return;
     }
 
+    if (userRole === "registered") {
+      toast({
+        title: "Nivel insuficiente",
+        description: "Necesitas ser nivel 2 o superior para votar",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Insert vote into votes table
       const { error } = await supabase
         .from("votes")
         .insert([
@@ -220,8 +228,6 @@ const DebateDetailPage = () => {
         ]);
 
       if (error) {
-        // If the error is because of a unique constraint violation,
-        // it means the user already voted
         if (error.code === "23505") {
           toast({
             title: "Voto duplicado",
@@ -238,7 +244,6 @@ const DebateDetailPage = () => {
         return;
       }
 
-      // Optimistic update of UI
       setComments(comments.map((comment) => {
         if (comment.id === commentId) {
           if (voteType === "up") {
@@ -249,6 +254,12 @@ const DebateDetailPage = () => {
         }
         return comment;
       }));
+
+      await supabase.rpc('add_user_xp', { 
+        _user_id: user.id,
+        _action_name: 'vote_forum',
+        _custom_description: `Voto en comentario`
+      });
 
       toast({
         title: "Voto registrado",
@@ -264,7 +275,6 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Handle delete debate
   const handleDeleteDebate = async () => {
     if (!user || !debate || isDeleting) return;
 
@@ -306,7 +316,6 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Handle delete comment
   const handleDeleteComment = async (commentId: string) => {
     if (!user) return;
 
@@ -351,9 +360,17 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Handle create comment
   const handleCreateComment = async (debateId: string, content: string) => {
     if (!user || !debate) return;
+
+    if (userRole === "registered") {
+      toast({
+        title: "Nivel insuficiente",
+        description: "Necesitas ser nivel 2 o superior para comentar",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -376,7 +393,6 @@ const DebateDetailPage = () => {
         return;
       }
 
-      // Fetch the newly created comment with author info
       const { data: newCommentWithAuthor, error: fetchError } = await supabase
         .from("comments_with_authors")
         .select("*")
@@ -389,6 +405,12 @@ const DebateDetailPage = () => {
         setComments([...comments, newCommentWithAuthor as Comment]);
         setDebate({ ...debate, comments_count: debate.comments_count + 1 });
       }
+
+      await supabase.rpc('add_user_xp', { 
+        _user_id: user.id,
+        _action_name: 'create_comment',
+        _custom_description: `Comentario en debate: ${debate.title}`
+      });
 
       toast({
         title: "Comentario publicado",
@@ -404,7 +426,6 @@ const DebateDetailPage = () => {
     }
   };
 
-  // Render role badge
   const renderRoleBadge = (role: string) => {
     switch (role) {
       case "verified":
@@ -441,7 +462,6 @@ const DebateDetailPage = () => {
           </div>
         ) : debate ? (
           <div>
-            {/* Debate card */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-6">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -517,7 +537,6 @@ const DebateDetailPage = () => {
               </div>
             </div>
             
-            {/* Comment form */}
             <CommentForm
               debateId={debate.id}
               userRole={userRole}
@@ -525,7 +544,6 @@ const DebateDetailPage = () => {
               onSubmit={handleCreateComment}
             />
             
-            {/* Comments section */}
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-club-brown mb-4">
                 Comentarios ({comments.length})

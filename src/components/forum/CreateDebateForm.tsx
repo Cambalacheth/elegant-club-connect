@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { UserRole, canCreateContent } from "@/types/user";
+import { UserRole, canCreateContent, canCreateForum } from "@/types/user";
 
 interface CreateDebateFormProps {
   userRole: UserRole;
@@ -34,10 +34,10 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
       return;
     }
 
-    if (!canCreateContent(userRole)) {
+    if (!canCreateForum(userRole)) {
       toast({
         title: "Acceso denegado",
-        description: "Solo usuarios verificados pueden crear debates",
+        description: "Necesitas ser nivel 4 o superior para crear debates",
         variant: "destructive",
       });
       return;
@@ -87,9 +87,9 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
       <h2 className="text-xl font-semibold text-club-brown mb-4">Crear nuevo debate</h2>
       
-      {!canCreateContent(userRole) && (
+      {!canCreateForum(userRole) && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md mb-4">
-          Solo los usuarios verificados pueden crear nuevos debates. Contacta al administrador para verificar tu cuenta.
+          Necesitas ser nivel 4 o superior para crear debates. Continúa participando para subir de nivel.
         </div>
       )}
       
@@ -103,7 +103,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Escribe un título para tu debate"
-            disabled={!canCreateContent(userRole) || isSubmitting}
+            disabled={!canCreateForum(userRole) || isSubmitting}
             maxLength={100}
           />
         </div>
@@ -146,7 +146,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
         
         <Button 
           type="submit" 
-          disabled={!canCreateContent(userRole) || isSubmitting}
+          disabled={!canCreateForum(userRole) || isSubmitting}
           className="w-full bg-club-orange hover:bg-club-terracotta text-white"
         >
           {isSubmitting ? "Publicando..." : "Publicar debate"}

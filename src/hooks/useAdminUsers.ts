@@ -42,6 +42,61 @@ export const useAdminUsers = () => {
     user.username?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Initialize required XP actions in the database
+  const initializeXpActions = async () => {
+    try {
+      const actions = [
+        { 
+          action_name: 'create_debate', 
+          description: 'Crear un nuevo debate', 
+          xp_value: 50, 
+          repeatable: true,
+          max_times: null
+        },
+        { 
+          action_name: 'create_comment', 
+          description: 'Comentar en un debate', 
+          xp_value: 10, 
+          repeatable: true,
+          max_times: null
+        },
+        { 
+          action_name: 'vote_forum', 
+          description: 'Votar en un debate o comentario', 
+          xp_value: 5, 
+          repeatable: true,
+          max_times: null
+        },
+        { 
+          action_name: 'submit_feedback', 
+          description: 'Enviar feedback (no anónimo)', 
+          xp_value: 50, 
+          repeatable: true,
+          max_times: 10  // Maximum 500 XP from feedback (10 * 50)
+        }
+      ];
+      
+      await Promise.all(actions.map(async (action) => {
+        const { data } = await supabase
+          .from('xp_actions')
+          .select('id')
+          .eq('action_name', action.action_name)
+          .limit(1);
+          
+        if (!data || data.length === 0) {
+          await supabase.from('xp_actions').insert([action]);
+        }
+      }));
+    } catch (error) {
+      console.error("Error initializing XP actions:", error);
+    }
+  };
+  
+  // Initialize XP actions when the hook is first used
+  useState(() => {
+    initializeXpActions();
+  });
+
   return {
     users: filteredUsers,
     isLoading,

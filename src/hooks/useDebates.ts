@@ -77,6 +77,13 @@ export const useDebates = (selectedCategory: string | null) => {
       } else {
         setDebates([newDebateWithAuthor as Debate, ...debates]);
       }
+      
+      // Add experience points for creating debate (50 XP)
+      await supabase.rpc('add_user_xp', { 
+        _user_id: userId,
+        _action_name: 'create_debate',
+        _custom_description: `Creación de debate: ${title}`
+      });
 
       toast({
         title: "Debate creado",
@@ -140,6 +147,13 @@ export const useDebates = (selectedCategory: string | null) => {
         }
         return debate;
       }));
+
+      // Add experience points for voting (5 XP)
+      await supabase.rpc('add_user_xp', { 
+        _user_id: userId,
+        _action_name: 'vote_forum',
+        _custom_description: `Voto en debate`
+      });
 
       toast({
         title: "Voto registrado",

@@ -34,6 +34,13 @@ const Feedback = () => {
         if (profileData?.username) {
           feedbackData.username = profileData.username;
         }
+        
+        // Add experience points if feedback is not anonymous (50 XP, up to 500 total)
+        await supabase.rpc('add_user_xp', { 
+          _user_id: user.id,
+          _action_name: 'submit_feedback',
+          _custom_description: 'Envío de feedback'
+        });
       }
       
       const { error } = await supabase
