@@ -7,6 +7,7 @@ import { Domain } from "@/hooks/useDomains";
 
 interface DomainCardProps {
   domain: Domain;
+  currentLanguage: string;
   hoveredDomain: string | null;
   setHoveredDomain: (id: string | null) => void;
   handleDomainAction: (domain: Domain) => void;
@@ -16,6 +17,7 @@ interface DomainCardProps {
 
 const DomainCard = ({
   domain,
+  currentLanguage,
   hoveredDomain,
   setHoveredDomain,
   handleDomainAction,
@@ -64,8 +66,8 @@ const DomainCard = ({
           )}
         >
           {domain.status === "available" 
-            ? (domain.currentLanguage === "en" ? "Claim" : "Reclamar")
-            : (domain.currentLanguage === "en" ? "Visit" : "Visitar")
+            ? (currentLanguage === "en" ? "Claim" : "Reclamar")
+            : (currentLanguage === "en" ? "Visit" : "Visitar")
           }
           {domain.externalUrl && <ExternalLink size={14} />}
         </Button>

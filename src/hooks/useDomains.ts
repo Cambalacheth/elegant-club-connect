@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -10,6 +9,7 @@ export interface Domain {
   status: "available" | "reserved" | "used";
   owner?: string;
   externalUrl?: string;
+  currentLanguage?: string; // Add optional currentLanguage property
 }
 
 interface UseDomainProps {

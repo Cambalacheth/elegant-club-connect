@@ -77,7 +77,8 @@ const DomainGrid = ({
         {filteredDomains.map((domain) => (
           <DomainCard 
             key={domain.id}
-            domain={{...domain, currentLanguage}}
+            domain={domain}
+            currentLanguage={currentLanguage}
             hoveredDomain={hoveredDomain}
             setHoveredDomain={setHoveredDomain}
             handleDomainAction={handleDomainAction}
