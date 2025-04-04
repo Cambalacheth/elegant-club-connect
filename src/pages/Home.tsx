@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Gavel, Palette, Briefcase, Stethoscope, Users, Cpu } from "lucide-react";
 import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection";
 import VerticalsSection from "../components/VerticalsSection";
@@ -34,11 +34,112 @@ const Home = () => {
     ? "Check Upcoming Events" 
     : "Ver Próximos Eventos";
 
+  // Texts for verticals section
+  const verticalsTitle = language === "en" ? "Our Verticals" : "Nuestras Verticales";
+  const verticalsSubtitle = language === "en" 
+    ? "Specialized domains for different knowledge areas" 
+    : "Dominios especializados para diferentes áreas de conocimiento";
+
+  // Verticals data
+  const verticals = [
+    {
+      name: "Legal",
+      path: "/legal",
+      icon: <Gavel size={24} className="text-club-terracotta" />,
+      description: language === "en" 
+        ? "Legal resources, debates and content related to legal aspects" 
+        : "Recursos legales, debates y contenido relacionado con aspectos jurídicos"
+    },
+    {
+      name: "Arte",
+      path: "/arte",
+      icon: <Palette size={24} className="text-club-terracotta" />,
+      description: language === "en" 
+        ? "Space dedicated to art and entertainment in the community" 
+        : "Espacio dedicado al arte y entretenimiento en la comunidad"
+    },
+    {
+      name: "Negocios",
+      path: "/negocios",
+      icon: <Briefcase size={24} className="text-club-terracotta" />,
+      description: language === "en" 
+        ? "Resources and debates about entrepreneurship and business" 
+        : "Recursos y debates sobre emprendimiento y negocios"
+    },
+    {
+      name: "Salud",
+      path: "/salud",
+      icon: <Stethoscope size={24} className="text-club-terracotta" />,
+      description: language === "en" 
+        ? "Content related to wellness and health" 
+        : "Contenido relacionado con bienestar y salud"
+    },
+    {
+      name: "Comunidad",
+      path: "/comunidad",
+      icon: <Users size={24} className="text-club-terracotta" />,
+      description: language === "en" 
+        ? "The central space for everything related to our community" 
+        : "El espacio central para todo lo relacionado con nuestra comunidad"
+    },
+    {
+      name: "Tech",
+      path: "/tech",
+      icon: <Cpu size={24} className="text-club-terracotta" />,
+      description: language === "en" 
+        ? "Information and resources about science and technology" 
+        : "Información y recursos sobre ciencia y tecnología"
+    }
+  ];
+
   return (
     <main className="relative min-h-screen overflow-x-hidden">
       <Navbar currentLanguage={language} />
       <AboutSection />
       <VerticalsSection />
+      
+      {/* Verticals Section */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-club-brown mb-4">
+              {verticalsTitle}
+            </h2>
+            <p className="text-lg text-club-brown/80 max-w-2xl mx-auto">
+              {verticalsSubtitle}
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {verticals.map((vertical, index) => (
+              <Link 
+                key={index} 
+                to={vertical.path}
+                className="bg-club-beige rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col"
+              >
+                <div className="w-14 h-14 bg-club-terracotta/10 rounded-full flex items-center justify-center mb-4">
+                  {vertical.icon}
+                </div>
+                
+                <h3 className="text-xl font-serif font-semibold text-club-brown mb-2">
+                  {vertical.name}
+                </h3>
+                
+                <p className="text-club-brown/80 mb-4 flex-1">
+                  {vertical.description}
+                </p>
+                
+                <div className="flex items-center text-club-orange mt-auto">
+                  <span className="mr-2">
+                    {language === "en" ? "Explore" : "Explorar"}
+                  </span>
+                  <ArrowRight size={16} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
       
       {/* Call-to-action section */}
       <section className="py-20 bg-club-beige/50">

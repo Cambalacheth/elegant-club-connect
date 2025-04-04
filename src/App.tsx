@@ -29,6 +29,9 @@ import ElFotographerPage from "./pages/ElFotographerPage";
 import Feedback from "./pages/Feedback";
 import VotePage from "./pages/VotePage";
 
+// For now, we'll use the DomainPage for all vertical domains
+// Later, these can be replaced with specialized pages for each vertical
+
 const queryClient = new QueryClient();
 
 function App() {
@@ -63,6 +66,15 @@ function App() {
               <Route path="/ElFotographer" element={<ElFotographerPage />} />
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/vote" element={<VotePage />} />
+              
+              {/* Vertical domain routes */}
+              <Route path="/legal" element={<DomainPage />} />
+              <Route path="/arte" element={<DomainPage />} />
+              <Route path="/negocios" element={<DomainPage />} />
+              <Route path="/salud" element={<DomainPage />} />
+              <Route path="/comunidad" element={<DomainPage />} />
+              <Route path="/tech" element={<DomainPage />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

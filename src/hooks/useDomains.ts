@@ -15,9 +15,14 @@ export interface Domain {
 interface UseDomainProps {
   randomize?: boolean;
   pageSize?: number;
+  prioritizePaths?: string[];
 }
 
-export const useDomains = ({ randomize = false, pageSize = 12 }: UseDomainProps = {}) => {
+export const useDomains = ({ 
+  randomize = false, 
+  pageSize = 12,
+  prioritizePaths = [] 
+}: UseDomainProps = {}) => {
   const [domains, setDomains] = useState<Domain[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +64,7 @@ export const useDomains = ({ randomize = false, pageSize = 12 }: UseDomainProps 
         if (fetchError) throw fetchError;
         
         // Transform the data to match our Domain interface
-        const formattedDomains: Domain[] = (data || []).map(domain => ({
+        let formattedDomains: Domain[] = (data || []).map(domain => ({
           id: domain.id,
           name: domain.name,
           path: domain.path,
@@ -68,6 +73,14 @@ export const useDomains = ({ randomize = false, pageSize = 12 }: UseDomainProps 
           owner: domain.owner,
           externalUrl: domain.external_url
         }));
+        
+        // If prioritized paths are provided, bring them to the top
+        if (prioritizePaths.length > 0) {
+          formattedDomains = [
+            ...formattedDomains.filter(d => prioritizePaths.includes(d.path)),
+            ...formattedDomains.filter(d => !prioritizePaths.includes(d.path))
+          ];
+        }
         
         setDomains(formattedDomains);
         setError(null);
@@ -81,7 +94,7 @@ export const useDomains = ({ randomize = false, pageSize = 12 }: UseDomainProps 
     };
 
     fetchDomains();
-  }, [randomize, pageSize, currentPage]);
+  }, [randomize, pageSize, currentPage, prioritizePaths]);
 
   const totalPages = useMemo(() => Math.ceil(totalCount / pageSize), [totalCount, pageSize]);
 

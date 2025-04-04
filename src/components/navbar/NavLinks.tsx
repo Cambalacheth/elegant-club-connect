@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MessageSquare, Settings, Globe, FileCode, MailOpen } from "lucide-react";
+import { MessageSquare, Settings, Globe, FileCode, Gavel, Palette, Briefcase, Stethoscope, Users, Cpu } from "lucide-react";
 import { UserLevel, UserRole, canAdminContent } from "@/types/user";
 import { useDomains } from "@/hooks/useDomains";
 
@@ -12,9 +12,17 @@ interface NavLinksProps {
   onMobileClick?: () => void;
 }
 
+// Define vertical paths we'll always want to show
+const VERTICAL_PATHS = ['/legal', '/arte', '/negocios', '/salud', '/comunidad', '/tech'];
+
 const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick = () => {} }: NavLinksProps) => {
-  const { domains } = useDomains();
+  const { domains } = useDomains({ prioritizePaths: VERTICAL_PATHS });
   const [rotatingDomain, setRotatingDomain] = useState<{ name: string; path: string } | null>(null);
+  
+  // Filter domains for verticals
+  const verticalDomains = domains.filter(domain => 
+    VERTICAL_PATHS.includes(domain.path)
+  );
   
   // Define fixed links
   const fixedLinks = [
@@ -38,11 +46,12 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
   // Update rotating domain on initial render or when domains change
   useEffect(() => {
     if (domains.length > 0) {
-      // Filter domains to exclude those in fixed links and elfotographer
+      // Filter domains to exclude those in fixed links, verticals, and elfotographer
       const availableDomains = domains
         .filter(domain => {
-          // Exclude domains that match any fixed link path or elfotographer
+          // Exclude domains that match any fixed link path, vertical path, or elfotographer
           return !fixedLinks.some(link => link.path === domain.path) && 
+                 !VERTICAL_PATHS.includes(domain.path) &&
                  domain.name.toLowerCase() !== "elfotographer";
         })
         .map(domain => ({ name: domain.name, path: domain.path }));
@@ -78,12 +87,31 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
 
   // Helper to get icon based on path
   const getIconForPath = (path: string) => {
-    if (path === "/feedback") return <MailOpen size={16} />;
+    if (path === "/feedback") return <Gavel size={16} />;
+    if (path === "/legal") return <Gavel size={16} />;
+    if (path === "/arte") return <Palette size={16} />;
+    if (path === "/negocios") return <Briefcase size={16} />;
+    if (path === "/salud") return <Stethoscope size={16} />;
+    if (path === "/comunidad") return <Users size={16} />;
+    if (path === "/tech") return <Cpu size={16} />;
     return null;
   };
 
   return (
     <>
+      {/* Vertical domains first */}
+      {verticalDomains.map((domain, index) => (
+        <Link 
+          key={`vertical-domain-${index}`}
+          to={domain.path}
+          className={`${baseClass} flex items-center gap-1`}
+          onClick={handleClick}
+        >
+          {getIconForPath(domain.path)}
+          {domain.name}
+        </Link>
+      ))}
+      
       {/* Fixed links */}
       {fixedLinks.map((link, index) => (
         <Link 

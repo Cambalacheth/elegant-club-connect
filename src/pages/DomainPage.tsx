@@ -21,6 +21,10 @@ const DomainPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState("es");
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredDomain, setHoveredDomain] = useState<string | null>(null);
+  const [showVerticals, setShowVerticals] = useState(true);
+  
+  // Define the vertical paths to highlight
+  const verticalPaths = ['/legal', '/arte', '/negocios', '/salud', '/comunidad', '/tech'];
   
   // Use the enhanced useDomains hook with randomized order and pagination
   const { 
@@ -29,7 +33,12 @@ const DomainPage = () => {
     currentPage, 
     setCurrentPage, 
     totalPages 
-  } = useDomains({ randomize: true, pageSize: 12 });
+  } = useDomains({ randomize: true, pageSize: 12, prioritizePaths: verticalPaths });
+  
+  // Get the vertical domains
+  const verticalDomains = domains.filter(domain => verticalPaths.includes(domain.path));
+  // Get the rest of the domains
+  const regularDomains = domains.filter(domain => !verticalPaths.includes(domain.path));
   
   const title = currentLanguage === "en" ? "Domains - Terreta Hub" : "Dominios - Terreta Hub";
   const description = currentLanguage === "en" 
@@ -41,6 +50,7 @@ const DomainPage = () => {
     ? "At Terreta Hub, we've reimagined how community members can establish their presence." 
     : "En Terreta Hub, hemos reimaginado cómo los miembros de la comunidad pueden establecer su presencia.";
   
+  const verticalsTitle = currentLanguage === "en" ? "Vertical Domains" : "Dominios Verticales";
   const domainsTitle = currentLanguage === "en" ? "Available Domains" : "Dominios Disponibles";
   const searchPlaceholder = currentLanguage === "en" ? "Search domains..." : "Buscar dominios...";
   
@@ -50,7 +60,7 @@ const DomainPage = () => {
     used: currentLanguage === "en" ? "In Use" : "En Uso",
   };
 
-  const filteredDomains = domains.filter(domain => 
+  const filteredDomains = regularDomains.filter(domain => 
     domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -80,6 +90,58 @@ const DomainPage = () => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Domain card component to reuse for both vertical and regular domains
+  const DomainCard = ({ domain }: { domain: any }) => (
+    <div 
+      key={domain.id}
+      className={cn(
+        "border rounded-lg p-4 transition-all duration-300",
+        getStatusColor(domain.status),
+        hoveredDomain === domain.id ? "shadow-md transform -translate-y-1" : "",
+        "flex flex-col justify-between"
+      )}
+      onMouseEnter={() => setHoveredDomain(domain.id)}
+      onMouseLeave={() => setHoveredDomain(null)}
+    >
+      <div>
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-serif font-bold text-lg flex items-center">
+            <GlobeIcon size={16} className="mr-1.5 opacity-70" />
+            {domain.name}
+          </h3>
+          <span className="text-xs rounded-full px-3 py-1 bg-white/50 font-medium">
+            {statusLabels[domain.status]}
+          </span>
+        </div>
+        
+        <p className="text-sm mb-3 line-clamp-2 min-h-[40px]">{domain.description || "-"}</p>
+      </div>
+      
+      <div className="flex justify-between items-center mt-2">
+        <span className="text-xs font-mono text-club-brown/60">
+          {domain.path}
+        </span>
+        
+        <Button 
+          variant={domain.status === "available" ? "default" : "outline"} 
+          size="sm"
+          onClick={() => handleDomainAction(domain)}
+          disabled={domain.status === 'reserved'}
+          className={cn(
+            domain.externalUrl ? "flex items-center gap-1" : "",
+            domain.status === "available" ? "bg-club-orange hover:bg-club-orange/90" : ""
+          )}
+        >
+          {domain.status === "available" 
+            ? (currentLanguage === "en" ? "Claim" : "Reclamar")
+            : (currentLanguage === "en" ? "Visit" : "Visitar")
+          }
+          {domain.externalUrl && <ExternalLink size={14} />}
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -118,6 +180,35 @@ const DomainPage = () => {
               </p>
             </CardContent>
           </Card>
+          
+          {/* Vertical Domains Section */}
+          {verticalDomains.length > 0 && (
+            <>
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
+                <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4 md:mb-0">
+                  {verticalsTitle}
+                </h2>
+                
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setShowVerticals(!showVerticals)}
+                  className="self-start md:self-auto"
+                >
+                  {showVerticals 
+                    ? (currentLanguage === "en" ? "Hide Verticals" : "Ocultar Verticales") 
+                    : (currentLanguage === "en" ? "Show Verticals" : "Mostrar Verticales")}
+                </Button>
+              </div>
+              
+              {showVerticals && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+                  {verticalDomains.map((domain) => (
+                    <DomainCard key={domain.id} domain={domain} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
           
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4 md:mb-0">
@@ -180,54 +271,7 @@ const DomainPage = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {filteredDomains.map((domain) => (
-                  <div 
-                    key={domain.id}
-                    className={cn(
-                      "border rounded-lg p-4 transition-all duration-300",
-                      getStatusColor(domain.status),
-                      hoveredDomain === domain.id ? "shadow-md transform -translate-y-1" : "",
-                      "flex flex-col justify-between"
-                    )}
-                    onMouseEnter={() => setHoveredDomain(domain.id)}
-                    onMouseLeave={() => setHoveredDomain(null)}
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-serif font-bold text-lg flex items-center">
-                          <GlobeIcon size={16} className="mr-1.5 opacity-70" />
-                          {domain.name}
-                        </h3>
-                        <span className="text-xs rounded-full px-3 py-1 bg-white/50 font-medium">
-                          {statusLabels[domain.status]}
-                        </span>
-                      </div>
-                      
-                      <p className="text-sm mb-3 line-clamp-2 min-h-[40px]">{domain.description || "-"}</p>
-                    </div>
-                    
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs font-mono text-club-brown/60">
-                        {domain.path}
-                      </span>
-                      
-                      <Button 
-                        variant={domain.status === "available" ? "default" : "outline"} 
-                        size="sm"
-                        onClick={() => handleDomainAction(domain)}
-                        disabled={domain.status === 'reserved'}
-                        className={cn(
-                          domain.externalUrl ? "flex items-center gap-1" : "",
-                          domain.status === "available" ? "bg-club-orange hover:bg-club-orange/90" : ""
-                        )}
-                      >
-                        {domain.status === "available" 
-                          ? (currentLanguage === "en" ? "Claim" : "Reclamar")
-                          : (currentLanguage === "en" ? "Visit" : "Visitar")
-                        }
-                        {domain.externalUrl && <ExternalLink size={14} />}
-                      </Button>
-                    </div>
-                  </div>
+                  <DomainCard key={domain.id} domain={domain} />
                 ))}
               </div>
               
