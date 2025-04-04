@@ -31,15 +31,22 @@ export const useDomains = ({
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [retryCount, setRetryCount] = useState(0);
+  const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     const maxRetries = 3;
-    const retryDelay = 1500; // 1.5 seconds delay between retries
+    const retryDelay = 2000; // 2 seconds delay between retries
     
     const fetchDomains = async () => {
       try {
         setLoading(true);
+        
+        // Check if we're offline
+        if (!navigator.onLine) {
+          setIsOffline(true);
+          throw new Error("You are offline");
+        }
         
         // Use more reliable count query approach
         const { count, error: countError } = await supabase
@@ -83,6 +90,7 @@ export const useDomains = ({
             // Set fallback domains if no data is returned
             setDomains(getFallbackDomains(prioritizePaths));
           } else {
+            console.log("Domains loaded:", data.length, data);
             // Format the domains
             let formattedDomains: Domain[] = (data || []).map(domain => ({
               id: domain.id,
@@ -105,6 +113,7 @@ export const useDomains = ({
             setDomains(formattedDomains);
             setError(null);
             setRetryCount(0); // Reset retry count on success
+            setIsOffline(false);
           }
         }
       } catch (err: any) {
@@ -120,11 +129,16 @@ export const useDomains = ({
           } else {
             // After max retries, set error and use fallback data
             setError('Failed to load domains');
-            toast({
-              title: "Connection issue",
-              description: "Using cached domain data. Some information may not be up to date.",
-              variant: "destructive"
-            });
+            console.error("Error loading domains:", err.message || "Unknown error");
+            
+            // Only show toast in production - prevents dev mode flood of messages
+            if (process.env.NODE_ENV !== 'development') {
+              toast({
+                title: "Problema de conexión",
+                description: "Usando datos en caché. La información puede no estar actualizada.",
+                variant: "destructive"
+              });
+            }
             
             // Use fallback domains when there's an error
             setDomains(getFallbackDomains(prioritizePaths));
@@ -139,12 +153,27 @@ export const useDomains = ({
 
     fetchDomains();
     
+    // Add network status listeners
+    const handleOnline = () => {
+      setIsOffline(false);
+      if (isMounted) fetchDomains();
+    };
+    
+    const handleOffline = () => {
+      setIsOffline(true);
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
     return () => {
       isMounted = false;
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
   }, [randomize, pageSize, currentPage, prioritizePaths, retryCount]);
 
-  const totalPages = useMemo(() => Math.ceil(totalCount / pageSize), [totalCount, pageSize]);
+  const totalPages = useMemo(() => Math.ceil(totalCount / pageSize) || 1, [totalCount, pageSize]);
 
   return { 
     domains, 
@@ -153,7 +182,8 @@ export const useDomains = ({
     currentPage, 
     setCurrentPage, 
     totalPages,
-    totalCount
+    totalCount,
+    isOffline
   };
 };
 

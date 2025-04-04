@@ -302,13 +302,13 @@ const DomainManagement = () => {
                     (page >= currentPage - 1 && page <= currentPage + 1)
                   )
                   .map((page, i, array) => (
-                    <>
+                    <React.Fragment key={`pagination-${page}`}>
                       {i > 0 && array[i-1] !== page - 1 && (
-                        <PaginationItem key={`ellipsis-${page}`}>
+                        <PaginationItem>
                           <span className="px-2">...</span>
                         </PaginationItem>
                       )}
-                      <PaginationItem key={page}>
+                      <PaginationItem>
                         <PaginationLink 
                           onClick={() => handlePageChange(page)}
                           isActive={page === currentPage}
@@ -317,7 +317,7 @@ const DomainManagement = () => {
                           {page}
                         </PaginationLink>
                       </PaginationItem>
-                    </>
+                    </React.Fragment>
                   ))
                 }
                 

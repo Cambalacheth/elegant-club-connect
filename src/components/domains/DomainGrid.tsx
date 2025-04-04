@@ -2,10 +2,11 @@
 import React from "react";
 import { Domain } from "@/hooks/useDomains";
 import DomainExpandableCard from "./DomainExpandableCard";
-import { Search } from "lucide-react";
+import { Search, WifiOff, Database, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface DomainGridProps {
   filteredDomains: Domain[];
@@ -18,6 +19,8 @@ interface DomainGridProps {
   currentPage: number;
   totalPages: number;
   handlePageChange: (page: number) => void;
+  error?: string | null;
+  isOffline?: boolean;
 }
 
 const DomainGrid = ({
@@ -31,6 +34,8 @@ const DomainGrid = ({
   currentPage,
   totalPages,
   handlePageChange,
+  error,
+  isOffline,
 }: DomainGridProps) => {
   if (loading) {
     return (
@@ -40,6 +45,38 @@ const DomainGrid = ({
           {currentLanguage === "en" ? "Loading domains..." : "Cargando dominios..."}
         </p>
       </div>
+    );
+  }
+
+  if (isOffline) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <WifiOff className="h-4 w-4" />
+        <AlertTitle>
+          {currentLanguage === "en" ? "You're offline" : "Estás sin conexión"}
+        </AlertTitle>
+        <AlertDescription>
+          {currentLanguage === "en" 
+            ? "Using cached domain data. Connect to the internet to see the latest information." 
+            : "Usando datos de dominios en caché. Conéctate a internet para ver la información más reciente."}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Alert variant="destructive" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>
+          {currentLanguage === "en" ? "Connection error" : "Error de conexión"}
+        </AlertTitle>
+        <AlertDescription>
+          {currentLanguage === "en" 
+            ? "We had trouble loading the domains. Using cached data instead." 
+            : "Tuvimos problemas al cargar los dominios. Usando datos en caché en su lugar."}
+        </AlertDescription>
+      </Alert>
     );
   }
   

@@ -10,8 +10,9 @@ import DomainGrid from "@/components/domains/DomainGrid";
 import { useParams } from "react-router-dom";
 import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
 import { useToast } from "@/components/ui/use-toast";
-import { AlertTriangle, Globe } from "lucide-react";
+import { AlertTriangle, Globe, Database } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const DomainPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState("es");
@@ -31,6 +32,7 @@ const DomainPage = () => {
     domains, 
     loading, 
     error,
+    isOffline,
     currentPage, 
     setCurrentPage, 
     totalPages 
@@ -138,13 +140,6 @@ const DomainPage = () => {
     }
   };
 
-  // Show notification if there was an error loading domains
-  useEffect(() => {
-    if (error) {
-      console.error("Error loading domains:", error);
-    }
-  }, [error]);
-
   return (
     <>
       <Helmet>
@@ -169,20 +164,32 @@ const DomainPage = () => {
             currentLanguage={currentLanguage}
           />
           
-          {error && (
-            <div className="mb-6 p-4 border border-amber-200 bg-amber-50 rounded-lg flex items-center gap-3 text-amber-800">
-              <AlertTriangle size={20} className="flex-shrink-0" />
-              <div>
-                <p className="font-medium">
-                  {currentLanguage === "en" ? "Connection issue" : "Problema de conexión"}
-                </p>
-                <p className="text-sm">
-                  {currentLanguage === "en" 
-                    ? "Using cached data. Information may not be up to date." 
-                    : "Usando datos en caché. La información puede no estar actualizada."}
-                </p>
-              </div>
-            </div>
+          {isOffline && (
+            <Alert variant="warning" className="mb-6 bg-amber-50 border-amber-200">
+              <Database className="h-4 w-4 text-amber-600" />
+              <AlertTitle className="text-amber-800">
+                {currentLanguage === "en" ? "You're offline" : "Estás sin conexión"}
+              </AlertTitle>
+              <AlertDescription className="text-amber-700">
+                {currentLanguage === "en" 
+                  ? "Using cached domain data. Connect to the internet to see the latest information." 
+                  : "Usando datos de dominios en caché. Conéctate a internet para ver la información más reciente."}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          {error && !isOffline && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>
+                {currentLanguage === "en" ? "Connection issue" : "Problema de conexión"}
+              </AlertTitle>
+              <AlertDescription>
+                {currentLanguage === "en" 
+                  ? "Using cached data. Information may not be up to date." 
+                  : "Usando datos en caché. La información puede no estar actualizada."}
+              </AlertDescription>
+            </Alert>
           )}
           
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
@@ -222,6 +229,8 @@ const DomainPage = () => {
               <DomainGrid 
                 filteredDomains={filteredDomains}
                 loading={loading}
+                error={error}
+                isOffline={isOffline}
                 handleDomainAction={handleDomainAction}
                 getStatusColor={getStatusColor}
                 currentLanguage={currentLanguage}
