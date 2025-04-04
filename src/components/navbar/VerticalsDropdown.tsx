@@ -35,7 +35,7 @@ export const VerticalsDropdown = ({ currentLanguage, handleClick }: VerticalsDro
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="bg-transparent hover:bg-club-beige-dark text-club-brown hover:text-club-terracotta px-0">
+          <NavigationMenuTrigger className="bg-transparent hover:bg-club-beige-dark text-club-brown hover:text-club-terracotta px-0 text-base font-normal">
             <span className="flex items-center gap-1">
               {verticalesText}
             </span>

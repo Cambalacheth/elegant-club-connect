@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useDomains } from "./useDomains";
 import { VERTICAL_PATHS } from "./useVerticalDomains";
 
@@ -11,10 +11,13 @@ interface UseRotatingDomainProps {
 export const useRotatingDomain = ({ currentLanguage, fixedPaths }: UseRotatingDomainProps) => {
   const [rotatingDomain, setRotatingDomain] = useState<{ name: string; path: string } | null>(null);
   const { domains } = useDomains();
+  // Add a ref to track initialization
+  const initialized = useRef(false);
 
-  // Update rotating domain on initial render or when domains change
+  // Update rotating domain only once on initial render or when domains change
   useEffect(() => {
-    if (domains.length > 0) {
+    // Only set a new random domain if we haven't initialized yet or domains change
+    if (domains.length > 0 && !initialized.current) {
       // Filter domains to exclude those in fixed links, verticals, and elfotographer
       const availableDomains = domains
         .filter(domain => {
@@ -41,6 +44,8 @@ export const useRotatingDomain = ({ currentLanguage, fixedPaths }: UseRotatingDo
         // Pick a random domain from the available ones
         const randomIndex = Math.floor(Math.random() * allDomains.length);
         setRotatingDomain(allDomains[randomIndex]);
+        // Mark as initialized so we don't change it again
+        initialized.current = true;
       }
     }
   }, [domains, currentLanguage, fixedPaths]);
