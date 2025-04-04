@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DomainGridProps {
   filteredDomains: Domain[];
@@ -37,13 +38,28 @@ const DomainGrid = ({
   error,
   isOffline,
 }: DomainGridProps) => {
+  // Loading skeletons to show while data is loading
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-club-brown mx-auto"></div>
-        <p className="mt-2 text-club-brown/70">
-          {currentLanguage === "en" ? "Loading domains..." : "Cargando dominios..."}
-        </p>
+      <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="border rounded-lg p-4 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <Skeleton className="h-6 w-24" />
+                  <Skeleton className="h-5 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full mb-1" />
+                <Skeleton className="h-4 w-3/4 mb-3" />
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-8 w-20 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

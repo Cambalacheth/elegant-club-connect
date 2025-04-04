@@ -32,7 +32,21 @@ export const useDomainFetcher = ({
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
-  const [isOffline, setIsOffline] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  // Set up network status listener for the component lifecycle
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const fetchDomains = useCallback(async () => {
     try {
@@ -41,7 +55,11 @@ export const useDomainFetcher = ({
       // Check if we're offline
       if (!navigator.onLine) {
         setIsOffline(true);
-        throw new Error("You are offline");
+        console.log("Device is offline, using fallback domains");
+        const fallbackDomains = getFallbackDomains(prioritizePaths);
+        setDomains(fallbackDomains);
+        setTotalCount(fallbackDomains.length);
+        return;
       }
       
       // Use more reliable count query approach
@@ -51,7 +69,7 @@ export const useDomainFetcher = ({
         
       if (countError) {
         console.error('Error counting domains:', countError);
-        // Continue anyway, we can still try to load domains
+        throw countError;
       }
       
       if (count !== null) {
@@ -84,7 +102,7 @@ export const useDomainFetcher = ({
         // Set fallback domains if no data is returned
         setDomains(getFallbackDomains(prioritizePaths));
       } else {
-        console.log("Domains loaded:", data.length, data);
+        console.log("Domains loaded:", data.length);
         // Format the domains
         const formattedDomains = formatDomains(data, prioritizePaths);
         setDomains(formattedDomains);
@@ -113,6 +131,18 @@ export const useDomainFetcher = ({
       setLoading(false);
     }
   }, [currentPage, pageSize, randomize, prioritizePaths]);
+
+  // Initial fetch and when dependencies change
+  useEffect(() => {
+    fetchDomains();
+  }, [fetchDomains]);
+
+  // Auto-retry on network status change
+  useEffect(() => {
+    if (!isOffline && error) {
+      fetchDomains();
+    }
+  }, [isOffline, error, fetchDomains]);
 
   return {
     domains,

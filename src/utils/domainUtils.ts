@@ -59,6 +59,20 @@ export const getFallbackDomains = (prioritizePaths: string[] = []): Domain[] => 
       path: "/events",
       description: "Calendario de eventos de la comunidad",
       status: "used"
+    },
+    {
+      id: "contenido-domain",
+      name: "Contenido",
+      path: "/content",
+      description: "Portal de contenido y recursos informativos",
+      status: "used"
+    },
+    {
+      id: "miembros-domain",
+      name: "Miembros",
+      path: "/members",
+      description: "Directorio de miembros de la comunidad",
+      status: "used"
     }
   ];
   

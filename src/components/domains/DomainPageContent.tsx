@@ -12,6 +12,7 @@ import {
   getDomainsTitle,
   getSearchPlaceholder
 } from "@/utils/domainPageUtils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DomainPageContentProps {
   domains: Domain[];
@@ -63,49 +64,70 @@ const DomainPageContent: React.FC<DomainPageContentProps> = ({
   const domainsTitle = getDomainsTitle(isVerticalPage, currentLanguage, getVerticalName);
   const searchPlaceholder = getSearchPlaceholder(currentLanguage);
 
+  // Content for the loading state
+  const renderLoadingState = () => (
+    <>
+      <Skeleton className="h-10 w-48 mb-4" />
+      <Skeleton className="h-32 w-full mb-8" />
+      <Skeleton className="h-8 w-64 mb-4" />
+      <Skeleton className="h-10 w-full mb-6" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map(i => (
+          <Skeleton key={i} className="h-40 w-full rounded-lg" />
+        ))}
+      </div>
+    </>
+  );
+
   return (
     <div className="max-w-5xl mx-auto">
-      <DomainPageHeader 
-        conceptTitle={conceptTitle}
-        currentLanguage={currentLanguage} 
-      />
-      
-      <DomainConcept 
-        conceptTitle={conceptTitle}
-        conceptDesc={conceptDesc}
-        currentLanguage={currentLanguage}
-      />
-      
-      <DomainStatusAlerts 
-        error={error}
-        isOffline={isOffline}
-        currentLanguage={currentLanguage}
-      />
-      
-      <DomainSectionHeader
-        domainsTitle={domainsTitle}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        searchPlaceholder={searchPlaceholder}
-      />
-      
-      <DomainStatusTabs
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        domainsByStatus={domainsByStatus}
-        filteredDomains={filteredDomains}
-        loading={loading}
-        error={error}
-        isOffline={isOffline}
-        handleDomainAction={handleDomainAction}
-        getStatusColor={getStatusColor}
-        currentLanguage={currentLanguage}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        handlePageChange={handlePageChange}
-      />
+      {loading && !error && !isOffline ? (
+        renderLoadingState()
+      ) : (
+        <>
+          <DomainPageHeader 
+            conceptTitle={conceptTitle}
+            currentLanguage={currentLanguage} 
+          />
+          
+          <DomainConcept 
+            conceptTitle={conceptTitle}
+            conceptDesc={conceptDesc}
+            currentLanguage={currentLanguage}
+          />
+          
+          <DomainStatusAlerts 
+            error={error}
+            isOffline={isOffline}
+            currentLanguage={currentLanguage}
+          />
+          
+          <DomainSectionHeader
+            domainsTitle={domainsTitle}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            searchPlaceholder={searchPlaceholder}
+          />
+          
+          <DomainStatusTabs
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            domainsByStatus={domainsByStatus}
+            filteredDomains={filteredDomains}
+            loading={loading}
+            error={error}
+            isOffline={isOffline}
+            handleDomainAction={handleDomainAction}
+            getStatusColor={getStatusColor}
+            currentLanguage={currentLanguage}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            handlePageChange={handlePageChange}
+          />
+        </>
+      )}
     </div>
   );
 };
