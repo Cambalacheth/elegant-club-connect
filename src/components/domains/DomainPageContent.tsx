@@ -59,10 +59,26 @@ const DomainPageContent: React.FC<DomainPageContentProps> = ({
   isVerticalPage,
   getVerticalName
 }) => {
-  const conceptTitle = getConceptTitle(isVerticalPage, currentLanguage, getVerticalName);
-  const conceptDesc = getConceptDesc(isVerticalPage, currentLanguage, getVerticalName);
-  const domainsTitle = getDomainsTitle(isVerticalPage, currentLanguage, getVerticalName);
-  const searchPlaceholder = getSearchPlaceholder(currentLanguage);
+  // Only calculate these values once unless dependencies change
+  const conceptTitle = useMemo(() => 
+    getConceptTitle(isVerticalPage, currentLanguage, getVerticalName), 
+    [isVerticalPage, currentLanguage, getVerticalName]
+  );
+  
+  const conceptDesc = useMemo(() => 
+    getConceptDesc(isVerticalPage, currentLanguage, getVerticalName),
+    [isVerticalPage, currentLanguage, getVerticalName]
+  );
+  
+  const domainsTitle = useMemo(() => 
+    getDomainsTitle(isVerticalPage, currentLanguage, getVerticalName),
+    [isVerticalPage, currentLanguage, getVerticalName]
+  );
+  
+  const searchPlaceholder = useMemo(() => 
+    getSearchPlaceholder(currentLanguage),
+    [currentLanguage]
+  );
 
   // Content for the loading state
   const renderLoadingState = () => (

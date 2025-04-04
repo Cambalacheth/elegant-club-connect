@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Domain } from '@/types/domain';
 import { formatDomains, getFallbackDomains } from '@/utils/domainUtils';
@@ -31,8 +31,11 @@ export const useDomainFetcher = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
-  const [retryCount, setRetryCount] = useState(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  
+  // Use these refs to prevent infinite loops
+  const isFetching = useRef(false);
+  const hasFetchedSuccessfully = useRef(false);
 
   // Set up network status listener for the component lifecycle
   useEffect(() => {
@@ -49,7 +52,11 @@ export const useDomainFetcher = ({
   }, []);
 
   const fetchDomains = useCallback(async () => {
+    // Prevent concurrent fetches
+    if (isFetching.current) return;
+    
     try {
+      isFetching.current = true;
       setLoading(true);
       
       // Check if we're offline
@@ -107,7 +114,7 @@ export const useDomainFetcher = ({
         const formattedDomains = formatDomains(data, prioritizePaths);
         setDomains(formattedDomains);
         setError(null);
-        setRetryCount(0); // Reset retry count on success
+        hasFetchedSuccessfully.current = true;
         setIsOffline(false);
       }
     } catch (err: any) {
@@ -129,6 +136,7 @@ export const useDomainFetcher = ({
       setDomains(getFallbackDomains(prioritizePaths));
     } finally {
       setLoading(false);
+      isFetching.current = false;
     }
   }, [currentPage, pageSize, randomize, prioritizePaths]);
 
@@ -137,10 +145,14 @@ export const useDomainFetcher = ({
     fetchDomains();
   }, [fetchDomains]);
 
-  // Auto-retry on network status change
+  // Auto-retry on network status change but only if we haven't fetched successfully yet
   useEffect(() => {
-    if (!isOffline && error) {
-      fetchDomains();
+    if (!isOffline && error && !hasFetchedSuccessfully.current) {
+      const timer = setTimeout(() => {
+        fetchDomains();
+      }, 5000); // 5 second delay before retry
+      
+      return () => clearTimeout(timer);
     }
   }, [isOffline, error, fetchDomains]);
 

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { UseDomainProps, Domain } from '@/types/domain';
 import { useDomainFetcher } from './useDomainFetcher';
 
@@ -14,6 +14,9 @@ export const useDomains = ({
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 3;
   const retryDelay = 2000; // 2 seconds delay between retries
+  
+  // Prevent unnecessary retries
+  const isRetrying = useRef(false);
 
   // Use the domain fetcher hook
   const {
@@ -30,32 +33,40 @@ export const useDomains = ({
     currentPage
   });
 
-  // Retry logic
+  // Controlled retry logic with limits
   useEffect(() => {
-    if (error && retryCount < maxRetries) {
+    if (error && retryCount < maxRetries && !isRetrying.current) {
+      isRetrying.current = true;
+      
       const timer = setTimeout(() => {
         setRetryCount(prev => prev + 1);
-        retryFetch();
+        retryFetch().finally(() => {
+          isRetrying.current = false;
+        });
       }, retryDelay);
       
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        isRetrying.current = false;
+      };
     }
   }, [error, retryCount, retryFetch]);
 
-  // Network status listeners
+  // Network status listeners - only retry once when coming back online
   useEffect(() => {
     const handleOnline = () => {
-      if (isOffline) {
-        retryFetch();
+      if (isOffline && !isRetrying.current) {
+        isRetrying.current = true;
+        retryFetch().finally(() => {
+          isRetrying.current = false;
+        });
       }
     };
     
     window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', () => {});
     
     return () => {
       window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', () => {});
     };
   }, [isOffline, retryFetch]);
 
