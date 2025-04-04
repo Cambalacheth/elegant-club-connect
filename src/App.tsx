@@ -25,11 +25,21 @@ import ContentDetail from "./pages/ContentDetail";
 import EventDetail from "./pages/EventDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import DomainPage from "./pages/DomainPage";
+import VerticalDomainPage from "./pages/VerticalDomainPage";
 import ElFotographerPage from "./pages/ElFotographerPage";
 import Feedback from "./pages/Feedback";
 import VotePage from "./pages/VotePage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Set shorter stale time and retry configuration for better UX
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 2,
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
+    },
+  },
+});
 
 function App() {
   return (
@@ -64,7 +74,7 @@ function App() {
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/vote" element={<VotePage />} />
               
-              {/* Vertical domain routes with dedicated pages */}
+              {/* Vertical domain routes */}
               <Route path="/legal/*" element={<DomainPage />} />
               <Route path="/arte/*" element={<DomainPage />} />
               <Route path="/negocios/*" element={<DomainPage />} />

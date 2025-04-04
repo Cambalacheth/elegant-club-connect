@@ -9,12 +9,15 @@ import DomainSearch from "@/components/domains/DomainSearch";
 import DomainGrid from "@/components/domains/DomainGrid";
 import { useParams } from "react-router-dom";
 import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
+import { useToast } from "@/components/ui/use-toast";
+import { AlertTriangle } from "lucide-react";
 
 const DomainPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState("es");
   const [searchQuery, setSearchQuery] = useState("");
   const params = useParams();
   const currentPath = params["*"] ? `/${params["*"]}` : "/dominio";
+  const { toast } = useToast();
   
   // Check if we're on a vertical page
   const isVerticalPage = VERTICAL_PATHS.includes(currentPath);
@@ -105,15 +108,12 @@ const DomainPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Add an effect to log domain status for debugging
+  // Show notification if there was an error loading domains
   useEffect(() => {
-    if (!loading) {
-      console.log(`Domains loaded: ${domains.length}`, domains);
-      if (error) {
-        console.error("Error loading domains:", error);
-      }
+    if (error) {
+      console.error("Error loading domains:", error);
     }
-  }, [domains, loading, error]);
+  }, [error]);
 
   return (
     <>
@@ -135,6 +135,22 @@ const DomainPage = () => {
             conceptDesc={conceptDesc}
             currentLanguage={currentLanguage}
           />
+          
+          {error && (
+            <div className="mb-6 p-4 border border-amber-200 bg-amber-50 rounded-lg flex items-center gap-3 text-amber-800">
+              <AlertTriangle size={20} className="flex-shrink-0" />
+              <div>
+                <p className="font-medium">
+                  {currentLanguage === "en" ? "Connection issue" : "Problema de conexión"}
+                </p>
+                <p className="text-sm">
+                  {currentLanguage === "en" 
+                    ? "Using cached data. Information may not be up to date." 
+                    : "Usando datos en caché. La información puede no estar actualizada."}
+                </p>
+              </div>
+            </div>
+          )}
           
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4 md:mb-0">

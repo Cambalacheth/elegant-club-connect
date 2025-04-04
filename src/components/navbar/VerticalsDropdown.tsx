@@ -1,12 +1,11 @@
 
 import { Link } from "react-router-dom";
-import { ChevronDown, Gavel, Palette, Briefcase, Stethoscope, Users, Cpu } from "lucide-react";
+import { Gavel, Palette, Briefcase, Stethoscope, Users, Cpu } from "lucide-react";
 import { useVerticalDomains } from "@/hooks/useVerticalDomains";
 import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
@@ -35,10 +34,10 @@ export const VerticalsDropdown = ({ currentLanguage, handleClick }: VerticalsDro
     <NavigationMenu>
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger className="bg-transparent hover:bg-club-beige-dark text-club-brown hover:text-club-terracotta px-0 text-base font-normal">
-            <span className="flex items-center gap-1">
-              {verticalesText}
-            </span>
+          <NavigationMenuTrigger 
+            className="bg-transparent hover:bg-club-beige-dark text-club-brown hover:text-club-terracotta px-3 font-normal text-base"
+          >
+            {verticalesText}
           </NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[220px] gap-2 p-2 bg-club-beige">
@@ -63,3 +62,13 @@ export const VerticalsDropdown = ({ currentLanguage, handleClick }: VerticalsDro
     </NavigationMenu>
   );
 };
+
+// Import required for the NavigationMenuLink component
+type NavigationMenuLinkProps = React.ComponentPropsWithoutRef<typeof Link>;
+
+const NavigationMenuLink = ({ className, ...props }: NavigationMenuLinkProps) => (
+  <Link
+    className={className}
+    {...props}
+  />
+);
