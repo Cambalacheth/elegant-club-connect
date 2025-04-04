@@ -1,9 +1,18 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MessageSquare, Settings, Globe, FileCode, Gavel, Palette, Briefcase, Stethoscope, Users, Cpu } from "lucide-react";
+import { MessageSquare, Settings, Globe, FileCode, Gavel, Palette, Briefcase, Stethoscope, Users, Cpu, ChevronDown } from "lucide-react";
 import { UserLevel, UserRole, canAdminContent } from "@/types/user";
 import { useDomains } from "@/hooks/useDomains";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 
 interface NavLinksProps {
   currentLanguage: string;
@@ -78,6 +87,7 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
 
   const feedbackText = currentLanguage === "en" ? "Feedback" : "Opiniones";
   const adminText = currentLanguage === "en" ? "Admin" : "Administración";
+  const verticalesText = currentLanguage === "en" ? "Verticals" : "Verticales";
   
   const baseClass = isMobile 
     ? "text-club-brown hover:text-club-terracotta py-2 transition-colors duration-300" 
@@ -97,20 +107,71 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
     return null;
   };
 
+  // Verticals dropdown for desktop
+  const VerticalsDropdown = () => {
+    if (isMobile) return null;
+    
+    return (
+      <NavigationMenu>
+        <NavigationMenuList>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger className="bg-transparent hover:bg-club-beige-dark text-club-brown hover:text-club-terracotta px-0">
+              <span className="flex items-center gap-1">
+                {verticalesText}
+              </span>
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid w-[220px] gap-2 p-2 bg-club-beige">
+                {verticalDomains.map((domain, index) => (
+                  <li key={index}>
+                    <NavigationMenuLink asChild>
+                      <Link
+                        to={domain.path}
+                        className="flex items-center gap-2 px-3 py-2 text-club-brown hover:text-club-terracotta hover:bg-club-beige-dark rounded-md"
+                        onClick={handleClick}
+                      >
+                        {getIconForPath(domain.path)}
+                        {domain.name}
+                      </Link>
+                    </NavigationMenuLink>
+                  </li>
+                ))}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
+    );
+  };
+
+  // Mobile vertical links display
+  const MobileVerticalLinks = () => {
+    if (!isMobile) return null;
+    
+    return (
+      <div className="mb-2">
+        <div className="font-medium text-club-terracotta mb-1">{verticalesText}</div>
+        <div className="ml-2 flex flex-col gap-1">
+          {verticalDomains.map((domain, index) => (
+            <Link 
+              key={`mobile-vertical-${index}`}
+              to={domain.path}
+              className={`${baseClass} flex items-center gap-1`}
+              onClick={handleClick}
+            >
+              {getIconForPath(domain.path)}
+              {domain.name}
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
-      {/* Vertical domains first */}
-      {verticalDomains.map((domain, index) => (
-        <Link 
-          key={`vertical-domain-${index}`}
-          to={domain.path}
-          className={`${baseClass} flex items-center gap-1`}
-          onClick={handleClick}
-        >
-          {getIconForPath(domain.path)}
-          {domain.name}
-        </Link>
-      ))}
+      {/* Verticals dropdown (desktop) or header (mobile) */}
+      {isMobile ? <MobileVerticalLinks /> : <VerticalsDropdown />}
       
       {/* Fixed links */}
       {fixedLinks.map((link, index) => (
