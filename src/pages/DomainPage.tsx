@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import { useDomains } from "@/hooks/useDomains";
@@ -10,7 +10,8 @@ import DomainGrid from "@/components/domains/DomainGrid";
 import { useParams } from "react-router-dom";
 import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
 import { useToast } from "@/components/ui/use-toast";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Globe } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const DomainPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState("es");
@@ -18,6 +19,9 @@ const DomainPage = () => {
   const params = useParams();
   const currentPath = params["*"] ? `/${params["*"]}` : "/dominio";
   const { toast } = useToast();
+  
+  // Default to "all" tab, but can be changed to filter domains
+  const [activeTab, setActiveTab] = useState("all");
   
   // Check if we're on a vertical page
   const isVerticalPage = VERTICAL_PATHS.includes(currentPath);
@@ -38,12 +42,29 @@ const DomainPage = () => {
   });
   
   const {
-    hoveredDomain,
-    setHoveredDomain,
     statusLabels,
     getStatusColor,
     handleDomainAction
   } = useDomainHelpers(currentLanguage);
+  
+  // Group domains by status for the tabs
+  const domainsByStatus = useMemo(() => {
+    const available = domains.filter(d => d.status === 'available');
+    const used = domains.filter(d => d.status === 'used');
+    const reserved = domains.filter(d => d.status === 'reserved');
+    
+    return { all: domains, available, used, reserved };
+  }, [domains]);
+  
+  // Get filtered domains based on search query and active tab
+  const filteredDomains = useMemo(() => {
+    const domainsForTab = domainsByStatus[activeTab as keyof typeof domainsByStatus] || domains;
+    
+    return domainsForTab.filter(domain => 
+      domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+  }, [domainsByStatus, activeTab, searchQuery]);
   
   // Get page-specific titles based on current path
   const getPageTitle = () => {
@@ -94,18 +115,27 @@ const DomainPage = () => {
   
   const domainsTitle = isVerticalPage
     ? (currentLanguage === "en" ? `${getVerticalName()} Domains` : `Dominios de ${getVerticalName()}`)
-    : (currentLanguage === "en" ? "Available Domains" : "Dominios Disponibles");
+    : (currentLanguage === "en" ? "Browse Domains" : "Explorar Dominios");
   
   const searchPlaceholder = currentLanguage === "en" ? "Search domains..." : "Buscar dominios...";
-
-  const filteredDomains = domains.filter(domain => 
-    domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getDomainCountText = (status: string) => {
+    const count = domainsByStatus[status as keyof typeof domainsByStatus]?.length || 0;
+    
+    if (status === 'all') {
+      return `(${domains.length})`;
+    } else if (status === 'used') {
+      return `(${count})`;
+    } else if (status === 'available') {
+      return `(${count})`;
+    } else {
+      return `(${count})`;
+    }
   };
 
   // Show notification if there was an error loading domains
@@ -125,10 +155,13 @@ const DomainPage = () => {
       <Navbar currentLanguage={currentLanguage} />
       
       <div className="container mx-auto px-4 py-24">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-club-brown mb-8">
-            {conceptTitle}
-          </h1>
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center gap-3 mb-8">
+            <Globe size={32} className="text-club-orange" />
+            <h1 className="font-serif text-4xl md:text-5xl font-bold text-club-brown">
+              {conceptTitle}
+            </h1>
+          </div>
           
           <DomainConcept 
             conceptTitle={conceptTitle}
@@ -164,21 +197,42 @@ const DomainPage = () => {
             />
           </div>
           
-          <DomainGrid 
-            filteredDomains={filteredDomains}
-            loading={loading}
-            hoveredDomain={hoveredDomain}
-            setHoveredDomain={setHoveredDomain}
-            handleDomainAction={handleDomainAction}
-            getStatusColor={getStatusColor}
-            statusLabels={statusLabels}
-            currentLanguage={currentLanguage}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            handlePageChange={handlePageChange}
-          />
+          <Tabs 
+            defaultValue="all" 
+            value={activeTab} 
+            onValueChange={setActiveTab}
+            className="mb-6"
+          >
+            <TabsList className="grid grid-cols-4 mb-6">
+              <TabsTrigger value="all">
+                {currentLanguage === "en" ? "All" : "Todos"} {getDomainCountText('all')}
+              </TabsTrigger>
+              <TabsTrigger value="used">
+                {currentLanguage === "en" ? "In Use" : "En Uso"} {getDomainCountText('used')}
+              </TabsTrigger>
+              <TabsTrigger value="available">
+                {currentLanguage === "en" ? "Available" : "Disponibles"} {getDomainCountText('available')}
+              </TabsTrigger>
+              <TabsTrigger value="reserved">
+                {currentLanguage === "en" ? "Reserved" : "Reservados"} {getDomainCountText('reserved')}
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value={activeTab} className="mt-0">
+              <DomainGrid 
+                filteredDomains={filteredDomains}
+                loading={loading}
+                handleDomainAction={handleDomainAction}
+                getStatusColor={getStatusColor}
+                currentLanguage={currentLanguage}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </>

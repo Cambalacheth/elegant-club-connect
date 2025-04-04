@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Domain } from "@/hooks/useDomains";
-import DomainCard from "./DomainCard";
+import DomainExpandableCard from "./DomainExpandableCard";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
@@ -10,11 +10,8 @@ import { cn } from "@/lib/utils";
 interface DomainGridProps {
   filteredDomains: Domain[];
   loading: boolean;
-  hoveredDomain: string | null;
-  setHoveredDomain: (id: string | null) => void;
   handleDomainAction: (domain: Domain) => void;
   getStatusColor: (status: string) => string;
-  statusLabels: Record<string, string>;
   currentLanguage: string;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -26,11 +23,8 @@ interface DomainGridProps {
 const DomainGrid = ({
   filteredDomains,
   loading,
-  hoveredDomain,
-  setHoveredDomain,
   handleDomainAction,
   getStatusColor,
-  statusLabels,
   currentLanguage,
   searchQuery,
   setSearchQuery,
@@ -75,15 +69,12 @@ const DomainGrid = ({
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {filteredDomains.map((domain) => (
-          <DomainCard 
+          <DomainExpandableCard 
             key={domain.id}
             domain={domain}
             currentLanguage={currentLanguage}
-            hoveredDomain={hoveredDomain}
-            setHoveredDomain={setHoveredDomain}
-            handleDomainAction={handleDomainAction}
             getStatusColor={getStatusColor}
-            statusLabels={statusLabels}
+            handleDomainAction={handleDomainAction}
           />
         ))}
       </div>
