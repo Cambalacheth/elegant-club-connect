@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -21,13 +20,10 @@ const DomainPage = () => {
   const currentPath = params["*"] ? `/${params["*"]}` : "/dominio";
   const { toast } = useToast();
   
-  // Default to "all" tab, but can be changed to filter domains
   const [activeTab, setActiveTab] = useState("all");
   
-  // Check if we're on a vertical page
   const isVerticalPage = VERTICAL_PATHS.includes(currentPath);
   
-  // Use the enhanced useDomains hook with randomized order and pagination
   const { 
     domains, 
     loading, 
@@ -39,7 +35,6 @@ const DomainPage = () => {
   } = useDomains({ 
     randomize: true, 
     pageSize: 12,
-    // For vertical pages, prioritize domains in that vertical category
     prioritizePaths: isVerticalPage ? [currentPath] : [] 
   });
   
@@ -49,7 +44,6 @@ const DomainPage = () => {
     handleDomainAction
   } = useDomainHelpers(currentLanguage);
   
-  // Group domains by status for the tabs
   const domainsByStatus = useMemo(() => {
     const available = domains.filter(d => d.status === 'available');
     const used = domains.filter(d => d.status === 'used');
@@ -58,7 +52,6 @@ const DomainPage = () => {
     return { all: domains, available, used, reserved };
   }, [domains]);
   
-  // Get filtered domains based on search query and active tab
   const filteredDomains = useMemo(() => {
     const domainsForTab = domainsByStatus[activeTab as keyof typeof domainsByStatus] || domains;
     
@@ -68,7 +61,6 @@ const DomainPage = () => {
     );
   }, [domainsByStatus, activeTab, searchQuery]);
   
-  // Get page-specific titles based on current path
   const getPageTitle = () => {
     if (currentPath === "/legal") return currentLanguage === "en" ? "Legal - Terreta Hub" : "Legal - Terreta Hub";
     if (currentPath === "/arte") return currentLanguage === "en" ? "Art - Terreta Hub" : "Arte - Terreta Hub";
@@ -165,7 +157,7 @@ const DomainPage = () => {
           />
           
           {isOffline && (
-            <Alert variant="warning" className="mb-6 bg-amber-50 border-amber-200">
+            <Alert className="mb-6 bg-amber-50 border-amber-200">
               <Database className="h-4 w-4 text-amber-600" />
               <AlertTitle className="text-amber-800">
                 {currentLanguage === "en" ? "You're offline" : "Estás sin conexión"}

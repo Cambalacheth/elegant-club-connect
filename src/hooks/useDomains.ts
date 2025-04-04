@@ -1,177 +1,63 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { UseDomainProps, Domain } from '@/types/domain';
+import { useDomainFetcher } from './useDomainFetcher';
 
-export interface Domain {
-  id: string;
-  name: string;
-  path: string;
-  description: string;
-  status: "available" | "reserved" | "used";
-  owner?: string;
-  externalUrl?: string;
-  currentLanguage?: string;
-}
-
-interface UseDomainProps {
-  randomize?: boolean;
-  pageSize?: number;
-  prioritizePaths?: string[];
-}
+export type { Domain } from '@/types/domain';
 
 export const useDomains = ({ 
   randomize = false, 
   pageSize = 12,
   prioritizePaths = [] 
 }: UseDomainProps = {}) => {
-  const [domains, setDomains] = useState<Domain[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [retryCount, setRetryCount] = useState(0);
-  const [isOffline, setIsOffline] = useState(false);
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 seconds delay between retries
 
+  // Use the domain fetcher hook
+  const {
+    domains,
+    loading,
+    error,
+    totalCount,
+    isOffline,
+    retryFetch
+  } = useDomainFetcher({
+    randomize,
+    pageSize,
+    prioritizePaths,
+    currentPage
+  });
+
+  // Retry logic
   useEffect(() => {
-    let isMounted = true;
-    const maxRetries = 3;
-    const retryDelay = 2000; // 2 seconds delay between retries
-    
-    const fetchDomains = async () => {
-      try {
-        setLoading(true);
-        
-        // Check if we're offline
-        if (!navigator.onLine) {
-          setIsOffline(true);
-          throw new Error("You are offline");
-        }
-        
-        // Use more reliable count query approach
-        const { count, error: countError } = await supabase
-          .from('domains')
-          .select('*', { count: 'exact', head: true });
-          
-        if (countError && isMounted) {
-          console.error('Error counting domains:', countError);
-          // Continue anyway, we can still try to load domains
-        }
-        
-        if (count !== null && isMounted) {
-          setTotalCount(count);
-        }
-        
-        // Query with pagination
-        let query = supabase
-          .from('domains')
-          .select('*');
-          
-        // Add ordering - random if specified, otherwise by name
-        if (randomize) {
-          query = query.order('id', { ascending: false });
-        } else {
-          query = query.order('name');
-        }
-        
-        // Add pagination
-        const from = (currentPage - 1) * pageSize;
-        const to = from + pageSize - 1;
-        query = query.range(from, to);
-        
-        const { data, error: fetchError } = await query;
-        
-        if (fetchError) throw fetchError;
-        
-        // If no error and we're still mounted, update state
-        if (isMounted) {
-          if (!data || data.length === 0) {
-            console.log("No domains found or empty response");
-            // Set fallback domains if no data is returned
-            setDomains(getFallbackDomains(prioritizePaths));
-          } else {
-            console.log("Domains loaded:", data.length, data);
-            // Format the domains
-            let formattedDomains: Domain[] = (data || []).map(domain => ({
-              id: domain.id,
-              name: domain.name,
-              path: domain.path,
-              description: domain.description || '',
-              status: domain.status as "available" | "reserved" | "used",
-              owner: domain.owner,
-              externalUrl: domain.external_url
-            }));
-            
-            // Prioritize specific paths if needed
-            if (prioritizePaths.length > 0) {
-              formattedDomains = [
-                ...formattedDomains.filter(d => prioritizePaths.includes(d.path)),
-                ...formattedDomains.filter(d => !prioritizePaths.includes(d.path))
-              ];
-            }
-            
-            setDomains(formattedDomains);
-            setError(null);
-            setRetryCount(0); // Reset retry count on success
-            setIsOffline(false);
-          }
-        }
-      } catch (err: any) {
-        console.error('Error fetching domains:', err);
-        
-        if (isMounted) {
-          if (retryCount < maxRetries) {
-            // Retry after delay
-            setRetryCount(prevCount => prevCount + 1);
-            setTimeout(() => {
-              if (isMounted) fetchDomains();
-            }, retryDelay);
-          } else {
-            // After max retries, set error and use fallback data
-            setError('Failed to load domains');
-            console.error("Error loading domains:", err.message || "Unknown error");
-            
-            // Only show toast in production - prevents dev mode flood of messages
-            if (process.env.NODE_ENV !== 'development') {
-              toast({
-                title: "Problema de conexión",
-                description: "Usando datos en caché. La información puede no estar actualizada.",
-                variant: "destructive"
-              });
-            }
-            
-            // Use fallback domains when there's an error
-            setDomains(getFallbackDomains(prioritizePaths));
-          }
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
+    if (error && retryCount < maxRetries) {
+      const timer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        retryFetch();
+      }, retryDelay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [error, retryCount, retryFetch]);
 
-    fetchDomains();
-    
-    // Add network status listeners
+  // Network status listeners
+  useEffect(() => {
     const handleOnline = () => {
-      setIsOffline(false);
-      if (isMounted) fetchDomains();
-    };
-    
-    const handleOffline = () => {
-      setIsOffline(true);
+      if (isOffline) {
+        retryFetch();
+      }
     };
     
     window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener('offline', () => {});
     
     return () => {
-      isMounted = false;
       window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('offline', () => {});
     };
-  }, [randomize, pageSize, currentPage, prioritizePaths, retryCount]);
+  }, [isOffline, retryFetch]);
 
   const totalPages = useMemo(() => Math.ceil(totalCount / pageSize) || 1, [totalCount, pageSize]);
 
@@ -185,76 +71,4 @@ export const useDomains = ({
     totalCount,
     isOffline
   };
-};
-
-// Provide fallback domains when the API fails
-const getFallbackDomains = (prioritizePaths: string[] = []): Domain[] => {
-  const fallbackDomains: Domain[] = [
-    {
-      id: "legal-domain",
-      name: "Legal",
-      path: "/legal",
-      description: "Servicios legales y consultoría jurídica",
-      status: "available"
-    },
-    {
-      id: "arte-domain",
-      name: "Arte",
-      path: "/arte",
-      description: "Proyectos de arte",
-      status: "available"
-    },
-    {
-      id: "negocios-domain",
-      name: "Negocios",
-      path: "/negocios",
-      description: "Recursos empresariales",
-      status: "available"
-    },
-    {
-      id: "salud-domain",
-      name: "Salud",
-      path: "/salud",
-      description: "Recursos de salud",
-      status: "available"
-    },
-    {
-      id: "comunidad-domain",
-      name: "Comunidad",
-      path: "/comunidad",
-      description: "El espacio central para todo lo relacionado con nuestra comunidad",
-      status: "available"
-    },
-    {
-      id: "tech-domain",
-      name: "Tech",
-      path: "/tech",
-      description: "Información y recursos sobre ciencia y tecnología",
-      status: "available"
-    },
-    {
-      id: "dominios-domain",
-      name: "Dominios",
-      path: "/dominio",
-      description: "Administración de dominios",
-      status: "used"
-    },
-    {
-      id: "eventos-domain",
-      name: "Eventos",
-      path: "/events",
-      description: "Calendario de eventos de la comunidad",
-      status: "used"
-    }
-  ];
-  
-  // Prioritize domains if needed
-  if (prioritizePaths.length > 0) {
-    return [
-      ...fallbackDomains.filter(d => prioritizePaths.includes(d.path)),
-      ...fallbackDomains.filter(d => !prioritizePaths.includes(d.path))
-    ];
-  }
-  
-  return fallbackDomains;
 };
