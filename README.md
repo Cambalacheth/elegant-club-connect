@@ -1,69 +1,155 @@
-# Welcome to your Lovable project
 
-## Project info
+# Terreta Hub - Plataforma Comunitaria
 
-**URL**: https://lovable.dev/projects/dca3e340-68ff-4809-9770-a7e123984278
+## Descripción General
+Terreta Hub es una plataforma comunitaria bilingüe (español e inglés) diseñada para conectar personas interesadas en tecnología, cultura, emprendimiento y más. La plataforma permite a los usuarios interactuar, compartir conocimiento, publicar proyectos y participar en eventos, todo dentro de un ecosistema que fomenta la participación mediante un sistema de gamificación basado en niveles y experiencia.
 
-## How can I edit this code?
+## Funcionalidades Principales
 
-There are several ways of editing your application.
+### Sistema de Usuarios
+- **Autenticación completa**: Registro e inicio de sesión con email/contraseña
+- **Perfiles personalizables**: Los usuarios pueden añadir avatar, biografía, enlaces a redes sociales, categorías de interés
+- **Sistema de experiencia**: Los usuarios ganan XP mediante diversas actividades y suben de nivel
+- **Niveles de usuarios**: 13 niveles desde Novato hasta Leyenda, con el nivel Admin para administradores
 
-**Use Lovable**
+### Módulo de Contenido
+- **Artículos**: Publicación y consumo de artículos sobre diversos temas
+- **Vídeos**: Integración con plataformas externas para compartir contenido audiovisual
+- **Guías**: Tutoriales paso a paso para aprender nuevas habilidades
+- **Recursos**: Enlaces a herramientas, plantillas y otros recursos útiles
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/dca3e340-68ff-4809-9770-a7e123984278) and start prompting.
+### Foro de Discusión
+- **Debates por categorías**: General, Legal, Tecnología, Finanzas, Salud, Audiovisual, Eventos
+- **Sistema de votos**: Valoración positiva y negativa de debates y comentarios
+- **Comentarios anidados**: Posibilidad de responder a debates y comentarios específicos
 
-Changes made via Lovable will be committed automatically to this repo.
+### Proyectos
+- **Showcase de proyectos**: Los usuarios pueden publicar sus proyectos con imágenes y descripciones
+- **Categorización**: Los proyectos pueden categorizarse por tipo y tecnologías
+- **Visibilidad comunitaria**: Exploración y descubrimiento de proyectos de otros usuarios
 
-**Use your preferred IDE**
+### Eventos
+- **Calendario de eventos**: Listado de próximos eventos y eventos pasados
+- **Registro**: Posibilidad de registrarse para asistir a eventos
+- **Información detallada**: Fechas, ubicaciones, precios y enlaces externos
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Sistema de Dominios
+- **Espacios personalizados**: Los usuarios pueden reclamar dominios personalizados dentro de la plataforma
+- **Estados de dominios**: Disponible, Reservado, En uso
+- **Navegación intuitiva**: Búsqueda y exploración de dominios disponibles
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Panel de Administración
+- **Gestión de usuarios**: Ver, editar y gestionar usuarios
+- **Gestión de experiencia**: Otorgar XP, cambiar niveles de usuario
+- **Gestión de contenido**: Aprobar, editar o eliminar contenido
+- **Gestión de dominios**: Administrar los dominios del sistema
 
-Follow these steps:
+### Multilenguaje
+- **Soporte bilingüe**: Interfaz completamente disponible en español e inglés
+- **Cambio de idioma sencillo**: Posibilidad de cambiar entre idiomas en cualquier página
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## Tecnologías Utilizadas
+- **Frontend**: React, TypeScript, Tailwind CSS, shadcn/ui
+- **Backend**: Supabase (PostgreSQL, Autenticación, Almacenamiento)
+- **Despliegue**: Vercel
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Niveles y Privilegios de Usuario
 
-# Step 3: Install the necessary dependencies.
-npm i
+| Nivel | Nombre | XP Requerida | Privilegios |
+|-------|--------|--------------|-------------|
+| 1 | Novato | 0 | Acceso básico de lectura, edición de perfil |
+| 2 | Iniciado | 100 | Comentarios, votos en contenido |
+| 3 | Aprendiz | 300 | Acceso a más recursos comunitarios |
+| 4 | Aficionado | 600 | Creación de debates, mayor visibilidad |
+| 5 | Explorador | 1000 | Participación en eventos especiales |
+| 6 | Artesano | 1500 | Características adicionales de perfil |
+| 7 | Especialista | 2200 | Mayor reconocimiento en plataforma |
+| 8 | Experto | 3000 | Moderación básica de contenido |
+| 9 | Maestro | 4000 | Influencia en decisiones comunitarias |
+| 10 | Sabio | 5500 | Gestión de contenido, herramientas avanzadas |
+| 11 | Virtuoso | 7500 | Reconocimiento especial |
+| 12 | Leyenda | 10000 | Privilegios exclusivos, nivel máximo regular |
+| 13 | Admin | - | Control total de la plataforma |
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## Funciones por Página
 
-**Edit a file directly in GitHub**
+### Página de Inicio
+- Presentación de la plataforma
+- Secciones destacadas
+- Navegación a las principales áreas
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Página de Perfil
+- Visualización y edición de datos personales
+- Historial de participación
+- Nivel y progreso de experiencia
+- Proyectos publicados
 
-**Use GitHub Codespaces**
+### Página de Contenido
+- Filtrado por categorías y tipos
+- Visualización de artículos, videos, guías y recursos
+- Herramientas de búsqueda
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Página del Foro
+- Creación de debates
+- Filtrado por categorías
+- Participación mediante comentarios y votos
 
-## What technologies are used for this project?
+### Página de Eventos
+- Calendario de próximos eventos
+- Historial de eventos pasados
+- Registro a eventos
 
-This project is built with .
+### Página de Dominios
+- Exploración de dominios disponibles
+- Búsqueda de dominios específicos
+- Reclamación de dominios
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Página de Proyectos
+- Galería de proyectos comunitarios
+- Formulario de creación de proyectos
+- Visualización detallada de proyectos
 
-## How can I deploy this project?
+### Página de Administración
+- Gestión de usuarios
+- Gestión de experiencia
+- Gestión de feedback
+- Gestión de dominios
 
-Simply open [Lovable](https://lovable.dev/projects/dca3e340-68ff-4809-9770-a7e123984278) and click on Share -> Publish.
+## Instalación y Configuración
 
-## I want to use a custom domain - is that possible?
+### Requisitos Previos
+- Node.js 16+
+- npm o yarn
+- Cuenta en Supabase
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+### Pasos de Instalación
+1. Clonar el repositorio: `git clone <URL_DEL_REPOSITORIO>`
+2. Instalar dependencias: `npm install`
+3. Configurar variables de entorno (ver archivo .env.example)
+4. Iniciar servidor de desarrollo: `npm run dev`
+
+## Expectativas Futuras
+
+### Corto Plazo
+- Mejora del sistema de notificaciones
+- Implementación de chat en tiempo real
+- Optimización del rendimiento en dispositivos móviles
+
+### Medio Plazo
+- Integración con más proveedores de autenticación
+- Implementación de sistema de mensajería privada
+- Creación de API pública para desarrolladores
+
+### Largo Plazo
+- Implementación de marketplace interno
+- Sistema de monetización para creadores de contenido
+- Expansión a más idiomas y regiones
+
+## Contribución
+Las contribuciones son bienvenidas. Por favor, lee el archivo CONTRIBUTING.md para conocer el proceso de envío de pull requests.
+
+## Licencia
+[Especificar licencia]
+
+## Contacto
+[Información de contacto del proyecto]
