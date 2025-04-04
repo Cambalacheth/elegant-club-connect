@@ -21,10 +21,6 @@ const DomainPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState("es");
   const [searchQuery, setSearchQuery] = useState("");
   const [hoveredDomain, setHoveredDomain] = useState<string | null>(null);
-  const [showVerticals, setShowVerticals] = useState(true);
-  
-  // Define the vertical paths to highlight
-  const verticalPaths = ['/legal', '/arte', '/negocios', '/salud', '/comunidad', '/tech'];
   
   // Use the enhanced useDomains hook with randomized order and pagination
   const { 
@@ -33,12 +29,7 @@ const DomainPage = () => {
     currentPage, 
     setCurrentPage, 
     totalPages 
-  } = useDomains({ randomize: true, pageSize: 12, prioritizePaths: verticalPaths });
-  
-  // Get the vertical domains
-  const verticalDomains = domains.filter(domain => verticalPaths.includes(domain.path));
-  // Get the rest of the domains
-  const regularDomains = domains.filter(domain => !verticalPaths.includes(domain.path));
+  } = useDomains({ randomize: true, pageSize: 12 });
   
   const title = currentLanguage === "en" ? "Domains - Terreta Hub" : "Dominios - Terreta Hub";
   const description = currentLanguage === "en" 
@@ -50,7 +41,6 @@ const DomainPage = () => {
     ? "At Terreta Hub, we've reimagined how community members can establish their presence." 
     : "En Terreta Hub, hemos reimaginado cómo los miembros de la comunidad pueden establecer su presencia.";
   
-  const verticalsTitle = currentLanguage === "en" ? "Vertical Domains" : "Dominios Verticales";
   const domainsTitle = currentLanguage === "en" ? "Available Domains" : "Dominios Disponibles";
   const searchPlaceholder = currentLanguage === "en" ? "Search domains..." : "Buscar dominios...";
   
@@ -60,7 +50,7 @@ const DomainPage = () => {
     used: currentLanguage === "en" ? "In Use" : "En Uso",
   };
 
-  const filteredDomains = regularDomains.filter(domain => 
+  const filteredDomains = domains.filter(domain => 
     domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     (domain.description && domain.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -91,7 +81,7 @@ const DomainPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Domain card component to reuse for both vertical and regular domains
+  // Domain card component to reuse for displaying domains
   const DomainCard = ({ domain }: { domain: any }) => (
     <div 
       key={domain.id}
@@ -180,35 +170,6 @@ const DomainPage = () => {
               </p>
             </CardContent>
           </Card>
-          
-          {/* Vertical Domains Section */}
-          {verticalDomains.length > 0 && (
-            <>
-              <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
-                <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4 md:mb-0">
-                  {verticalsTitle}
-                </h2>
-                
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setShowVerticals(!showVerticals)}
-                  className="self-start md:self-auto"
-                >
-                  {showVerticals 
-                    ? (currentLanguage === "en" ? "Hide Verticals" : "Ocultar Verticales") 
-                    : (currentLanguage === "en" ? "Show Verticals" : "Mostrar Verticales")}
-                </Button>
-              </div>
-              
-              {showVerticals && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
-                  {verticalDomains.map((domain) => (
-                    <DomainCard key={domain.id} domain={domain} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
           
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <h2 className="font-serif text-2xl font-semibold text-club-brown mb-4 md:mb-0">

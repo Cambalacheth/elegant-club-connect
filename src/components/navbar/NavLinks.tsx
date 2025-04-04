@@ -33,7 +33,7 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
     VERTICAL_PATHS.includes(domain.path)
   );
   
-  // Define fixed links
+  // Define fixed links - IMPORTANT: Order as specified by the user
   const fixedLinks = [
     {
       name: currentLanguage === "en" ? "Domain" : "Dominio",
@@ -170,10 +170,7 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
 
   return (
     <>
-      {/* Verticals dropdown (desktop) or header (mobile) */}
-      {isMobile ? <MobileVerticalLinks /> : <VerticalsDropdown />}
-      
-      {/* Fixed links */}
+      {/* Fixed links first (in the exact order requested) */}
       {fixedLinks.map((link, index) => (
         <Link 
           key={`fixed-link-${index}`}
@@ -185,6 +182,9 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
           {link.name}
         </Link>
       ))}
+      
+      {/* Verticals dropdown (desktop) or header (mobile) */}
+      {isMobile ? <MobileVerticalLinks /> : <VerticalsDropdown />}
       
       {/* Rotating domain link */}
       {rotatingDomain && (
