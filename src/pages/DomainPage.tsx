@@ -4,21 +4,14 @@ import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
 import { useDomains } from "@/hooks/useDomains";
 import { useDomainHelpers } from "@/hooks/useDomainHelpers";
-import DomainConcept from "@/components/domains/DomainConcept";
 import { useParams } from "react-router-dom";
 import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
-import DomainPageHeader from "@/components/domains/DomainPageHeader";
-import DomainStatusAlerts from "@/components/domains/DomainStatusAlerts";
-import DomainSectionHeader from "@/components/domains/DomainSectionHeader";
-import DomainStatusTabs from "@/components/domains/DomainStatusTabs";
+import DomainPageContent from "@/components/domains/DomainPageContent";
+import LanguageSwitcher from "@/components/domains/LanguageSwitcher";
 import { 
   getPageTitle, 
   getPageDescription, 
-  getVerticalName as getVerticalNameUtil, 
-  getConceptTitle, 
-  getConceptDesc,
-  getDomainsTitle,
-  getSearchPlaceholder
+  getVerticalName as getVerticalNameUtil
 } from "@/utils/domainPageUtils";
 
 const DomainPage = () => {
@@ -51,6 +44,7 @@ const DomainPage = () => {
     handleDomainAction
   } = useDomainHelpers(currentLanguage);
   
+  // Group domains by status
   const domainsByStatus = useMemo(() => {
     const available = domains.filter(d => d.status === 'available');
     const used = domains.filter(d => d.status === 'used');
@@ -59,6 +53,7 @@ const DomainPage = () => {
     return { all: domains, available, used, reserved };
   }, [domains]);
   
+  // Filter domains based on search query and active tab
   const filteredDomains = useMemo(() => {
     const domainsForTab = domainsByStatus[activeTab as keyof typeof domainsByStatus] || domains;
     
@@ -72,11 +67,6 @@ const DomainPage = () => {
   
   const title = getPageTitle(currentPath, currentLanguage);
   const description = getPageDescription(isVerticalPage, currentLanguage, getVerticalName);
-    
-  const conceptTitle = getConceptTitle(isVerticalPage, currentLanguage, getVerticalName);
-  const conceptDesc = getConceptDesc(isVerticalPage, currentLanguage, getVerticalName);
-  const domainsTitle = getDomainsTitle(isVerticalPage, currentLanguage, getVerticalName);
-  const searchPlaceholder = getSearchPlaceholder(currentLanguage);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -93,50 +83,32 @@ const DomainPage = () => {
       <Navbar currentLanguage={currentLanguage} />
       
       <div className="container mx-auto px-4 py-24">
-        <div className="max-w-5xl mx-auto">
-          <DomainPageHeader 
-            conceptTitle={conceptTitle}
-            currentLanguage={currentLanguage} 
-          />
-          
-          <DomainConcept 
-            conceptTitle={conceptTitle}
-            conceptDesc={conceptDesc}
-            currentLanguage={currentLanguage}
-          />
-          
-          <DomainStatusAlerts 
-            error={error}
-            isOffline={isOffline}
-            currentLanguage={currentLanguage}
-          />
-          
-          <DomainSectionHeader
-            domainsTitle={domainsTitle}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            searchPlaceholder={searchPlaceholder}
-          />
-          
-          <DomainStatusTabs
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            domainsByStatus={domainsByStatus}
-            filteredDomains={filteredDomains}
-            loading={loading}
-            error={error}
-            isOffline={isOffline}
-            handleDomainAction={handleDomainAction}
-            getStatusColor={getStatusColor}
-            currentLanguage={currentLanguage}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            handlePageChange={handlePageChange}
-          />
-        </div>
+        <DomainPageContent
+          domains={domains}
+          loading={loading}
+          error={error}
+          isOffline={isOffline}
+          currentLanguage={currentLanguage}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          domainsByStatus={domainsByStatus}
+          filteredDomains={filteredDomains}
+          handleDomainAction={handleDomainAction}
+          getStatusColor={getStatusColor}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          handlePageChange={handlePageChange}
+          isVerticalPage={isVerticalPage}
+          getVerticalName={getVerticalName}
+        />
       </div>
+      
+      <LanguageSwitcher 
+        currentLanguage={currentLanguage}
+        setCurrentLanguage={setCurrentLanguage}
+      />
     </>
   );
 };
