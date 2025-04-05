@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { 
   Briefcase, 
   Stethoscope, 
@@ -15,12 +16,14 @@ interface VerticalProps {
   description: string;
   delay: number;
   isVisible: boolean;
+  path: string;
 }
 
-const VerticalCard = ({ icon, title, description, delay, isVisible }: VerticalProps) => {
+const VerticalCard = ({ icon, title, description, delay, isVisible, path }: VerticalProps) => {
   return (
-    <div 
-      className={`bg-club-beige p-6 rounded-xl shadow-sm border border-club-beige/50 transition-all duration-1000 transform ${
+    <Link 
+      to={path}
+      className={`bg-club-beige p-6 rounded-xl shadow-sm border border-club-beige/50 transition-all duration-1000 transform hover:shadow-md hover:scale-105 cursor-pointer ${
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
       }`}
       style={{ transitionDelay: `${delay}ms` }}
@@ -30,7 +33,7 @@ const VerticalCard = ({ icon, title, description, delay, isVisible }: VerticalPr
       </div>
       <h3 className="text-xl font-serif font-semibold text-club-black mb-3">{title}</h3>
       <p className="text-club-brown leading-relaxed">{description}</p>
-    </div>
+    </Link>
   );
 };
 
@@ -67,36 +70,42 @@ const VerticalsSection = () => {
       title: "Finanzas",
       description: "Conectamos a los principales inversores y líderes financieros para intercambiar perspectivas sobre mercados globales y oportunidades de inversión.",
       delay: 100,
+      path: "/negocios"
     },
     {
       icon: <Stethoscope size={28} />,
       title: "Salud",
       description: "Reunimos a profesionales médicos, investigadores e innovadores para discutir avances científicos y el futuro de la medicina.",
       delay: 200,
+      path: "/salud"
     },
     {
       icon: <Scale size={28} />,
       title: "Derecho",
       description: "Expertos legales comparten conocimientos sobre tendencias jurídicas, desafíos regulatorios e implicaciones legales de nuevas tecnologías.",
       delay: 300,
+      path: "/legal"
     },
     {
       icon: <PaintBucket size={28} />,
       title: "Arte",
       description: "Un espacio para artistas, coleccionistas y entusiastas que valoran la expresión creativa y su impacto en la sociedad contemporánea.",
       delay: 400,
+      path: "/arte"
     },
     {
       icon: <Users size={28} />,
       title: "Comunidad",
       description: "Fomentamos conexiones significativas entre líderes de opinión comprometidos con el desarrollo social y comunitario.",
       delay: 500,
+      path: "/comunidad"
     },
     {
       icon: <Cpu size={28} />,
       title: "Tecnología",
       description: "Innovadores y visionarios tecnológicos comparten perspectivas sobre transformación digital y tecnologías emergentes.",
       delay: 600,
+      path: "/tech"
     },
   ];
 
@@ -145,6 +154,7 @@ const VerticalsSection = () => {
               description={vertical.description}
               delay={vertical.delay}
               isVisible={isVisible}
+              path={vertical.path}
             />
           ))}
         </div>

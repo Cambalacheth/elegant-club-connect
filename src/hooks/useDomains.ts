@@ -12,11 +12,12 @@ export const useDomains = ({
 }: UseDomainProps = {}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [retryCount, setRetryCount] = useState(0);
-  const maxRetries = 3;
-  const retryDelay = 2000; // 2 seconds delay between retries
+  const maxRetries = 2; // Reduced from 3
+  const retryDelay = 5000; // Increased to 5 seconds
   
   // Prevent unnecessary retries
   const isRetrying = useRef(false);
+  const lastRetryTime = useRef(0);
 
   // Use the domain fetcher hook
   const {
@@ -33,33 +34,45 @@ export const useDomains = ({
     currentPage
   });
 
-  // Controlled retry logic with limits
+  // Controlled retry logic with limits and time-based throttling
   useEffect(() => {
     if (error && retryCount < maxRetries && !isRetrying.current) {
-      isRetrying.current = true;
-      
-      const timer = setTimeout(() => {
-        setRetryCount(prev => prev + 1);
-        retryFetch().finally(() => {
+      const now = Date.now();
+      // Only retry if it's been at least retryDelay since the last retry
+      if (now - lastRetryTime.current >= retryDelay) {
+        isRetrying.current = true;
+        lastRetryTime.current = now;
+        
+        const timer = setTimeout(() => {
+          setRetryCount(prev => prev + 1);
+          retryFetch().finally(() => {
+            isRetrying.current = false;
+          });
+        }, retryDelay);
+        
+        return () => {
+          clearTimeout(timer);
           isRetrying.current = false;
-        });
-      }, retryDelay);
-      
-      return () => {
-        clearTimeout(timer);
-        isRetrying.current = false;
-      };
+        };
+      }
     }
-  }, [error, retryCount, retryFetch]);
+  }, [error, retryCount, retryDelay, maxRetries, retryFetch]);
 
   // Network status listeners - only retry once when coming back online
   useEffect(() => {
     const handleOnline = () => {
       if (isOffline && !isRetrying.current) {
         isRetrying.current = true;
-        retryFetch().finally(() => {
+        const now = Date.now();
+        // Only retry if it's been at least retryDelay since the last retry
+        if (now - lastRetryTime.current >= retryDelay) {
+          lastRetryTime.current = now;
+          retryFetch().finally(() => {
+            isRetrying.current = false;
+          });
+        } else {
           isRetrying.current = false;
-        });
+        }
       }
     };
     
@@ -68,7 +81,7 @@ export const useDomains = ({
     return () => {
       window.removeEventListener('online', handleOnline);
     };
-  }, [isOffline, retryFetch]);
+  }, [isOffline, retryFetch, retryDelay]);
 
   const totalPages = useMemo(() => Math.ceil(totalCount / pageSize) || 1, [totalCount, pageSize]);
 

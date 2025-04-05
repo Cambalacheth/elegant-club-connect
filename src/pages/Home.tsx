@@ -115,7 +115,7 @@ const Home = () => {
               <Link 
                 key={index} 
                 to={vertical.path}
-                className="bg-club-beige rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col"
+                className="bg-club-beige rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 transform hover:scale-105 flex flex-col cursor-pointer"
               >
                 <div className="w-14 h-14 bg-club-terracotta/10 rounded-full flex items-center justify-center mb-4">
                   {vertical.icon}

@@ -35,7 +35,9 @@ export const useDomainFetcher = ({
   
   // Use these refs to prevent infinite loops
   const isFetching = useRef(false);
+  const lastFetchedPage = useRef(-1);
   const hasFetchedSuccessfully = useRef(false);
+  const fetchCount = useRef(0);
 
   // Set up network status listener for the component lifecycle
   useEffect(() => {
@@ -52,11 +54,21 @@ export const useDomainFetcher = ({
   }, []);
 
   const fetchDomains = useCallback(async () => {
-    // Prevent concurrent fetches
-    if (isFetching.current) return;
+    // Prevent concurrent fetches and repeated fetches of the same page
+    if (isFetching.current || lastFetchedPage.current === currentPage) {
+      return;
+    }
+    
+    // Limit fetch attempts to 3 per page to prevent infinite loops
+    if (fetchCount.current >= 3) {
+      console.log("Maximum fetch attempts reached, using fallback data");
+      setLoading(false);
+      return;
+    }
     
     try {
       isFetching.current = true;
+      fetchCount.current += 1;
       setLoading(true);
       
       // Check if we're offline
@@ -66,6 +78,9 @@ export const useDomainFetcher = ({
         const fallbackDomains = getFallbackDomains(prioritizePaths);
         setDomains(fallbackDomains);
         setTotalCount(fallbackDomains.length);
+        setLoading(false);
+        isFetching.current = false;
+        lastFetchedPage.current = currentPage;
         return;
       }
       
@@ -137,17 +152,23 @@ export const useDomainFetcher = ({
     } finally {
       setLoading(false);
       isFetching.current = false;
+      lastFetchedPage.current = currentPage;
     }
   }, [currentPage, pageSize, randomize, prioritizePaths]);
 
   // Initial fetch and when dependencies change
   useEffect(() => {
-    fetchDomains();
-  }, [fetchDomains]);
+    // Prevent unnecessary fetches when dependencies haven't changed
+    if (lastFetchedPage.current !== currentPage) {
+      // Reset fetch count for new page
+      fetchCount.current = 0;
+      fetchDomains();
+    }
+  }, [fetchDomains, currentPage]);
 
   // Auto-retry on network status change but only if we haven't fetched successfully yet
   useEffect(() => {
-    if (!isOffline && error && !hasFetchedSuccessfully.current) {
+    if (!isOffline && error && !hasFetchedSuccessfully.current && fetchCount.current < 3) {
       const timer = setTimeout(() => {
         fetchDomains();
       }, 5000); // 5 second delay before retry
@@ -156,12 +177,19 @@ export const useDomainFetcher = ({
     }
   }, [isOffline, error, fetchDomains]);
 
+  const retryFetch = useCallback(async () => {
+    // Reset fetch count when manually retrying
+    fetchCount.current = 0;
+    lastFetchedPage.current = -1;  // Force a refetch
+    await fetchDomains();
+  }, [fetchDomains]);
+
   return {
     domains,
     loading,
     error,
     totalCount,
     isOffline,
-    retryFetch: fetchDomains
+    retryFetch
   };
 };
