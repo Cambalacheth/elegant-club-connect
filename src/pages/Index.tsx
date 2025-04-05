@@ -1,12 +1,31 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import HeroSection from "../components/HeroSection";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   useEffect(() => {
+    // Check if user just logged in (presence of success message in URL)
+    const hasSuccessParam = window.location.href.includes('success=true');
+    
+    // Check current auth state
+    const checkAuthState = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session && hasSuccessParam) {
+        setShowSuccessMessage(true);
+        // Hide the message after 3 seconds
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+        }, 3000);
+      }
+    };
+    
+    checkAuthState();
+    
     // On initial render, check if we're at the root path
     if (window.location.pathname === '/') {
       // Smooth scroll functionality for anchor links
@@ -40,6 +59,14 @@ const Index = () => {
   return (
     <main className="relative min-h-screen overflow-x-hidden">
       <HeroSection />
+      
+      {/* Login success message */}
+      {showSuccessMessage && (
+        <div className="fixed bottom-5 right-5 bg-white rounded-lg shadow-md p-4 z-50 border-l-4 border-green-500 max-w-xs">
+          <h3 className="font-medium text-green-800">Inicio de sesión exitoso</h3>
+          <p className="text-sm text-gray-600">Bienvenido a Terreta Hub</p>
+        </div>
+      )}
     </main>
   );
 };
