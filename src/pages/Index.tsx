@@ -20,6 +20,9 @@ const Index = () => {
         // Hide the message after 3 seconds
         setTimeout(() => {
           setShowSuccessMessage(false);
+          // Remove the success parameter from the URL
+          const newUrl = window.location.href.replace('?success=true', '').replace('&success=true', '');
+          window.history.replaceState({}, document.title, newUrl);
         }, 3000);
       }
     };
