@@ -4,7 +4,6 @@ import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection";
 import VerticalsSection from "../components/VerticalsSection";
-import HeroSection from "../components/home/HeroSection";
 import CtaSection from "../components/home/CtaSection";
 
 const Home = () => {
@@ -24,7 +23,6 @@ const Home = () => {
   return (
     <main className="relative min-h-screen overflow-x-hidden">
       <Navbar currentLanguage={language} />
-      <HeroSection language={language} />
       <AboutSection />
       <VerticalsSection />
       <CtaSection language={language} />
