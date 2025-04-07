@@ -24,7 +24,7 @@ const HeroSection = ({ language = "es" }: { language?: string }) => {
           alt="Terreta Hub Background" 
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/30"></div>
+        {/* Removed the black overlay div that was here */}
       </div>
       
       {/* Content */}
