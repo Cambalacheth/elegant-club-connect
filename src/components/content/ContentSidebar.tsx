@@ -1,12 +1,10 @@
 
-import React from "react";
-import { UserRole, canCreateContent, canManageContent } from "@/types/user";
+import React, { useState } from "react";
+import { UserRole, canCreateContent } from "@/types/user";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ContentForm } from "./ContentForm";
-import { useState } from "react";
 import { useContent } from "@/hooks/useContent";
 
 interface ContentSidebarProps {
@@ -52,33 +50,23 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
     <aside className="space-y-6">
       {canCreateContent(userRole) && (
         <div className="mb-6">
-          {canManageContent(userRole) ? (
-            <Link to="/admin">
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
               <Button 
                 className="w-full bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90"
               >
-                <Settings className="mr-2 h-4 w-4" /> Gestionar contenido
+                <Plus className="mr-2 h-4 w-4" /> Nuevo contenido
               </Button>
-            </Link>
-          ) : (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  className="w-full bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90"
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Nuevo contenido
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border-club-beige shadow-xl">
-                <ContentForm
-                  contentType="article"
-                  onSubmit={handleCreateContent}
-                  isSubmitting={isSubmitting}
-                  userId=""
-                />
-              </DialogContent>
-            </Dialog>
-          )}
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border-club-beige shadow-xl">
+              <ContentForm
+                contentType="article"
+                onSubmit={handleCreateContent}
+                isSubmitting={isSubmitting}
+                userId=""
+              />
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 
