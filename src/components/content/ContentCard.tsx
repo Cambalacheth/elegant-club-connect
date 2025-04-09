@@ -74,7 +74,7 @@ export const ContentCard = ({ item, currentLanguage = "es" }: ContentCardProps) 
             {author_username || "Usuario"}
           </span>
           <Link 
-            to={`/content/${type}/${id}`} 
+            to={`/recursos/${type}/${id}`} 
             className="text-sm font-medium text-club-orange hover:text-club-terracotta flex items-center gap-1"
             aria-label={`${type === "video" ? watchText : readMoreText} ${title}`}
           >

@@ -55,8 +55,15 @@ function App() {
               <Route path="/home" element={<Home />} />
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
-              <Route path="/content" element={<Content />} />
-              <Route path="/content/:type/:id" element={<ContentDetail />} />
+              
+              {/* Redirect from /content to /recursos */}
+              <Route path="/content" element={<Navigate replace to="/recursos" />} />
+              <Route path="/content/:type/:id" element={<Navigate replace to="/recursos/:type/:id" />} />
+              
+              {/* New routes for /recursos */}
+              <Route path="/recursos" element={<Content />} />
+              <Route path="/recursos/:type/:id" element={<ContentDetail />} />
+              
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetail />} />
               <Route path="/auth" element={<Auth />} />

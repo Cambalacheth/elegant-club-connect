@@ -133,7 +133,7 @@ const ContentDetail = () => {
         {content.created_at && <meta property="article:published_time" content={content.created_at} />}
         {content.updated_at && <meta property="article:modified_time" content={content.updated_at} />}
         {content.category && <meta property="article:section" content={content.category} />}
-        <link rel="canonical" href={`${window.location.origin}/content/${content.type}/${content.id}`} />
+        <link rel="canonical" href={`${window.location.origin}/recursos/${content.type}/${content.id}`} />
       </Helmet>
       
       <Navbar />
