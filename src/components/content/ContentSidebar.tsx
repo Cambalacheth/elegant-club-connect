@@ -1,9 +1,13 @@
 
 import React from "react";
-import { UserRole, canCreateContent } from "@/types/user";
+import { UserRole, canCreateContent, canManageContent } from "@/types/user";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ContentForm } from "./ContentForm";
+import { useState } from "react";
+import { useContent } from "@/hooks/useContent";
 
 interface ContentSidebarProps {
   selectedCategory: string | "all";
@@ -16,6 +20,23 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
   onCategoryChange,
   userRole,
 }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createContent, fetchAllContent } = useContent("article");
+
+  const handleCreateContent = async (data: any) => {
+    try {
+      setIsSubmitting(true);
+      await createContent(data);
+      fetchAllContent();
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Error creating content:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const categories = [
     { id: "all", name: "Todas las categorías" },
     { id: "General", name: "General" },
@@ -31,13 +52,33 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
     <aside className="space-y-6">
       {canCreateContent(userRole) && (
         <div className="mb-6">
-          <Link to="/admin">
-            <Button 
-              className="w-full bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90"
-            >
-              <Plus className="mr-2 h-4 w-4" /> Gestionar contenido
-            </Button>
-          </Link>
+          {canManageContent(userRole) ? (
+            <Link to="/admin">
+              <Button 
+                className="w-full bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90"
+              >
+                <Settings className="mr-2 h-4 w-4" /> Gestionar contenido
+              </Button>
+            </Link>
+          ) : (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  className="w-full bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Nuevo contenido
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border-club-beige shadow-xl">
+                <ContentForm
+                  contentType="article"
+                  onSubmit={handleCreateContent}
+                  isSubmitting={isSubmitting}
+                  userId=""
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       )}
 
