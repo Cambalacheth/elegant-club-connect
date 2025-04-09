@@ -1,6 +1,6 @@
 
 import React from "react";
-import { UserRole } from "@/types/user";
+import { UserRole, canCreateContent } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -29,7 +29,7 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
 
   return (
     <aside className="space-y-6">
-      {userRole === "admin" && (
+      {canCreateContent(userRole) && (
         <div className="mb-6">
           <Link to="/admin">
             <Button 

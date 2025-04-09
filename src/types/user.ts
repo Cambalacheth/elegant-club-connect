@@ -15,10 +15,10 @@ export interface User {
 
 export const canCreateContent = (level: UserLevel | UserRole): boolean => {
   if (typeof level === 'string') {
-    // Convert UserRole to UserLevel
+    // Convert UserRole to UserLevel for backward compatibility
     return ['verified', 'moderator', 'admin'].includes(level);
   }
-  return level >= 2; // Level 2+ can comment and vote
+  return level >= 5; // Changed from 2 to 5 - Level 5+ can create content
 };
 
 export const canCreateForum = (level: UserLevel | UserRole): boolean => {

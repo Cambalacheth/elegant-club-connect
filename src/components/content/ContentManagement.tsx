@@ -8,7 +8,7 @@ import { ContentTable } from "./ContentTable";
 import { ContentItem, ContentType } from "@/types/content";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useContent } from "@/hooks/useContent";
-import { UserRole, canManageContent, canAdminContent } from "@/types/user";
+import { UserRole, canManageContent, canCreateContent } from "@/types/user";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface ContentManagementProps {
@@ -71,13 +71,13 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
     }
   };
 
-  // Update this condition to use canAdminContent for consistency
-  if (!canAdminContent(userRole)) {
+  // Update to check if user can create content
+  if (!canCreateContent(userRole)) {
     return (
       <Alert variant="destructive" className="bg-red-50 border border-red-200 text-red-800">
         <AlertTitle className="text-lg font-medium">Acceso restringido</AlertTitle>
         <AlertDescription>
-          Solo los administradores pueden gestionar el contenido.
+          Necesitas ser nivel 5 o superior para crear contenido.
         </AlertDescription>
       </Alert>
     );
