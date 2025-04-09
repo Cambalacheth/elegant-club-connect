@@ -6,6 +6,7 @@ import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ContentForm } from "./ContentForm";
 import { useContent } from "@/hooks/useContent";
+import { useForumUser } from "@/hooks/useForumUser";
 
 interface ContentSidebarProps {
   selectedCategory: string | "all";
@@ -21,6 +22,7 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createContent, fetchAllContent } = useContent("article");
+  const { user } = useForumUser(); // Get the current user
 
   const handleCreateContent = async (data: any) => {
     try {
@@ -63,7 +65,7 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
                 contentType="article"
                 onSubmit={handleCreateContent}
                 isSubmitting={isSubmitting}
-                userId=""
+                userId={user?.id || ""} // Pass the current user's ID here
               />
             </DialogContent>
           </Dialog>
