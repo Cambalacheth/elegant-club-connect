@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { useForumUser } from "@/hooks/useForumUser";
 import { useInfluencerProgram } from "@/hooks/useInfluencerProgram";
+import Navbar from "@/components/Navbar";
 
 const InfluencersPage: React.FC = () => {
   const { user } = useForumUser();
@@ -22,7 +23,8 @@ const InfluencersPage: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-club-beige/30">
-      <div className="container py-12 px-4 mx-auto max-w-5xl">
+      <Navbar currentLanguage="es" />
+      <div className="container py-12 px-4 mx-auto max-w-5xl pt-24">
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-serif text-club-brown font-bold mb-4">
             Programa de Influencers

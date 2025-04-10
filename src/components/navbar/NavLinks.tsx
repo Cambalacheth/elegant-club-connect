@@ -36,11 +36,6 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
       path: "/forum",
       icon: <MessageSquare size={16} />
     },
-    {
-      name: currentLanguage === "en" ? "Influencers" : "Influencers",
-      path: "/influencers",
-      icon: <Award size={16} />
-    },
   ];
   
   const fixedPaths = fixedLinks.map(link => link.path);
