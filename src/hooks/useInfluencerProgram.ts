@@ -16,15 +16,29 @@ export const useInfluencerProgram = (userId: string | undefined) => {
       }
 
       try {
-        const { data, error } = await supabase
-          .from('user_xp_history')
+        // Check if the user has already registered interest in the influencer program
+        const { data: interestData, error: interestError } = await supabase
+          .from('influencer_program_interests')
           .select('id')
           .eq('user_id', userId)
-          .eq('description', 'Programa de Influencers')
           .maybeSingle();
 
-        if (error) throw error;
-        setHasInteracted(!!data);
+        if (interestError) throw interestError;
+        
+        if (interestData) {
+          setHasInteracted(true);
+        } else {
+          // As a fallback, also check the XP history for legacy entries
+          const { data: xpData, error: xpError } = await supabase
+            .from('user_xp_history')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('description', 'Programa de Influencers')
+            .maybeSingle();
+
+          if (xpError) throw xpError;
+          setHasInteracted(!!xpData);
+        }
       } catch (error) {
         console.error('Error checking influencer interaction:', error);
       } finally {
@@ -56,7 +70,14 @@ export const useInfluencerProgram = (userId: string | undefined) => {
     setIsLoading(true);
 
     try {
-      // Call the function to add XP
+      // Insert record into the influencer_program_interests table
+      const { error: insertError } = await supabase
+        .from('influencer_program_interests')
+        .insert({ user_id: userId });
+
+      if (insertError) throw insertError;
+
+      // Also call the function to add XP to maintain compatibility with existing system
       const { data, error } = await supabase.rpc(
         'add_user_xp',
         { 

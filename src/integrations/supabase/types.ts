@@ -299,6 +299,30 @@ export type Database = {
         }
         Relationships: []
       }
+      influencer_program_interests: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       levels: {
         Row: {
           description: string | null
@@ -691,7 +715,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -806,6 +830,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
