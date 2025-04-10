@@ -29,6 +29,7 @@ import VerticalDomainPage from "./pages/VerticalDomainPage";
 import ElFotographerPage from "./pages/ElFotographerPage";
 import Feedback from "./pages/Feedback";
 import VotePage from "./pages/VotePage";
+import InfluencersPage from "./pages/InfluencersPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +81,7 @@ function App() {
               <Route path="/ElFotographer" element={<ElFotographerPage />} />
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/vote" element={<VotePage />} />
+              <Route path="/influencers" element={<InfluencersPage />} />
               
               {/* Vertical domain routes */}
               <Route path="/legal/*" element={<DomainPage />} />

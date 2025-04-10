@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { MessageSquare, Settings, Globe, FileCode } from "lucide-react";
+import { MessageSquare, Settings, Globe, FileCode, Award } from "lucide-react";
 import { UserRole, canAdminContent } from "@/types/user";
 import { VerticalsDropdown } from "./VerticalsDropdown";
 import { MobileVerticalLinks } from "./MobileVerticalLinks";
@@ -35,6 +35,11 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
       name: currentLanguage === "en" ? "Forum" : "Foro",
       path: "/forum",
       icon: <MessageSquare size={16} />
+    },
+    {
+      name: currentLanguage === "en" ? "Influencers" : "Influencers",
+      path: "/influencers",
+      icon: <Award size={16} />
     },
   ];
   

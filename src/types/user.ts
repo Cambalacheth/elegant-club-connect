@@ -1,4 +1,3 @@
-
 export type UserLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 
 // For backward compatibility with components that expect the old role system
@@ -51,6 +50,14 @@ export const canAdminContent = (level: UserLevel | UserRole): boolean => {
     return level === 'admin';
   }
   return level === 13;
+};
+
+export const canParticipateInInfluencerProgram = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // Any registered user can participate
+    return true;
+  }
+  return level >= 1; // Any registered user can participate
 };
 
 export const LEVEL_THRESHOLDS = [
