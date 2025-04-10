@@ -71,11 +71,23 @@ export const useInfluencerProgram = (userId: string | undefined) => {
     setIsLoading(true);
 
     try {
+      // Get the username from the profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) throw profileError;
+      
       // Insert record into the influencer_program_interests table
       // Using raw query to bypass TypeScript issues with new tables
       const { error: insertError } = await supabase
         .from('influencer_program_interests')
-        .insert({ user_id: userId }) as any;
+        .insert({ 
+          user_id: userId,
+          username: profileData.username
+        }) as any;
 
       if (insertError) throw insertError;
 
