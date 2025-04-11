@@ -13,6 +13,9 @@ import {
   getPageDescription, 
   getVerticalName as getVerticalNameUtil
 } from "@/utils/domainPageUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DomainGraph from "@/components/domains/DomainGraph";
+import DomainChatbot from "@/components/domains/DomainChatbot";
 
 const DomainPage = () => {
   const [currentLanguage, setCurrentLanguage] = useState("es");
@@ -21,6 +24,7 @@ const DomainPage = () => {
   const currentPath = params["*"] ? `/${params["*"]}` : "/dominio";
   
   const [activeTab, setActiveTab] = useState("all");
+  const [viewMode, setViewMode] = useState<'list' | 'graph'>('graph');
   
   const isVerticalPage = VERTICAL_PATHS.includes(currentPath);
   
@@ -73,6 +77,18 @@ const DomainPage = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleDomainNodeClick = (domainId: string) => {
+    if (domainId === 'terreta-hub') {
+      window.location.href = '/';
+      return;
+    }
+    
+    const domain = domains.find(d => d.id === domainId);
+    if (domain) {
+      handleDomainAction(domain);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -83,32 +99,63 @@ const DomainPage = () => {
       <Navbar currentLanguage={currentLanguage} />
       
       <div className="container mx-auto px-4 py-24">
-        <DomainPageContent
-          domains={domains}
-          loading={loading}
-          error={error}
-          isOffline={isOffline}
-          currentLanguage={currentLanguage}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          domainsByStatus={domainsByStatus}
-          filteredDomains={filteredDomains}
-          handleDomainAction={handleDomainAction}
-          getStatusColor={getStatusColor}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          handlePageChange={handlePageChange}
-          isVerticalPage={isVerticalPage}
-          getVerticalName={getVerticalName}
-        />
+        <div className="max-w-5xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8 text-center">
+            {isVerticalPage 
+              ? (currentLanguage === 'en' ? `${getVerticalName()} Domain` : `Dominio de ${getVerticalName()}`)
+              : (currentLanguage === 'en' ? 'Domain Explorer' : 'Explorador de Dominios')}
+          </h1>
+
+          <Tabs defaultValue="graph" className="mb-8">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="graph" onClick={() => setViewMode('graph')}>
+                {currentLanguage === 'en' ? 'Semantic Graph' : 'Grafo Semántico'}
+              </TabsTrigger>
+              <TabsTrigger value="list" onClick={() => setViewMode('list')}>
+                {currentLanguage === 'en' ? 'List View' : 'Vista de Lista'}
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="graph">
+              <DomainGraph 
+                domains={domains} 
+                currentLanguage={currentLanguage} 
+                onNodeClick={handleDomainNodeClick}
+              />
+            </TabsContent>
+            
+            <TabsContent value="list">
+              <DomainPageContent
+                domains={domains}
+                loading={loading}
+                error={error}
+                isOffline={isOffline}
+                currentLanguage={currentLanguage}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                domainsByStatus={domainsByStatus}
+                filteredDomains={filteredDomains}
+                handleDomainAction={handleDomainAction}
+                getStatusColor={getStatusColor}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                handlePageChange={handlePageChange}
+                isVerticalPage={isVerticalPage}
+                getVerticalName={getVerticalName}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
       
       <LanguageSwitcher 
         currentLanguage={currentLanguage}
         setCurrentLanguage={setCurrentLanguage}
       />
+      
+      <DomainChatbot currentLanguage={currentLanguage} />
     </>
   );
 };
