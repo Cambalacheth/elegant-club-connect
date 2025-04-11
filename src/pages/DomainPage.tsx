@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import Navbar from "@/components/Navbar";
@@ -39,7 +38,8 @@ const DomainPage = () => {
   } = useDomains({ 
     randomize: true, 
     pageSize: 12,
-    prioritizePaths: isVerticalPage ? [currentPath] : [] 
+    prioritizePaths: isVerticalPage ? [currentPath] : [],
+    filterStatus: ['used']
   });
   
   const {
@@ -48,16 +48,15 @@ const DomainPage = () => {
     handleDomainAction
   } = useDomainHelpers(currentLanguage);
   
-  // Group domains by status
   const domainsByStatus = useMemo(() => {
-    const available = domains.filter(d => d.status === 'available');
-    const used = domains.filter(d => d.status === 'used');
-    const reserved = domains.filter(d => d.status === 'reserved');
-    
-    return { all: domains, available, used, reserved };
+    return { 
+      all: domains, 
+      used: domains,
+      available: [], 
+      reserved: [] 
+    };
   }, [domains]);
   
-  // Filter domains based on search query and active tab
   const filteredDomains = useMemo(() => {
     const domainsForTab = domainsByStatus[activeTab as keyof typeof domainsByStatus] || domains;
     

@@ -8,7 +8,8 @@ export type { Domain } from '@/types/domain';
 export const useDomains = ({ 
   randomize = false, 
   pageSize = 12,
-  prioritizePaths = [] 
+  prioritizePaths = [],
+  filterStatus = [] 
 }: UseDomainProps = {}) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [retryCount, setRetryCount] = useState(0);
@@ -31,6 +32,7 @@ export const useDomains = ({
     randomize,
     pageSize,
     prioritizePaths,
+    filterStatus,
     currentPage
   });
 

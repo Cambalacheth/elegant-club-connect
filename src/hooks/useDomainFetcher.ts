@@ -9,6 +9,7 @@ interface UseDomainFetcherProps {
   randomize?: boolean;
   pageSize?: number;
   prioritizePaths?: string[];
+  filterStatus?: ("available" | "reserved" | "used")[];
   currentPage: number;
 }
 
@@ -25,6 +26,7 @@ export const useDomainFetcher = ({
   randomize = false,
   pageSize = 12,
   prioritizePaths = [],
+  filterStatus = [],
   currentPage,
 }: UseDomainFetcherProps): UseDomainFetcherResult => {
   const [domains, setDomains] = useState<Domain[]>([]);
@@ -75,7 +77,11 @@ export const useDomainFetcher = ({
       if (!navigator.onLine) {
         setIsOffline(true);
         console.log("Device is offline, using fallback domains");
-        const fallbackDomains = getFallbackDomains(prioritizePaths);
+        // Filter the fallback domains by status if needed
+        let fallbackDomains = getFallbackDomains(prioritizePaths);
+        if (filterStatus.length > 0) {
+          fallbackDomains = fallbackDomains.filter(d => filterStatus.includes(d.status));
+        }
         setDomains(fallbackDomains);
         setTotalCount(fallbackDomains.length);
         setLoading(false);
@@ -84,10 +90,16 @@ export const useDomainFetcher = ({
         return;
       }
       
-      // Use more reliable count query approach
-      const { count, error: countError } = await supabase
-        .from('domains')
-        .select('*', { count: 'exact', head: true });
+      // Create the query
+      let countQuery = supabase.from('domains').select('*', { count: 'exact', head: true });
+      
+      // Apply status filter if provided
+      if (filterStatus.length > 0) {
+        countQuery = countQuery.in('status', filterStatus);
+      }
+      
+      // Get the count of matching records
+      const { count, error: countError } = await countQuery;
         
       if (countError) {
         console.error('Error counting domains:', countError);
@@ -99,9 +111,12 @@ export const useDomainFetcher = ({
       }
       
       // Query with pagination
-      let query = supabase
-        .from('domains')
-        .select('*');
+      let query = supabase.from('domains').select('*');
+      
+      // Apply status filter if provided
+      if (filterStatus.length > 0) {
+        query = query.in('status', filterStatus);
+      }
         
       // Add ordering - random if specified, otherwise by name
       if (randomize) {
@@ -121,8 +136,12 @@ export const useDomainFetcher = ({
       
       if (!data || data.length === 0) {
         console.log("No domains found or empty response");
-        // Set fallback domains if no data is returned
-        setDomains(getFallbackDomains(prioritizePaths));
+        // Set filtered fallback domains if no data is returned
+        let fallbackDomains = getFallbackDomains(prioritizePaths);
+        if (filterStatus.length > 0) {
+          fallbackDomains = fallbackDomains.filter(d => filterStatus.includes(d.status));
+        }
+        setDomains(fallbackDomains);
       } else {
         console.log("Domains loaded:", data.length);
         // Format the domains
@@ -147,14 +166,18 @@ export const useDomainFetcher = ({
         });
       }
       
-      // Use fallback domains when there's an error
-      setDomains(getFallbackDomains(prioritizePaths));
+      // Use filtered fallback domains when there's an error
+      let fallbackDomains = getFallbackDomains(prioritizePaths);
+      if (filterStatus.length > 0) {
+        fallbackDomains = fallbackDomains.filter(d => filterStatus.includes(d.status));
+      }
+      setDomains(fallbackDomains);
     } finally {
       setLoading(false);
       isFetching.current = false;
       lastFetchedPage.current = currentPage;
     }
-  }, [currentPage, pageSize, randomize, prioritizePaths]);
+  }, [currentPage, pageSize, randomize, prioritizePaths, filterStatus]);
 
   // Initial fetch and when dependencies change
   useEffect(() => {

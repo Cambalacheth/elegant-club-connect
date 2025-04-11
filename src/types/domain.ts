@@ -14,4 +14,5 @@ export interface UseDomainProps {
   randomize?: boolean;
   pageSize?: number;
   prioritizePaths?: string[];
+  filterStatus?: ("available" | "reserved" | "used")[];
 }
