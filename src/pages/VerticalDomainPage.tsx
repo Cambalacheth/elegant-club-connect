@@ -1,9 +1,8 @@
 
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import DomainPage from "./DomainPage";
 import { useEffect } from "react";
 import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
-import { useNavigate } from "react-router-dom";
 import { toast } from '@/components/ui/use-toast';
 
 const VerticalDomainPage = () => {

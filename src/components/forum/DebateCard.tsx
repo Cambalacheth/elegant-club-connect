@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, MessageSquare, Trash2, AlertCircle } from "lucide-react";
 import { Debate } from "@/types/forum";
 import { UserRole, canAdminContent } from "@/types/user";
@@ -29,9 +30,12 @@ interface DebateCardProps {
 
 const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const handleVote = (voteType: "up" | "down") => {
+  const handleVote = (e: React.MouseEvent, voteType: "up" | "down") => {
+    e.stopPropagation(); // Prevent navigation when voting
+    
     if (!userId) {
       toast({
         title: "Inicia sesión",
@@ -46,7 +50,9 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation when deleting
+    
     if (isDeleting) return;
 
     try {
@@ -64,6 +70,10 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleCardClick = () => {
+    navigate(`/forum/${debate.id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -91,12 +101,15 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-4 hover:shadow-md transition-shadow">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <Link to={`/forum/${debate.id}`} className="text-lg font-semibold text-club-brown hover:text-club-terracotta transition-colors">
+          <h3 className="text-lg font-semibold text-club-brown hover:text-club-terracotta transition-colors">
             {debate.title}
-          </Link>
+          </h3>
           <span className="text-xs text-gray-500">{formatDate(debate.created_at)}</span>
         </div>
         
@@ -117,10 +130,10 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
             {renderRoleBadge()}
           </div>
           
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center space-x-1">
               <button 
-                onClick={() => handleVote("up")}
+                onClick={(e) => handleVote(e, "up")}
                 className="text-gray-500 hover:text-club-green transition-colors"
                 aria-label="Votar positivamente"
               >
@@ -131,7 +144,7 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
             
             <div className="flex items-center space-x-1">
               <button 
-                onClick={() => handleVote("down")}
+                onClick={(e) => handleVote(e, "down")}
                 className="text-gray-500 hover:text-club-terracotta transition-colors"
                 aria-label="Votar negativamente"
               >
@@ -152,11 +165,12 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
                     className="text-gray-500 hover:text-red-500 transition-colors"
                     aria-label="Eliminar debate"
                     disabled={isDeleting}
+                    onClick={(e) => e.stopPropagation()} // Prevent card click when opening dialog
                   >
                     <Trash2 size={18} />
                   </button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                   <AlertDialogHeader>
                     <AlertDialogTitle className="flex items-center">
                       <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
