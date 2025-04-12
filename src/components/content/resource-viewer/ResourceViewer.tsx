@@ -18,12 +18,14 @@ interface ResourceViewerProps {
 
 export const ResourceViewer = ({ url, type }: ResourceViewerProps) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [slideUrls, setSlideUrls] = useState<string[]>([]);
   const fileExtension = url.split('.').pop()?.toLowerCase();
   const resourceType = type || getResourceTypeFromExtension(fileExtension);
   
   useEffect(() => {
     // Reset loading state when the URL changes
     setIsLoading(true);
+    setSlideUrls([]);
     
     // Preload image if it's an image resource
     if (isImageResource(resourceType, fileExtension)) {
@@ -65,12 +67,103 @@ export const ResourceViewer = ({ url, type }: ResourceViewerProps) => {
     return <PDFViewer url={url} />;
   }
   
+  // Special handling for external links (like Google Drive, OneDrive)
+  if (isExternalStorageLink(url)) {
+    return <ExternalStorageViewer url={url} type={resourceType} />;
+  }
+  
   // Default fallback for other file types
   return <DefaultResourceViewer url={url} type={resourceType} extension={fileExtension} />;
 };
 
+// External storage link viewer (Google Drive, OneDrive, etc.)
+const ExternalStorageViewer = ({ url, type }: { url: string; type?: string }) => {
+  // Convert Google Drive link to embedding URL if needed
+  const embedUrl = getEmbedUrl(url);
+  
+  if (embedUrl) {
+    return (
+      <div className="flex flex-col space-y-4">
+        <iframe 
+          src={embedUrl}
+          width="100%" 
+          height="500px" 
+          className="border-0 rounded-lg shadow-md"
+          title="Contenido externo"
+          allowFullScreen
+        />
+        <div className="flex justify-center">
+          <a 
+            href={url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Ver en sitio original
+          </a>
+        </div>
+      </div>
+    );
+  }
+  
+  // Fallback for other external links
+  return (
+    <Card className="border-2 border-dashed border-gray-300">
+      <CardContent className="p-6 flex flex-col items-center justify-center space-y-4">
+        <Presentation className="h-12 w-12 text-gray-400" />
+        <div className="text-center">
+          <p className="font-medium text-gray-700">
+            Enlace externo
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            Este contenido está alojado en un servicio externo
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          className="mt-2"
+          asChild
+        >
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            Abrir enlace
+          </a>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 // Presentación viewer (PowerPoint files)
 const PresentationViewer = ({ url }: { url: string }) => {
+  // Check if it's a Google Slides link
+  if (url.includes('docs.google.com/presentation')) {
+    const embedUrl = getEmbedUrl(url);
+    
+    return (
+      <div className="flex flex-col space-y-4">
+        <iframe 
+          src={embedUrl || url}
+          width="100%" 
+          height="500px" 
+          className="border-0 rounded-lg shadow-md"
+          title="Presentación de Google"
+          allowFullScreen
+        />
+        <div className="flex justify-center">
+          <a 
+            href={url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Ver presentación en pantalla completa
+          </a>
+        </div>
+      </div>
+    );
+  }
+  
+  // For PowerPoint files, use the Office Online Viewer
   return (
     <div className="flex flex-col space-y-4">
       <iframe 
@@ -78,7 +171,8 @@ const PresentationViewer = ({ url }: { url: string }) => {
         width="100%" 
         height="500px" 
         className="border-0 rounded-lg shadow-md"
-        title="Presentación"
+        title="Presentación de PowerPoint"
+        allowFullScreen
       />
       <div className="flex justify-center">
         <a 
@@ -190,12 +284,52 @@ function isImageResource(type?: string, extension?: string): boolean {
 
 function isPresentationResource(type?: string, extension?: string): boolean {
   if (type === 'presentation') return true;
-  return ['ppt', 'pptx'].includes(extension || '');
+  return ['ppt', 'pptx'].includes(extension || '') || 
+         (type === 'presentation') ||
+         isGoogleSlidesUrl(type || '');
 }
 
 function isPDFResource(type?: string, extension?: string): boolean {
   if (type === 'document' && extension === 'pdf') return true;
   return extension === 'pdf';
+}
+
+function isExternalStorageLink(url: string): boolean {
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes('drive.google.com') || 
+         lowerUrl.includes('docs.google.com') || 
+         lowerUrl.includes('onedrive.live.com') ||
+         lowerUrl.includes('dropbox.com');
+}
+
+function isGoogleSlidesUrl(url: string): boolean {
+  return url.includes('docs.google.com/presentation');
+}
+
+function getEmbedUrl(url: string): string | null {
+  // Google Drive file link to preview embed
+  if (url.includes('drive.google.com/file/d/')) {
+    const fileIdMatch = url.match(/\/d\/([^\/]+)/);
+    if (fileIdMatch && fileIdMatch[1]) {
+      return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+    }
+  }
+  
+  // Google Drive folder to embed
+  if (url.includes('drive.google.com/drive/folders/')) {
+    const folderIdMatch = url.match(/\/folders\/([^\/]+)/);
+    if (folderIdMatch && folderIdMatch[1]) {
+      return `https://drive.google.com/embeddedfolderview?id=${folderIdMatch[1]}#list`;
+    }
+  }
+  
+  // Google Slides
+  if (url.includes('docs.google.com/presentation')) {
+    return url.replace(/\/edit.*$/, '/embed');
+  }
+  
+  // For other services, you might need to implement similar conversions
+  return null;
 }
 
 function getResourceIcon(type?: string, extension?: string) {

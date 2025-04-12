@@ -77,7 +77,7 @@ const DomainPage = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-semibold text-club-brown">
-          {currentLanguage === "en" ? "Domain Explorer" : "Explorador de Dominios"}
+          {currentLanguage === "es" ? "Explorador de Dominios" : "Domain Explorer"}
         </h1>
         <div className="flex space-x-2">
           <Button 
@@ -87,7 +87,7 @@ const DomainPage = () => {
             className="flex items-center gap-1"
           >
             <ListFilter size={16} />
-            {currentLanguage === "en" ? "List" : "Lista"}
+            {currentLanguage === "es" ? "Lista" : "List"}
           </Button>
           <Button 
             variant={viewMode === "graph" ? "default" : "outline"}
@@ -96,7 +96,7 @@ const DomainPage = () => {
             className="flex items-center gap-1"
           >
             <BarChart4 size={16} />
-            {currentLanguage === "en" ? "Graph" : "Grafo"}
+            {currentLanguage === "es" ? "Grafo" : "Graph"}
           </Button>
         </div>
       </div>
@@ -104,7 +104,7 @@ const DomainPage = () => {
       {viewMode === "graph" ? (
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-club-brown mb-4">
-            {currentLanguage === "en" ? "Domain Graph" : "Grafo de Dominios"}
+            {currentLanguage === "es" ? "Grafo de Dominios" : "Domain Graph"}
           </h2>
           <DomainGraph 
             domains={domains || []} 
