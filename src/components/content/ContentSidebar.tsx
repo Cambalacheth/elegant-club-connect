@@ -86,7 +86,6 @@ const ContentSidebar: React.FC<ContentSidebarProps> = ({
                           value={type.id}
                           className="flex items-center justify-center gap-2 data-[state=active]:text-white"
                           style={{
-                            '--tw-bg-opacity': '1',
                             background: type.id === selectedContentType ? 
                               (type.id === 'article' ? 'linear-gradient(to right, rgb(59, 130, 246), rgb(29, 78, 216))' :
                                type.id === 'video' ? 'linear-gradient(to right, rgb(239, 68, 68), rgb(185, 28, 28))' :
