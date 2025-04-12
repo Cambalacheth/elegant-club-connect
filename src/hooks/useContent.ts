@@ -66,7 +66,7 @@ export const useContent = (type?: ContentType) => {
       const createdItem = await createContentItem(newContent);
       
       // Update local state by adding the new item
-      setContentItems(prevItems => [createdItem, ...prevItems]);
+      setContentItems(prevItems => [createdItem as ContentItem, ...prevItems]);
       
       toast({
         title: "Éxito",
@@ -91,7 +91,7 @@ export const useContent = (type?: ContentType) => {
       
       // Update local state by replacing the updated item
       setContentItems(prevItems => 
-        prevItems.map(item => item.id === id ? updatedItem : item)
+        prevItems.map(item => item.id === id ? updatedItem as ContentItem : item)
       );
       
       toast({
