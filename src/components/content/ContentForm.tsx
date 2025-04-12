@@ -29,18 +29,27 @@ export const ContentForm = ({
   
   const categories = ["General", "Legal", "Tecnología", "Finanzas", "Salud", "Audiovisual", "Eventos"];
   
+  const defaultValues = {
+    title: initialData?.title || "",
+    description: initialData?.description || "",
+    content: initialData?.content || "",
+    category: initialData?.category || "General",
+    videoUrl: initialData?.videoUrl || "",
+    resourceUrl: initialData?.resourceUrl || "",
+    source: initialData?.source || "",
+    externalUrl: initialData?.externalUrl || "",
+    duration: initialData?.duration || "",
+    difficulty: initialData?.difficulty || "basic",
+    downloadUrl: initialData?.downloadUrl || "",
+    resourceType: initialData?.resourceType || "tool",
+    price: initialData?.price || "free",
+    published: initialData?.published ?? false,
+    type: contentType,
+    author_id: userId
+  };
+  
   const form = useForm<Partial<ContentItem>>({
-    defaultValues: {
-      title: initialData?.title || "",
-      description: initialData?.description || "",
-      content: initialData?.content || "",
-      category: initialData?.category || "General",
-      videoUrl: initialData?.videoUrl || "",
-      resourceUrl: initialData?.resourceUrl || "",
-      published: initialData?.published ?? false,
-      type: contentType,
-      author_id: userId
-    }
+    defaultValues
   });
 
   const handleSubmit = async (data: Partial<ContentItem>) => {

@@ -57,10 +57,25 @@ export const createContentItem = async (newContent: Partial<ContentItem>) => {
       image_url: newContent.imageUrl,
       type: newContent.type,
       author_id: newContent.author_id,
+      
+      // Video fields
       video_url: newContent.videoUrl,
+      duration: newContent.duration,
+      
+      // Resource fields
       resource_url: newContent.resourceUrl,
+      resource_type: newContent.resourceType,
+      price: newContent.price,
+      
+      // Guide fields
+      difficulty: newContent.difficulty,
+      download_url: newContent.downloadUrl,
+      
+      // Common fields
       category: newContent.category,
-      published: newContent.published || false
+      published: newContent.published || false,
+      source: newContent.source,
+      external_url: newContent.externalUrl
     }
   ]).select();
 
@@ -82,10 +97,25 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
       description: updates.description,
       content: updates.content,
       image_url: updates.imageUrl,
+      
+      // Video fields
       video_url: updates.videoUrl,
+      duration: updates.duration,
+      
+      // Resource fields
       resource_url: updates.resourceUrl,
+      resource_type: updates.resourceType,
+      price: updates.price,
+      
+      // Guide fields
+      difficulty: updates.difficulty,
+      download_url: updates.downloadUrl,
+      
+      // Common fields
       category: updates.category,
       published: updates.published,
+      source: updates.source,
+      external_url: updates.externalUrl,
       updated_at: new Date().toISOString()
     })
     .eq('id', id)
@@ -161,9 +191,24 @@ const mapContentData = (data: any[]): ContentItem[] => {
       author_id: item.author_id,
       author_username: item.author?.username || "Usuario",
       author_role: item.author?.level,
+      
+      // Video fields
       videoUrl: item.video_url || undefined,
       videoId: videoId, // Add the extracted videoId
+      duration: item.duration || undefined,
+      
+      // Resource fields
       resourceUrl: item.resource_url || undefined,
+      resourceType: item.resource_type || undefined,
+      price: item.price || undefined,
+      
+      // Guide fields
+      difficulty: item.difficulty || undefined,
+      downloadUrl: item.download_url || undefined,
+      
+      // Common fields
+      source: item.source || undefined,
+      externalUrl: item.external_url || undefined,
       created_at: item.created_at,
       updated_at: item.updated_at,
       category: item.category,

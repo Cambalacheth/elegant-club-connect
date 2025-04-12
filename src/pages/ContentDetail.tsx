@@ -11,6 +11,16 @@ import { es } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import VideoEmbed from "@/components/content/VideoEmbed";
 import { extractYoutubeVideoId } from "@/services/contentService";
+import { 
+  CalendarIcon, 
+  ExternalLink, 
+  Download, 
+  Clock, 
+  Award, 
+  Tag,
+  User, 
+  DollarSign 
+} from "lucide-react";
 
 const ContentDetail = () => {
   const { type, id } = useParams();
@@ -43,9 +53,24 @@ const ContentDetail = () => {
           author_id: data.author_id,
           author_username: data.author?.username || "Usuario",
           author_role: data.author?.level,
+          
+          // Video fields
           videoUrl: data.video_url || undefined,
           videoId: videoId || undefined,
+          duration: data.duration || undefined,
+          
+          // Resource fields
           resourceUrl: data.resource_url || undefined,
+          resourceType: data.resource_type || undefined,
+          price: data.price || undefined,
+          
+          // Guide fields
+          difficulty: data.difficulty || undefined,
+          downloadUrl: data.download_url || undefined,
+          
+          // Common fields
+          source: data.source || undefined,
+          externalUrl: data.external_url || undefined,
           created_at: data.created_at,
           updated_at: data.updated_at,
           category: data.category,
@@ -80,6 +105,26 @@ const ContentDetail = () => {
       case "guide": return "Guía";
       case "resource": return "Recurso";
       default: return "Contenido";
+    }
+  }
+
+  function getDifficultyLabel(difficulty?: string): string {
+    if (!difficulty) return "";
+    switch (difficulty) {
+      case "basic": return "Básico";
+      case "intermediate": return "Intermedio";
+      case "advanced": return "Avanzado";
+      default: return difficulty;
+    }
+  }
+
+  function getPriceLabel(price?: string): string {
+    if (!price) return "";
+    switch (price) {
+      case "free": return "Gratuito";
+      case "freemium": return "Freemium";
+      case "paid": return "De pago";
+      default: return price;
     }
   }
 
@@ -140,6 +185,21 @@ const ContentDetail = () => {
       
       <article className="container mx-auto px-6 pt-32 pb-16">
         <header>
+          <div className="flex justify-between items-start mb-4">
+            <Badge variant="outline" className="text-club-orange border-club-orange font-medium">
+              {getTypeLabel(content.type)}
+              {content.resourceType && ` - ${content.resourceType}`}
+            </Badge>
+            <div className="flex items-center text-sm text-club-brown/70">
+              <CalendarIcon size={14} className="mr-1" />
+              <time dateTime={new Date(content.created_at).toISOString()}>
+                {format(new Date(content.created_at), "d 'de' MMMM, yyyy", {
+                  locale: es,
+                })}
+              </time>
+            </div>
+          </div>
+          
           <h1 className="text-4xl md:text-5xl font-serif text-club-brown mb-8">
             {content.title}
           </h1>
@@ -154,23 +214,52 @@ const ContentDetail = () => {
             />
           )}
 
-          <div className="flex flex-wrap items-center gap-4 text-sm text-club-brown/70 mb-8">
-            <span className="flex items-center gap-2">
-              Por {content.author_username || "Usuario"}
-              {content.author_role && (
-                <Badge variant="outline" className="ml-1">
-                  {content.author_role}
-                </Badge>
-              )}
-            </span>
-            <span>•</span>
-            <time dateTime={new Date(content.created_at).toISOString()}>
-              {format(new Date(content.created_at), "d 'de' MMMM, yyyy", {
-                locale: es,
-              })}
-            </time>
-            <span>•</span>
-            <span>{content.category}</span>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-club-brown/70 mb-8 bg-white/50 p-4 rounded-lg">
+            {content.source && (
+              <div className="flex items-center gap-1">
+                <User size={16} />
+                <span>{content.source}</span>
+              </div>
+            )}
+            
+            {content.author_username && (
+              <div className="flex items-center gap-1">
+                <span>Publicado por: {content.author_username}</span>
+                {content.author_role && (
+                  <Badge variant="outline" className="ml-1">
+                    {content.author_role}
+                  </Badge>
+                )}
+              </div>
+            )}
+            
+            {content.duration && (
+              <div className="flex items-center gap-1">
+                <Clock size={16} />
+                <span>{content.duration}</span>
+              </div>
+            )}
+            
+            {content.difficulty && (
+              <div className="flex items-center gap-1">
+                <Award size={16} />
+                <span>Nivel: {getDifficultyLabel(content.difficulty)}</span>
+              </div>
+            )}
+            
+            {content.price && (
+              <div className="flex items-center gap-1">
+                <DollarSign size={16} />
+                <span>{getPriceLabel(content.price)}</span>
+              </div>
+            )}
+            
+            {content.category && (
+              <div className="flex items-center gap-1">
+                <Tag size={16} />
+                <span>{content.category}</span>
+              </div>
+            )}
           </div>
         </header>
 
@@ -185,30 +274,55 @@ const ContentDetail = () => {
             </div>
           )}
           
-          {content.type === "video" && content.videoUrl && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold text-club-brown mb-4">Enlace Original:</h3>
+          <div className="mt-8 flex flex-col gap-3">
+            {content.externalUrl && (
+              <a
+                href={content.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-club-orange hover:text-club-terracotta"
+              >
+                <ExternalLink size={18} className="mr-2" />
+                Enlace externo
+              </a>
+            )}
+            
+            {content.videoUrl && (
               <a
                 href={content.videoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block text-club-orange hover:text-club-terracotta"
+                className="inline-flex items-center text-club-orange hover:text-club-terracotta"
               >
-                Ver en YouTube →
+                <ExternalLink size={18} className="mr-2" />
+                Ver en YouTube
               </a>
-            </div>
-          )}
-          
-          {content.type === "resource" && content.resourceUrl && (
-            <a
-              href={content.resourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mt-8 text-club-orange hover:text-club-terracotta"
-            >
-              Acceder al recurso →
-            </a>
-          )}
+            )}
+            
+            {content.resourceUrl && (
+              <a
+                href={content.resourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-club-orange hover:text-club-terracotta"
+              >
+                <ExternalLink size={18} className="mr-2" />
+                Acceder al recurso
+              </a>
+            )}
+            
+            {content.downloadUrl && (
+              <a
+                href={content.downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-club-orange hover:text-club-terracotta"
+              >
+                <Download size={18} className="mr-2" />
+                Descargar
+              </a>
+            )}
+          </div>
         </div>
       </article>
     </div>

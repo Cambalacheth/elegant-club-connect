@@ -1,6 +1,6 @@
 
 import React from "react";
-import { FileText, Video, BookOpen, Newspaper } from "lucide-react";
+import { FileText, Video, BookOpen, Package } from "lucide-react";
 import { ContentType } from "@/types/content";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -28,7 +28,7 @@ const ContentHeader: React.FC<ContentHeaderProps> = ({
         onValueChange={handleTypeChange}
         className="w-full"
       >
-        <TabsList className="bg-club-beige/50 p-1">
+        <TabsList className="bg-club-beige/50 p-1 w-full md:w-auto grid grid-cols-2 md:flex">
           <TabsTrigger value="article" className="flex items-center gap-2 data-[state=active]:bg-club-orange data-[state=active]:text-white">
             <FileText size={16} />
             Artículos
@@ -42,7 +42,7 @@ const ContentHeader: React.FC<ContentHeaderProps> = ({
             Guías
           </TabsTrigger>
           <TabsTrigger value="resource" className="flex items-center gap-2 data-[state=active]:bg-club-orange data-[state=active]:text-white">
-            <Newspaper size={16} />
+            <Package size={16} />
             Recursos
           </TabsTrigger>
         </TabsList>
