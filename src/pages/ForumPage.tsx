@@ -39,12 +39,7 @@ const ForumPage = () => {
     console.log("Creating debate with user:", user.id, "Role:", userRole);
     
     try {
-      const success = await handleCreateDebate(title, content, category, user.id);
-      if (success) {
-        console.log("Debate created successfully");
-      } else {
-        console.error("Failed to create debate");
-      }
+      await handleCreateDebate(title, content, category, user.id);
     } catch (error) {
       console.error("Error in onCreateDebate:", error);
       toast({

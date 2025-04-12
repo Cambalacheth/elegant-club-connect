@@ -14,6 +14,8 @@ const ContentGrid: React.FC<ContentGridProps> = ({
   isLoading, 
   contentType 
 }) => {
+  console.log("ContentGrid rendering with items:", items.length);
+  
   return (
     <div className="w-full">
       <ContentList 

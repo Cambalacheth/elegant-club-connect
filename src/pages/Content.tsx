@@ -6,21 +6,32 @@ import { useContent } from "@/hooks/useContent";
 import Navbar from "@/components/Navbar";
 import ContentGrid from "@/components/content/ContentGrid";
 import ContentHeader from "@/components/content/ContentHeader";
+import ContentSidebar from "@/components/content/ContentSidebar";
 import { ContentType } from "@/types/content";
 
 const Content = () => {
   const { userRole } = useUser();
   const [selectedType, setSelectedType] = useState<ContentType>("article");
+  const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
   const { contentItems, isLoading, refetch } = useContent(selectedType);
 
   const handleTypeChange = (type: ContentType) => {
     setSelectedType(type);
   };
 
-  // Refetch content when type changes
+  const handleCategoryChange = (category: string | "all") => {
+    setSelectedCategory(category);
+  };
+
+  // Refetch content when type or category changes
   useEffect(() => {
     refetch();
-  }, [selectedType, refetch]);
+  }, [selectedType, selectedCategory, refetch]);
+
+  // Filter content by category if not "all"
+  const filteredContent = selectedCategory === "all" 
+    ? contentItems 
+    : contentItems.filter(item => item.category === selectedCategory);
 
   return (
     <div className="min-h-screen bg-club-beige-light">
@@ -37,12 +48,22 @@ const Content = () => {
           onTypeChange={handleTypeChange}
         />
         
-        <div className="mt-8">
-          <ContentGrid 
-            items={contentItems} 
-            isLoading={isLoading} 
-            contentType={selectedType}
-          />
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="lg:col-span-1">
+            <ContentSidebar 
+              selectedCategory={selectedCategory}
+              onCategoryChange={handleCategoryChange}
+              userRole={userRole}
+            />
+          </div>
+          
+          <div className="lg:col-span-3">
+            <ContentGrid 
+              items={filteredContent} 
+              isLoading={isLoading} 
+              contentType={selectedType}
+            />
+          </div>
         </div>
       </main>
     </div>

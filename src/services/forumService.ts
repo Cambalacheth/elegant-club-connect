@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Debate } from "@/types/forum";
+import { Debate, Comment } from "@/types/forum";
 
 // Forum-related API service
 export const forumService = {
@@ -21,6 +21,7 @@ export const forumService = {
       throw error;
     }
 
+    console.log("Fetched debates:", data);
     return data as Debate[];
   },
 
@@ -96,6 +97,78 @@ export const forumService = {
 
     if (error) {
       console.error("Error deleting debate:", error);
+      throw error;
+    }
+  },
+
+  // Fetch comments for a debate
+  fetchComments: async (debateId: string) => {
+    const { data, error } = await supabase
+      .from("comments_with_authors")
+      .select("*")
+      .eq("debate_id", debateId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching comments:", error);
+      throw error;
+    }
+
+    return data as Comment[];
+  },
+
+  // Create a new comment
+  createComment: async (debateId: string, content: string, userId: string) => {
+    const { data, error } = await supabase
+      .from("comments")
+      .insert([
+        { 
+          debate_id: debateId, 
+          content, 
+          author_id: userId 
+        }
+      ])
+      .select();
+
+    if (error) {
+      console.error("Error creating comment:", error);
+      throw error;
+    }
+
+    return data[0];
+  },
+
+  // Delete a comment
+  deleteComment: async (commentId: string) => {
+    const { error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (error) {
+      console.error("Error deleting comment:", error);
+      throw error;
+    }
+  },
+
+  // Register a vote on a comment
+  registerCommentVote: async (commentId: string, voteType: "up" | "down", userId: string) => {
+    const { error } = await supabase
+      .from("votes")
+      .insert([
+        { 
+          user_id: userId, 
+          reference_id: commentId, 
+          reference_type: "comment", 
+          vote_type: voteType 
+        }
+      ]);
+
+    if (error) {
+      // Handle unique constraint violation
+      if (error.code === "23505") {
+        throw new Error("duplicate_vote");
+      }
       throw error;
     }
   }
