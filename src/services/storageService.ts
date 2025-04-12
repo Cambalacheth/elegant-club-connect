@@ -5,28 +5,71 @@ import { supabase } from "@/integrations/supabase/client";
 export const initializeStorageBuckets = async () => {
   try {
     // Check if the bucket already exists
-    const { data: buckets } = await supabase.storage.listBuckets();
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+    
+    if (listError) {
+      console.error("Error checking buckets:", listError);
+      return;
+    }
+    
     const resourcesBucketExists = buckets?.some(bucket => bucket.name === 'resources');
     
     if (!resourcesBucketExists) {
       console.log("Creating resources storage bucket...");
       
-      // Create the resources bucket
-      const { error } = await supabase.storage.createBucket('resources', {
-        public: true, // Make files publicly accessible
-      });
+      // Create the resources bucket with public access
+      const { error } = await supabase.storage
+        .createBucket('resources', {
+          public: true,
+          fileSizeLimit: 10485760 // 10MB
+        });
       
       if (error) {
         console.error("Error creating resources bucket:", error);
+        
+        // If we get a row-level security policy violation, the bucket might actually exist
+        // but the user doesn't have permission to create it via the client
+        if (error.message?.includes("row-level security policy")) {
+          console.log("Row-level security policy error. The bucket may need to be created by an admin.");
+        }
         return;
       }
       
       console.log("Resources bucket created successfully");
+    } else {
+      console.log("Resources bucket already exists");
     }
   } catch (error) {
     console.error("Error initializing storage buckets:", error);
   }
 };
 
-// Call this when the app starts
+// Upload a file to the resources bucket
+export const uploadToResourcesBucket = async (file: File, filePath: string) => {
+  try {
+    // First ensure the bucket exists
+    await initializeStorageBuckets();
+    
+    // Upload the file
+    const { data, error } = await supabase.storage
+      .from('resources')
+      .upload(filePath, file);
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Get the public URL
+    const { data: publicUrlData } = supabase.storage
+      .from('resources')
+      .getPublicUrl(filePath);
+    
+    return publicUrlData.publicUrl;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+};
+
+// Initialize buckets when the app starts
 initializeStorageBuckets();

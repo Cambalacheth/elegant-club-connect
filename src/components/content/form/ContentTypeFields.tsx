@@ -55,26 +55,16 @@ export const ContentTypeFields = ({ form, contentType }: ContentTypeFieldsProps)
       setIsUploading(true);
       setUploadStatus('Subiendo archivo...');
       
-      // Create resources bucket if it doesn't exist
+      // Create unique filename
       const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `resources/${fileName}`;
+      const filePath = `${fileName}`;
       
-      // Upload file to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('resources')
-        .upload(filePath, file);
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('resources')
-        .getPublicUrl(filePath);
+      // Import and use the uploadToResourcesBucket function
+      const { uploadToResourcesBucket } = await import('@/services/storageService');
+      const publicUrl = await uploadToResourcesBucket(file, filePath);
       
       // Set form values
-      form.setValue('resourceUrl', publicUrlData.publicUrl);
+      form.setValue('resourceUrl', publicUrl);
       setUploadStatus('Archivo subido con éxito: ' + file.name);
       
     } catch (error: any) {
