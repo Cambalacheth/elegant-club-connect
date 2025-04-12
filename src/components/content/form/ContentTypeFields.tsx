@@ -4,7 +4,7 @@ import { UseFormReturn } from "react-hook-form";
 import { ArticleFields } from "./content-types/ArticleFields";
 import { VideoFields } from "./content-types/VideoFields";
 import { GuideFields } from "./content-types/GuideFields";
-import { ResourceFields } from "./content-types/ResourceFields";
+import { ResourceFields } from "./content-types/resource/ResourceFields";
 
 interface ContentTypeFieldsProps {
   form: UseFormReturn<any>;
