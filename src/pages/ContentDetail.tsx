@@ -172,13 +172,13 @@ const ContentDetail = () => {
         <meta name="description" content={pageDescription} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
-        {content.imageUrl && <meta property="og:image" content={content.imageUrl} />}
+        {content?.imageUrl && <meta property="og:image" content={content.imageUrl} />}
         <meta property="og:type" content="article" />
-        {content.author_username && <meta property="article:author" content={content.author_username} />}
-        {content.created_at && <meta property="article:published_time" content={content.created_at} />}
-        {content.updated_at && <meta property="article:modified_time" content={content.updated_at} />}
-        {content.category && <meta property="article:section" content={content.category} />}
-        <link rel="canonical" href={`${window.location.origin}/recursos/${content.type}/${content.id}`} />
+        {content?.author_username && <meta property="article:author" content={content.author_username} />}
+        {content?.created_at && <meta property="article:published_time" content={content.created_at} />}
+        {content?.updated_at && <meta property="article:modified_time" content={content.updated_at} />}
+        {content?.category && <meta property="article:section" content={content.category} />}
+        <link rel="canonical" href={`${window.location.origin}/recursos/${content?.type}/${content?.id}`} />
       </Helmet>
       
       <Navbar />
@@ -187,26 +187,28 @@ const ContentDetail = () => {
         <header>
           <div className="flex justify-between items-start mb-4">
             <Badge variant="outline" className="text-club-orange border-club-orange font-medium">
-              {getTypeLabel(content.type)}
-              {content.resourceType && ` - ${content.resourceType}`}
+              {getTypeLabel(content?.type)}
+              {content?.resourceType && ` - ${content.resourceType}`}
             </Badge>
             <div className="flex items-center text-sm text-club-brown/70">
               <CalendarIcon size={14} className="mr-1" />
-              <time dateTime={new Date(content.created_at).toISOString()}>
-                {format(new Date(content.created_at), "d 'de' MMMM, yyyy", {
-                  locale: es,
-                })}
-              </time>
+              {content?.created_at && (
+                <time dateTime={new Date(content.created_at).toISOString()}>
+                  {format(new Date(content.created_at), "d 'de' MMMM, yyyy", {
+                    locale: es,
+                  })}
+                </time>
+              )}
             </div>
           </div>
           
           <h1 className="text-4xl md:text-5xl font-serif text-club-brown mb-8">
-            {content.title}
+            {content?.title}
           </h1>
 
-          {content.type === "video" && content.videoId ? (
+          {content?.type === "video" && content.videoId ? (
             <VideoEmbed videoId={content.videoId} title={content.title} />
-          ) : content.imageUrl && (
+          ) : content?.imageUrl && (
             <img
               src={content.imageUrl}
               alt={content.title}
@@ -215,17 +217,17 @@ const ContentDetail = () => {
           )}
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-club-brown/70 mb-8 bg-white/50 p-4 rounded-lg">
-            {content.source && (
+            {content?.source && (
               <div className="flex items-center gap-1">
                 <User size={16} />
                 <span>{content.source}</span>
               </div>
             )}
             
-            {content.author_username && (
+            {content?.author_username && (
               <div className="flex items-center gap-1">
                 <span>Publicado por: {content.author_username}</span>
-                {content.author_role && (
+                {content?.author_role && (
                   <Badge variant="outline" className="ml-1">
                     {content.author_role}
                   </Badge>
@@ -233,28 +235,28 @@ const ContentDetail = () => {
               </div>
             )}
             
-            {content.duration && (
+            {content?.duration && (
               <div className="flex items-center gap-1">
                 <Clock size={16} />
                 <span>{content.duration}</span>
               </div>
             )}
             
-            {content.difficulty && (
+            {content?.difficulty && (
               <div className="flex items-center gap-1">
                 <Award size={16} />
                 <span>Nivel: {getDifficultyLabel(content.difficulty)}</span>
               </div>
             )}
             
-            {content.price && (
+            {content?.price && (
               <div className="flex items-center gap-1">
                 <DollarSign size={16} />
                 <span>{getPriceLabel(content.price)}</span>
               </div>
             )}
             
-            {content.category && (
+            {content?.category && (
               <div className="flex items-center gap-1">
                 <Tag size={16} />
                 <span>{content.category}</span>
@@ -265,17 +267,17 @@ const ContentDetail = () => {
 
         <div className="prose prose-lg max-w-none">
           <div className="text-lg text-club-brown/80 mb-8">
-            <p>{content.description}</p>
+            <p>{content?.description}</p>
           </div>
           
-          {content.content && (
+          {content?.content && (
             <div className="text-club-brown whitespace-pre-wrap">
               {content.content}
             </div>
           )}
           
           <div className="mt-8 flex flex-col gap-3">
-            {content.externalUrl && (
+            {content?.externalUrl && (
               <a
                 href={content.externalUrl}
                 target="_blank"
@@ -287,7 +289,7 @@ const ContentDetail = () => {
               </a>
             )}
             
-            {content.videoUrl && (
+            {content?.videoUrl && (
               <a
                 href={content.videoUrl}
                 target="_blank"
@@ -299,7 +301,7 @@ const ContentDetail = () => {
               </a>
             )}
             
-            {content.resourceUrl && (
+            {content?.resourceUrl && (
               <a
                 href={content.resourceUrl}
                 target="_blank"
@@ -311,7 +313,7 @@ const ContentDetail = () => {
               </a>
             )}
             
-            {content.downloadUrl && (
+            {content?.downloadUrl && (
               <a
                 href={content.downloadUrl}
                 target="_blank"
