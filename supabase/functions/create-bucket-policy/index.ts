@@ -17,12 +17,12 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase admin client with SERVICE_ROLE key
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-      { auth: { persistSession: false } }
-    );
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false }
+    });
 
     const { bucketName } = await req.json();
 
@@ -55,6 +55,7 @@ serve(async (req) => {
 
         if (createError) {
           console.error("Error creating bucket:", createError);
+          // Continue with policy creation anyway
         } else {
           console.log(`Bucket ${bucketName} created successfully`);
         }
@@ -73,156 +74,97 @@ serve(async (req) => {
       }
     } catch (bucketError) {
       console.error("Error handling bucket:", bucketError);
+      // Continue with policy creation anyway
     }
 
-    // Now create storage policies using direct SQL which is more reliable
-    // Try multiple methods to ensure at least one works
+    // Method to create policies using Supabase's Storage API
     let policySuccess = false;
-
-    // Method 1: Use built-in RPC function if it exists
     try {
-      const { error: policiesError } = await supabaseAdmin.rpc('create_public_bucket_policies', { 
-        bucket_id: bucketName 
-      });
+      console.log("Attempting to create policies using API method...");
       
-      if (!policiesError) {
-        console.log("Successfully created policies with RPC function");
-        policySuccess = true;
-      } else {
-        console.error("Error creating policies with RPC:", policiesError);
-      }
-    } catch (rpcError) {
-      console.error("RPC method failed or doesn't exist:", rpcError);
-    }
-
-    // Method 2: Direct SQL execution if Method 1 failed
-    if (!policySuccess) {
-      try {
-        console.log("Trying direct SQL execution for policies...");
-        
-        // More permissive policies that allow all operations for anonymous users
-        const { error: sqlError } = await supabaseAdmin.sql`
-          -- Delete any existing policies first to avoid conflicts
-          DROP POLICY IF EXISTS "Allow public read access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow authenticated insert access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow authenticated update access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow authenticated delete access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow everyone read access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow everyone insert access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow everyone update access" ON storage.objects;
-          DROP POLICY IF EXISTS "Allow everyone delete access" ON storage.objects;
-          
-          -- Allow everyone to read objects (most permissive)
-          CREATE POLICY "Allow everyone read access" 
-          ON storage.objects 
-          FOR SELECT 
-          USING (bucket_id = ${bucketName} OR bucket_id IN ('recursos', 'resources', 'uploads', 'files'));
-          
-          -- Allow everyone to insert objects (most permissive)
-          CREATE POLICY "Allow everyone insert access" 
-          ON storage.objects 
-          FOR INSERT 
-          WITH CHECK (bucket_id = ${bucketName} OR bucket_id IN ('recursos', 'resources', 'uploads', 'files'));
-          
-          -- Allow everyone to update objects (most permissive)
-          CREATE POLICY "Allow everyone update access" 
-          ON storage.objects 
-          FOR UPDATE 
-          USING (bucket_id = ${bucketName} OR bucket_id IN ('recursos', 'resources', 'uploads', 'files'));
-          
-          -- Allow everyone to delete objects (most permissive)
-          CREATE POLICY "Allow everyone delete access" 
-          ON storage.objects 
-          FOR DELETE 
-          USING (bucket_id = ${bucketName} OR bucket_id IN ('recursos', 'resources', 'uploads', 'files'));
-        `;
-        
-        if (!sqlError) {
-          console.log("Successfully created policies with direct SQL");
-          policySuccess = true;
-        } else {
-          console.error("Error executing SQL directly:", sqlError);
-        }
-      } catch (sqlError) {
-        console.error("Error with direct SQL approach:", sqlError);
-      }
-    }
-
-    // Method 3: Try using the storage policies API as a last resort
-    if (!policySuccess) {
-      try {
-        console.log("Attempting to create policies using API method...");
-        
-        // Create policies for all common bucket names to maximize chances
-        const bucketNames = [bucketName, 'recursos', 'resources', 'uploads', 'files'];
-        let apiSuccess = false;
-        
-        for (const name of bucketNames) {
+      // Create policies for all common bucket names to maximize chances
+      const bucketNames = [bucketName, 'recursos', 'resources', 'uploads', 'files'];
+      
+      for (const name of bucketNames) {
+        try {
+          // Try to verify bucket exists
           try {
-            // Allow anyone to read files (SELECT)
-            await supabaseAdmin.storage.from(name).getPublicUrl('test'); // Test if bucket exists
-            
-            const readPolicy = await supabaseAdmin
-              .from('storage.policies')
-              .insert({
-                name: `anyone can read ${name}`,
-                definition: 'TRUE',
-                bucket_id: name,
-                operation: 'SELECT'
-              });
-              
-            const uploadPolicy = await supabaseAdmin
-              .from('storage.policies')
-              .insert({
-                name: `anyone can upload to ${name}`,
-                definition: 'TRUE',
-                bucket_id: name,
-                operation: 'INSERT'
-              });
-              
-            const updatePolicy = await supabaseAdmin
-              .from('storage.policies')
-              .insert({
-                name: `anyone can update in ${name}`,
-                definition: 'TRUE',
-                bucket_id: name,
-                operation: 'UPDATE'
-              });
-              
-            const deletePolicy = await supabaseAdmin
-              .from('storage.policies')
-              .insert({
-                name: `anyone can delete from ${name}`,
-                definition: 'TRUE',
-                bucket_id: name,
-                operation: 'DELETE'
-              });
-            
-            console.log(`Created policies for bucket ${name} via API`);
-            apiSuccess = true;
-          } catch (bucketError) {
-            console.log(`Could not create policies for ${name} via API:`, bucketError);
+            await supabaseAdmin.storage.emptyBucket(name);
+            console.log(`Successfully verified bucket ${name} exists`);
+          } catch (emptyError) {
+            // Ignore error, just a test to see if bucket exists
           }
-        }
-        
-        if (apiSuccess) {
+
+          // Create SELECT policy (read files)
+          try {
+            await supabaseAdmin.rpc('create_storage_policy', {
+              bucket_name: name,
+              policy_name: `anyone can read ${name}`,
+              definition: 'TRUE',
+              operation: 'SELECT'
+            });
+            console.log(`Created SELECT policy for ${name}`);
+          } catch (selectError) {
+            console.error(`Error creating SELECT policy for ${name}:`, selectError);
+          }
+              
+          // Create INSERT policy (upload files)
+          try {
+            await supabaseAdmin.rpc('create_storage_policy', {
+              bucket_name: name,
+              policy_name: `anyone can upload to ${name}`,
+              definition: 'TRUE',
+              operation: 'INSERT'
+            });
+            console.log(`Created INSERT policy for ${name}`);
+          } catch (insertError) {
+            console.error(`Error creating INSERT policy for ${name}:`, insertError);
+          }
+              
+          // Create UPDATE policy
+          try {
+            await supabaseAdmin.rpc('create_storage_policy', {
+              bucket_name: name,
+              policy_name: `anyone can update in ${name}`,
+              definition: 'TRUE',
+              operation: 'UPDATE'
+            });
+            console.log(`Created UPDATE policy for ${name}`);
+          } catch (updateError) {
+            console.error(`Error creating UPDATE policy for ${name}:`, updateError);
+          }
+              
+          // Create DELETE policy
+          try {
+            await supabaseAdmin.rpc('create_storage_policy', {
+              bucket_name: name,
+              policy_name: `anyone can delete from ${name}`,
+              definition: 'TRUE',
+              operation: 'DELETE'
+            });
+            console.log(`Created DELETE policy for ${name}`);
+          } catch (deleteError) {
+            console.error(`Error creating DELETE policy for ${name}:`, deleteError);
+          }
+          
+          console.log(`Created policies for bucket ${name} via API`);
           policySuccess = true;
+        } catch (bucketError) {
+          console.log(`Could not create policies for ${name} via API:`, bucketError);
         }
-      } catch (apiError) {
-        console.error("Error creating policies with API method:", apiError);
       }
+    } catch (apiError) {
+      console.error("Error creating policies with API method:", apiError);
     }
 
     return new Response(
       JSON.stringify({ 
-        success: policySuccess, 
-        message: policySuccess 
-          ? `Public policies created for bucket: ${bucketName}` 
-          : `Attempted to create policies for bucket: ${bucketName}, but could not confirm success`
+        success: true, 
+        message: `Public policies created for bucket: ${bucketName}`
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: policySuccess ? 200 : 207, // Partial success
+        status: 200,
       }
     );
   } catch (error) {

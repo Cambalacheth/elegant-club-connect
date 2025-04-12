@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast"; 
@@ -71,6 +72,7 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       toast({
         title: "Subiendo archivo",
         description: "Por favor espera mientras se sube el archivo...",
+        variant: "default",
       });
       
       // Create safe filename by removing spaces and special characters

@@ -37,7 +37,25 @@ export const initializeStorageBuckets = async () => {
             bucketName = name;
             break;
           } else {
-            console.error(`Error creating bucket "${name}":`, error);
+            if (error.message?.includes("row-level security policy") || 
+                error.message?.includes("403")) {
+              console.log("Row-level security policy error. Trying to create policies via edge function...");
+              await createBucketPolicies(name);
+              // Retry creating the bucket after creating policies
+              const { error: retryError } = await supabase.storage
+                .createBucket(name, {
+                  public: true,
+                  fileSizeLimit: 10485760 // 10MB
+                });
+                
+              if (!retryError) {
+                console.log(`Bucket "${name}" created successfully after setting policies`);
+                bucketName = name;
+                break;
+              }
+            } else {
+              console.error(`Error creating bucket "${name}":`, error);
+            }
           }
         } catch (err) {
           console.error(`Exception creating bucket "${name}":`, err);
@@ -49,12 +67,17 @@ export const initializeStorageBuckets = async () => {
     } else {
       console.log("Resources bucket already exists");
       
-      // Ensure policies exist for all possible buckets to maximize chances of success
-      for (const name of ['recursos', 'resources', 'uploads', 'files']) {
-        if (buckets?.some(bucket => bucket.name === name)) {
-          await createBucketPolicies(name);
+      // Find which bucket exists and use that one
+      for (const bucket of buckets || []) {
+        if (['recursos', 'resources', 'uploads', 'files'].includes(bucket.name)) {
+          bucketName = bucket.name;
+          console.log(`Using existing bucket: ${bucketName}`);
+          break;
         }
       }
+      
+      // Ensure policies exist for all possible buckets to maximize chances of success
+      await createBucketPolicies(bucketName);
     }
     
     return bucketName;
@@ -74,30 +97,16 @@ const createBucketPolicies = async (bucketName: string) => {
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        const response = await fetch("https://hunlwxpizenlsqcghffy.supabase.co/functions/v1/create-bucket-policy", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1bmx3eHBpemVubHNxY2doZmZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwOTYxODUsImV4cCI6MjA1NjY3MjE4NX0.2uq8y1VyujijueWQNplbyYindTx_fCgPXOwCb8EfCrg`
-          },
-          body: JSON.stringify({ bucketName })
+        const response = await supabase.functions.invoke('create-bucket-policy', {
+          body: { bucketName }
         });
 
-        if (response.ok) {
-          const result = await response.json();
-          console.log("Bucket policy response:", result);
-          return result;
-        } else {
-          const errorText = await response.text();
-          console.error(`Error status: ${response.status}, ${errorText}`);
-          
-          // If this isn't the last attempt, wait before retrying
-          if (attempt < maxRetries - 1) {
-            const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-            console.log(`Retrying in ${delay}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
+        if (response.error) {
+          throw new Error(`Edge function error: ${response.error.message}`);
         }
+        
+        console.log("Bucket policy response:", response.data);
+        return response.data;
       } catch (err) {
         console.error("Error calling policy function:", err);
         
@@ -217,13 +226,8 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
         try {
           console.log(`Trying fallback bucket "${fallbackBucket}"...`);
           
-          // Check if bucket exists first
-          const { data: buckets } = await supabase.storage.listBuckets();
-          if (!buckets?.some(b => b.name === fallbackBucket)) {
-            console.log(`Fallback bucket "${fallbackBucket}" doesn't exist, creating it...`);
-            await supabase.storage.createBucket(fallbackBucket, { public: true });
-            await createBucketPolicies(fallbackBucket);
-          }
+          // Create bucket policies first to ensure permissions
+          await createBucketPolicies(fallbackBucket);
           
           const fallbackResult = await supabase.storage
             .from(fallbackBucket)
@@ -264,4 +268,6 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
 };
 
 // Initialize buckets when the app starts
-initializeStorageBuckets();
+initializeStorageBuckets().catch(err => {
+  console.error("Failed to initialize storage buckets on startup:", err);
+});
