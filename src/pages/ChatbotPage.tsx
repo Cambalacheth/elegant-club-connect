@@ -6,7 +6,9 @@ import ChatbotDomain from "@/components/chatbot/ChatbotDomain";
 import DomainChatbot from "@/components/domains/DomainChatbot";
 
 const ChatbotPage = () => {
-  const currentLanguage = "es"; // Esto podría ser dinámico mediante un contexto
+  // Instead of hardcoding the type, let's use a more flexible approach
+  // that allows for string comparison with "en" and "es"
+  const currentLanguage = "es" as string; 
   
   useEffect(() => {
     window.scrollTo(0, 0);
