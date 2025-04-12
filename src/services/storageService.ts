@@ -50,25 +50,42 @@ export const initializeStorageBuckets = async () => {
 // Upload a file to the resources bucket
 export const uploadToResourcesBucket = async (file: File, filePath: string) => {
   try {
+    console.log("Starting file upload process...");
+    
     // First ensure the bucket exists
     await initializeStorageBuckets();
+    
+    // Use the file's content type for upload
+    const options = {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type // Set the correct content type
+    };
+    
+    console.log(`Uploading file "${filePath}" to recursos bucket with content type: ${file.type}`);
     
     // Upload the file to the "recursos" bucket (user created)
     const { data, error } = await supabase.storage
       .from('recursos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false
-      });
+      .upload(filePath, file, options);
     
     if (error) {
-      throw error;
+      console.error("Error in file upload:", error);
+      throw { 
+        statusCode: error.statusCode || "403", 
+        error: error.name || "Unauthorized", 
+        message: error.message || "Error uploading file" 
+      };
     }
+    
+    console.log("File uploaded successfully:", data);
     
     // Get the public URL
     const { data: publicUrlData } = supabase.storage
       .from('recursos')
       .getPublicUrl(filePath);
+    
+    console.log("Generated public URL:", publicUrlData.publicUrl);
     
     return publicUrlData.publicUrl;
   } catch (error) {

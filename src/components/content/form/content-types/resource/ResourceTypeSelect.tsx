@@ -22,20 +22,20 @@ export const ResourceTypeSelect = ({ field }: ResourceTypeSelectProps) => {
         defaultValue={field.value}
       >
         <FormControl>
-          <SelectTrigger className="border-club-beige-dark focus:border-club-orange">
+          <SelectTrigger className="border-club-beige-dark focus:border-club-orange bg-white">
             <SelectValue placeholder="Selecciona el tipo de recurso" />
           </SelectTrigger>
         </FormControl>
-        <SelectContent>
-          <SelectItem value="template">Template</SelectItem>
-          <SelectItem value="tool">Herramienta</SelectItem>
-          <SelectItem value="book">Libro</SelectItem>
-          <SelectItem value="course">Curso</SelectItem>
-          <SelectItem value="software">Software</SelectItem>
-          <SelectItem value="document">Documento</SelectItem>
-          <SelectItem value="presentation">Presentación</SelectItem>
-          <SelectItem value="spreadsheet">Hoja de cálculo</SelectItem>
-          <SelectItem value="other">Otro</SelectItem>
+        <SelectContent className="bg-white border-club-beige-dark shadow-lg z-50">
+          <SelectItem value="template" className="hover:bg-club-beige/20">Template</SelectItem>
+          <SelectItem value="tool" className="hover:bg-club-beige/20">Herramienta</SelectItem>
+          <SelectItem value="book" className="hover:bg-club-beige/20">Libro</SelectItem>
+          <SelectItem value="course" className="hover:bg-club-beige/20">Curso</SelectItem>
+          <SelectItem value="software" className="hover:bg-club-beige/20">Software</SelectItem>
+          <SelectItem value="document" className="hover:bg-club-beige/20">Documento</SelectItem>
+          <SelectItem value="presentation" className="hover:bg-club-beige/20">Presentación</SelectItem>
+          <SelectItem value="spreadsheet" className="hover:bg-club-beige/20">Hoja de cálculo</SelectItem>
+          <SelectItem value="other" className="hover:bg-club-beige/20">Otro</SelectItem>
         </SelectContent>
       </Select>
       <FormMessage />

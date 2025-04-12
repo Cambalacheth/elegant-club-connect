@@ -46,7 +46,7 @@ export const ContentForm = ({
     downloadUrl: initialData?.downloadUrl || "",
     resourceType: initialData?.resourceType || "tool",
     price: initialData?.price || "free",
-    published: initialData?.published ?? false,
+    published: initialData?.published ?? (contentType === 'resource' ? true : false), // Default resources to published
     type: contentType,
     author_id: userId
   };

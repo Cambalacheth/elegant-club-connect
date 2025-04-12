@@ -6,12 +6,18 @@ import { ResourceDescription } from "./ResourceDescription";
 import { ResourceFileUpload } from "./ResourceFileUpload";
 import { ResourceSource } from "./ResourceSource";
 import { ResourcePriceSelect } from "./ResourcePriceSelect";
+import { useEffect } from "react";
 
 interface ResourceFieldsProps {
   form: UseFormReturn<any>;
 }
 
 export const ResourceFields = ({ form }: ResourceFieldsProps) => {
+  // Set published to true by default for resources
+  useEffect(() => {
+    form.setValue('published', true);
+  }, [form]);
+
   return (
     <div className="space-y-4">
       <FormField

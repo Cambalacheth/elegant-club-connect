@@ -22,14 +22,14 @@ export const ResourcePriceSelect = ({ field }: ResourcePriceSelectProps) => {
         defaultValue={field.value}
       >
         <FormControl>
-          <SelectTrigger className="border-club-beige-dark focus:border-club-orange">
-            <SelectValue placeholder="Selecciona el tipo de precio" />
+          <SelectTrigger className="border-club-beige-dark focus:border-club-orange bg-white">
+            <SelectValue placeholder="Selecciona una opción de precio" />
           </SelectTrigger>
         </FormControl>
-        <SelectContent>
-          <SelectItem value="free">Gratuito</SelectItem>
-          <SelectItem value="freemium">Freemium</SelectItem>
-          <SelectItem value="paid">De pago</SelectItem>
+        <SelectContent className="bg-white border-club-beige-dark shadow-lg z-50">
+          <SelectItem value="free" className="hover:bg-club-beige/20">Gratis</SelectItem>
+          <SelectItem value="freemium" className="hover:bg-club-beige/20">Freemium</SelectItem>
+          <SelectItem value="paid" className="hover:bg-club-beige/20">De pago</SelectItem>
         </SelectContent>
       </Select>
       <FormMessage />

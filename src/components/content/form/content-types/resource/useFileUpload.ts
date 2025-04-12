@@ -41,8 +41,11 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       setUploadStatus('Subiendo archivo...');
       
       // Create safe filename by removing spaces and special characters
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `${Date.now()}-${safeFileName}`;
+      const fileExt = file.name.split('.').pop() || '';
+      const baseName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9]/g, '_');
+      const fileName = `${Date.now()}-${baseName}.${fileExt}`;
+      
+      console.log("Preparing to upload file:", fileName);
       
       // Import and use the uploadToResourcesBucket function
       const { uploadToResourcesBucket } = await import('@/services/storageService');
@@ -50,11 +53,12 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       
       // Set form values
       form.setValue('resourceUrl', publicUrl);
+      form.setValue('published', true); // Ensure it's published
       setUploadStatus('Archivo subido con éxito: ' + file.name);
       
     } catch (error: any) {
       console.error('Error uploading file:', error);
-      setUploadStatus(`Error al subir el archivo: ${error.message}`);
+      setUploadStatus(`Error al subir el archivo: ${error.message || 'Error desconocido'}`);
     } finally {
       setIsUploading(false);
     }
