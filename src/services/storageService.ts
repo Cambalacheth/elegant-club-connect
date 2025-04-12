@@ -103,36 +103,34 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
     console.log(`Uploading file "${filePath}" to recursos bucket with content type: ${file.type}`);
     
     // Upload the file to the "recursos" bucket
-    const { data, error } = await supabase.storage
+    let uploadResult = await supabase.storage
       .from('recursos')
       .upload(filePath, file, options);
     
-    if (error) {
-      console.error("Error in file upload:", error);
+    if (uploadResult.error) {
+      console.error("Error in file upload:", uploadResult.error);
       
       // If we get a permissions error, try to create the policies again
-      if (error.message?.includes("permission") || error.message?.includes("security policy")) {
+      if (uploadResult.error.message?.includes("permission") || uploadResult.error.message?.includes("security policy")) {
         console.log("Permission error, trying to fix by creating policies...");
         await createBucketPolicies('recursos');
         
         // Try the upload again after creating policies
         console.log("Retrying upload after creating policies...");
-        const retryResult = await supabase.storage
+        uploadResult = await supabase.storage
           .from('recursos')
           .upload(filePath, file, options);
           
-        if (retryResult.error) {
-          console.error("Retry upload failed:", retryResult.error);
-          throw { message: retryResult.error.message || "Error uploading file even after policy fix" };
+        if (uploadResult.error) {
+          console.error("Retry upload failed:", uploadResult.error);
+          throw { message: uploadResult.error.message || "Error uploading file even after policy fix" };
         }
-        
-        data = retryResult.data;
       } else {
-        throw { message: error.message || "Error uploading file" };
+        throw { message: uploadResult.error.message || "Error uploading file" };
       }
     }
     
-    console.log("File uploaded successfully:", data);
+    console.log("File uploaded successfully:", uploadResult.data);
     
     // Get the public URL
     const { data: publicUrlData } = supabase.storage
