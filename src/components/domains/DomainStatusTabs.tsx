@@ -12,7 +12,7 @@ interface DomainStatusTabsProps {
     available: Domain[];
     used: Domain[];
     reserved: Domain[];
-  };
+  } | undefined;
   filteredDomains: Domain[];
   loading: boolean;
   error: string | null;
@@ -46,6 +46,8 @@ const DomainStatusTabs = ({
 }: DomainStatusTabsProps) => {
 
   const getDomainCountText = (status: string) => {
+    if (!domainsByStatus) return "(0)";
+    
     const count = domainsByStatus[status as keyof typeof domainsByStatus]?.length || 0;
     
     if (status === 'all') {

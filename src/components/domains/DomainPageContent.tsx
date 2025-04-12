@@ -1,3 +1,4 @@
+
 import React, { useMemo } from "react";
 import { Domain } from "@/hooks/useDomains";
 import DomainConcept from "@/components/domains/DomainConcept";
@@ -42,23 +43,23 @@ interface DomainPageContentProps {
 }
 
 const DomainPageContent: React.FC<DomainPageContentProps> = ({
-  loading,
-  error,
-  isOffline,
-  currentLanguage,
-  searchQuery,
-  setSearchQuery,
-  activeTab,
-  setActiveTab,
-  domainsByStatus,
-  filteredDomains,
-  handleDomainAction,
-  getStatusColor,
-  currentPage,
-  totalPages,
-  handlePageChange,
-  isVerticalPage,
-  getVerticalName,
+  loading = false,
+  error = null,
+  isOffline = false,
+  currentLanguage = "es",
+  searchQuery = "",
+  setSearchQuery = () => {},
+  activeTab = "all",
+  setActiveTab = () => {},
+  domainsByStatus = { all: [], available: [], used: [], reserved: [] },
+  filteredDomains = [],
+  handleDomainAction = () => {},
+  getStatusColor = () => "",
+  currentPage = 1,
+  totalPages = 1,
+  handlePageChange = () => {},
+  isVerticalPage = false,
+  getVerticalName = () => "",
   domainPath,
   isVerticalDomain
 }) => {
