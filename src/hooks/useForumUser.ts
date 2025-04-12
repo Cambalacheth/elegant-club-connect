@@ -59,6 +59,8 @@ export const useForumUser = () => {
         return;
       }
 
+      console.log("User profile data:", data);
+      
       // Handle the number to UserLevel conversion safely
       const numericLevel = data?.level_numeric !== undefined ? 
         Number(data.level_numeric) : 1;
@@ -69,6 +71,8 @@ export const useForumUser = () => {
       
       setUserLevel(safeLevel);
       setUserExperience(Number(data?.experience || 0));
+      
+      console.log("Set user level to:", safeLevel, "and experience to:", data?.experience);
     } catch (error) {
       console.error("Error fetching user profile:", error);
       setUserLevel(1);

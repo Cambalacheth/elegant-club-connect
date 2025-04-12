@@ -46,7 +46,7 @@ export const useNavbarState = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("level_numeric")
+        .select("level_numeric, experience")
         .eq("id", userId)
         .single();
 
@@ -63,7 +63,7 @@ export const useNavbarState = () => {
       const derivedRole = levelToRole(safeLevel);
       setUserRole(derivedRole);
       
-      console.log("User level:", numericLevel, "User role:", derivedRole);
+      console.log("User level:", numericLevel, "User role:", derivedRole, "Experience:", data?.experience);
     } catch (error) {
       console.error("Error fetching user role:", error);
       setUserRole("registered");

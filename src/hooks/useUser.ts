@@ -8,7 +8,9 @@ export const useUser = () => {
   const { user, userLevel, userExperience, levelInfo, isLoading } = useForumUser();
   
   // Map the new level system to the old role system for backward compatibility
-  const userRole = levelToRole(userLevel);
+  const userRole = user ? levelToRole(userLevel) : "registered";
+  
+  console.log("useUser hook:", { user, userLevel, userRole });
 
   return { 
     user, 

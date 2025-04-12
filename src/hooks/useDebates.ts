@@ -29,6 +29,7 @@ export const useDebates = (selectedCategory: string | null) => {
           throw dbError;
         }
 
+        console.log("Fetched debates:", data);
         setDebates(data as Debate[]);
         setIsLoading(false);
       } catch (err) {
@@ -44,6 +45,8 @@ export const useDebates = (selectedCategory: string | null) => {
   // Handle debate creation
   const handleCreateDebate = async (title: string, content: string, category: string, userId: string) => {
     try {
+      console.log("Creating debate:", { title, content, category, userId });
+      
       const { data, error } = await supabase
         .from("debates")
         .insert([
@@ -57,6 +60,7 @@ export const useDebates = (selectedCategory: string | null) => {
         .select();
 
       if (error) {
+        console.error("Error in insert operation:", error);
         toast({
           title: "Error",
           description: "No se pudo crear el debate: " + error.message,
@@ -64,6 +68,8 @@ export const useDebates = (selectedCategory: string | null) => {
         });
         return false;
       }
+
+      console.log("Debate inserted, returned data:", data);
 
       // Fetch the newly created debate with author info
       const { data: newDebateWithAuthor, error: fetchError } = await supabase
@@ -75,15 +81,20 @@ export const useDebates = (selectedCategory: string | null) => {
       if (fetchError) {
         console.error("Error fetching new debate:", fetchError);
       } else {
+        console.log("Fetched new debate with author:", newDebateWithAuthor);
         setDebates([newDebateWithAuthor as Debate, ...debates]);
       }
       
       // Add experience points for creating debate (50 XP)
-      await supabase.rpc('add_user_xp', { 
+      const { error: xpError } = await supabase.rpc('add_user_xp', { 
         _user_id: userId,
         _action_name: 'create_debate',
         _custom_description: `Creación de debate: ${title}`
       });
+      
+      if (xpError) {
+        console.error("Error adding XP:", xpError);
+      }
 
       toast({
         title: "Debate creado",
@@ -105,6 +116,8 @@ export const useDebates = (selectedCategory: string | null) => {
   // Handle vote
   const handleVote = async (debateId: string, voteType: "up" | "down", userId: string) => {
     try {
+      console.log("Voting on debate:", { debateId, voteType, userId });
+      
       // Insert vote into votes table
       const { error } = await supabase
         .from("votes")
@@ -149,11 +162,15 @@ export const useDebates = (selectedCategory: string | null) => {
       }));
 
       // Add experience points for voting (5 XP)
-      await supabase.rpc('add_user_xp', { 
+      const { error: xpError } = await supabase.rpc('add_user_xp', { 
         _user_id: userId,
         _action_name: 'vote_forum',
         _custom_description: `Voto en debate`
       });
+      
+      if (xpError) {
+        console.error("Error adding XP:", xpError);
+      }
 
       toast({
         title: "Voto registrado",
@@ -172,12 +189,15 @@ export const useDebates = (selectedCategory: string | null) => {
   // Handle debate deletion
   const handleDeleteDebate = async (debateId: string) => {
     try {
+      console.log("Deleting debate:", debateId);
+      
       const { error } = await supabase
         .from("debates")
         .delete()
         .eq("id", debateId);
 
       if (error) {
+        console.error("Error deleting debate:", error);
         toast({
           title: "Error",
           description: "No se pudo eliminar el debate: " + error.message,
