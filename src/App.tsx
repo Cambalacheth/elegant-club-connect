@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -92,23 +91,12 @@ function App() {
               <Route path="/comunidad" element={<VerticalPage />} />
               <Route path="/tech" element={<VerticalPage />} />
               
-              {/* Vertical domain routes for deeper paths */}
-              <Route path="/legal/*" element={<VerticalDomainPage />} />
-              <Route path="/arte/*" element={<VerticalDomainPage />} />
-              <Route path="/negocios/*" element={<VerticalDomainPage />} />
-              <Route path="/salud/*" element={<VerticalDomainPage />} />
-              <Route path="/comunidad/*" element={<VerticalDomainPage />} />
-              <Route path="/tech/*" element={<VerticalDomainPage />} />
+              {/* Generic route for any domain that might be tagged with hashtag */}
+              <Route path="/:domainName" element={<DomainPage />} />
               
-              {/* Domain-specific forum route redirects */}
-              <Route path="/dominio/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/dominio/foro/:id" element={<Navigate replace to="/forum/:id" />} />
-              <Route path="/legal/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/arte/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/negocios/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/salud/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/comunidad/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/tech/foro" element={<Navigate replace to="/forum" />} />
+              {/* Only keep the forum redirects for backward compatibility */}
+              <Route path="/*/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/*/foro/:id" element={<Navigate replace to="/forum/:id" />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

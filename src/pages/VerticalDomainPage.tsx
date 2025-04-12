@@ -28,7 +28,7 @@ const VerticalDomainPage = () => {
         description: `La ruta ${path} no es una vertical válida.`,
         variant: "destructive"
       });
-      navigate("/dominio", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [verticalPath, navigate]);
   

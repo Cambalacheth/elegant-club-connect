@@ -37,9 +37,9 @@ const RichTextDisplay: React.FC<RichTextDisplayProps> = ({ content, className })
     // Process numbered lists
     processed = processed.replace(/^\d+\.\s(.*?)$/gm, '<li>$1</li>');
     
-    // Process Terreta domain references (#domain)
+    // Process Terreta domain references (#domain) - FIXED to route directly to base path
     processed = processed.replace(/#([a-zA-Z0-9_-]+)/g, 
-      '<a href="/dominios/$1" class="text-club-terracotta font-medium hover:underline">#$1</a>');
+      '<a href="/$1" class="text-club-terracotta font-medium hover:underline">#$1</a>');
     
     return processed;
   };
