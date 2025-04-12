@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentItem, ContentType } from "@/types/content";
+import { ContentItem, ContentType, DifficultyLevel } from "@/types/content";
 import Navbar from "@/components/Navbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -65,7 +65,7 @@ const ContentDetail = () => {
           price: data.price || undefined,
           
           // Guide fields
-          difficulty: data.difficulty || undefined,
+          difficulty: data.difficulty as DifficultyLevel || undefined,
           downloadUrl: data.download_url || undefined,
           
           // Common fields

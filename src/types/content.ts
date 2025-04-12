@@ -1,5 +1,6 @@
 
 export type ContentType = 'article' | 'video' | 'guide' | 'resource';
+export type DifficultyLevel = 'basic' | 'intermediate' | 'advanced' | string;
 
 export interface ContentItem {
   id: string;
@@ -22,7 +23,7 @@ export interface ContentItem {
   duration?: string; // Video duration
   
   // Guide specific fields
-  difficulty?: 'basic' | 'intermediate' | 'advanced';
+  difficulty?: DifficultyLevel;
   downloadUrl?: string;
   
   // Resource specific fields
