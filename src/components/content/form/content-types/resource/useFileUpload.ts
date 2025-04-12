@@ -146,7 +146,7 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       toast({
         title: "Archivo subido con éxito",
         description: file.name,
-        variant: "success",
+        variant: "default",
       });
       
       // Reset retry count on success

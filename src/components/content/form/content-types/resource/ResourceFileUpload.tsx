@@ -84,7 +84,7 @@ export const ResourceFileUpload = ({ field, form }: ResourceFileUploadProps) => 
         </div>
         
         {showRetryTips && (
-          <Alert variant="warning" className="bg-amber-50 border-amber-200">
+          <Alert className="bg-amber-50 border-amber-200">
             <AlertDescription className="text-sm text-amber-800">
               <p className="font-medium">Consejos para resolver problemas de carga:</p>
               <ul className="list-disc pl-5 mt-1 space-y-1">
