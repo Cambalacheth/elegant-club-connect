@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { createSafeFilename, determineResourceType } from "@/utils/fileUtils";
-import { uploadWithRetry } from "@/utils/uploadUtils";
+import { uploadToResourcesBucket } from "@/services/storageService";
 import { useFileValidation } from "./hooks/useFileValidation";
 import { useUploadStatus } from "./hooks/useUploadStatus";
 import { useStorageInitializer } from "./hooks/useStorageInitializer";
@@ -43,14 +42,13 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       
       // Create safe filename
       const fileName = createSafeFilename(file.name);
-      console.log("Preparando subida de archivo:", fileName);
+      console.log("Preparing file upload:", fileName);
       
-      // Import storage service and initialize buckets
-      const { uploadToResourcesBucket } = await import('@/services/storageService');
+      // Initialize bucket first
       await initializeStorage();
       
-      // Upload file with retry logic
-      const publicUrl = await uploadWithRetry(uploadToResourcesBucket, file, fileName);
+      // Upload file using our service
+      const publicUrl = await uploadToResourcesBucket(file, fileName);
       
       // Set form values
       form.setValue('resourceUrl', publicUrl);

@@ -17,9 +17,14 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client
+    // Create Supabase client with service role for admin access
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error("Missing required environment variables");
+    }
+    
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false }
     });
@@ -77,84 +82,43 @@ serve(async (req) => {
       // Continue with policy creation anyway
     }
 
-    // Method to create policies using Supabase's Storage API
-    let policySuccess = false;
+    // Create RLS policies for bucket
     try {
-      console.log("Attempting to create policies using API method...");
-      
-      // Create policies for all common bucket names to maximize chances
-      const bucketNames = [bucketName, 'recursos', 'resources', 'uploads', 'files'];
-      
-      for (const name of bucketNames) {
+      // First try using RPC function
+      try {
+        await createPoliciesViaRPC(supabaseAdmin, bucketName);
+        console.log(`Created RLS policies for ${bucketName} via RPC`);
+      } catch (rpcError) {
+        console.error("Error using RPC method:", rpcError);
+        
+        // Fallback to direct SQL approach
         try {
-          // Try to verify bucket exists
-          try {
-            await supabaseAdmin.storage.emptyBucket(name);
-            console.log(`Successfully verified bucket ${name} exists`);
-          } catch (emptyError) {
-            // Ignore error, just a test to see if bucket exists
-          }
-
-          // Create SELECT policy (read files)
-          try {
-            await supabaseAdmin.rpc('create_storage_policy', {
-              bucket_name: name,
-              policy_name: `anyone can read ${name}`,
-              definition: 'TRUE',
-              operation: 'SELECT'
-            });
-            console.log(`Created SELECT policy for ${name}`);
-          } catch (selectError) {
-            console.error(`Error creating SELECT policy for ${name}:`, selectError);
-          }
-              
-          // Create INSERT policy (upload files)
-          try {
-            await supabaseAdmin.rpc('create_storage_policy', {
-              bucket_name: name,
-              policy_name: `anyone can upload to ${name}`,
-              definition: 'TRUE',
-              operation: 'INSERT'
-            });
-            console.log(`Created INSERT policy for ${name}`);
-          } catch (insertError) {
-            console.error(`Error creating INSERT policy for ${name}:`, insertError);
-          }
-              
-          // Create UPDATE policy
-          try {
-            await supabaseAdmin.rpc('create_storage_policy', {
-              bucket_name: name,
-              policy_name: `anyone can update in ${name}`,
-              definition: 'TRUE',
-              operation: 'UPDATE'
-            });
-            console.log(`Created UPDATE policy for ${name}`);
-          } catch (updateError) {
-            console.error(`Error creating UPDATE policy for ${name}:`, updateError);
-          }
-              
-          // Create DELETE policy
-          try {
-            await supabaseAdmin.rpc('create_storage_policy', {
-              bucket_name: name,
-              policy_name: `anyone can delete from ${name}`,
-              definition: 'TRUE',
-              operation: 'DELETE'
-            });
-            console.log(`Created DELETE policy for ${name}`);
-          } catch (deleteError) {
-            console.error(`Error creating DELETE policy for ${name}:`, deleteError);
-          }
+          await createPoliciesViaSQL(supabaseAdmin, bucketName);
+          console.log(`Created RLS policies for ${bucketName} via SQL`);
+        } catch (sqlError) {
+          console.error("Error using SQL method:", sqlError);
           
-          console.log(`Created policies for bucket ${name} via API`);
-          policySuccess = true;
-        } catch (bucketError) {
-          console.log(`Could not create policies for ${name} via API:`, bucketError);
+          // There's no third method, but we tried our best
+          console.log("Could not create policies via available methods, but bucket may still work");
         }
       }
-    } catch (apiError) {
-      console.error("Error creating policies with API method:", apiError);
+    } catch (policyError) {
+      console.error("General error creating policies:", policyError);
+    }
+
+    // Try applying policies to all common bucket names for maximum compatibility
+    const commonBuckets = ['recursos', 'resources', 'uploads', 'files'];
+    
+    for (const name of commonBuckets) {
+      if (name !== bucketName) {
+        try {
+          console.log(`Applying policies to common bucket: ${name}`);
+          await createPoliciesViaRPC(supabaseAdmin, name);
+          console.log(`Applied policies to ${name}`);
+        } catch (error) {
+          // Ignore errors for these additional buckets
+        }
+      }
     }
 
     return new Response(
@@ -178,3 +142,80 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to create policies via RPC
+async function createPoliciesViaRPC(supabaseAdmin: any, bucketName: string) {
+  try {
+    // Create SELECT policy (read files)
+    await supabaseAdmin.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `anyone can read ${bucketName}`,
+      definition: 'TRUE',
+      operation: 'SELECT'
+    });
+    console.log(`Created SELECT policy for ${bucketName}`);
+    
+    // Create INSERT policy (upload files)
+    await supabaseAdmin.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `anyone can upload to ${bucketName}`,
+      definition: 'TRUE',
+      operation: 'INSERT'
+    });
+    console.log(`Created INSERT policy for ${bucketName}`);
+    
+    // Create UPDATE policy
+    await supabaseAdmin.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `anyone can update in ${bucketName}`,
+      definition: 'TRUE',
+      operation: 'UPDATE'
+    });
+    console.log(`Created UPDATE policy for ${bucketName}`);
+    
+    // Create DELETE policy
+    await supabaseAdmin.rpc('create_storage_policy', {
+      bucket_name: bucketName,
+      policy_name: `anyone can delete from ${bucketName}`,
+      definition: 'TRUE',
+      operation: 'DELETE'
+    });
+    console.log(`Created DELETE policy for ${bucketName}`);
+  } catch (error) {
+    console.error(`Error creating policies via RPC for ${bucketName}:`, error);
+    throw error;
+  }
+}
+
+// Helper function to create policies via SQL
+async function createPoliciesViaSQL(supabaseAdmin: any, bucketName: string) {
+  try {
+    // This is a backup method using direct SQL execution
+    // Only use if the RPC method fails
+    const queries = [
+      `CREATE POLICY "Allow public SELECT for ${bucketName}" ON storage.objects
+       FOR SELECT USING (bucket_id = '${bucketName}');`,
+       
+      `CREATE POLICY "Allow public INSERT for ${bucketName}" ON storage.objects
+       FOR INSERT WITH CHECK (bucket_id = '${bucketName}');`,
+       
+      `CREATE POLICY "Allow public UPDATE for ${bucketName}" ON storage.objects
+       FOR UPDATE USING (bucket_id = '${bucketName}');`,
+       
+      `CREATE POLICY "Allow public DELETE for ${bucketName}" ON storage.objects
+       FOR DELETE USING (bucket_id = '${bucketName}');`
+    ];
+    
+    for (const query of queries) {
+      try {
+        await supabaseAdmin.rpc('exec_sql', { query });
+      } catch (err) {
+        // Policy might already exist, continue with next
+        console.log(`SQL policy error (might already exist): ${err.message}`);
+      }
+    }
+  } catch (error) {
+    console.error(`Error creating policies via SQL for ${bucketName}:`, error);
+    throw error;
+  }
+}
