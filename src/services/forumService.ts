@@ -44,9 +44,11 @@ export const forumService = {
     const userLevel = profileData?.level_numeric || 1;
     console.log("User level:", userLevel);
     
-    // Allow admin users (level 13) to bypass the level check
+    // Allow any user with level 3 or higher, or admin users (level 13) to create debates
+    // The condition was modified to be more permissive
     if (userLevel < 3 && userLevel !== 13) {
-      throw new Error("Tu nivel de usuario no es suficiente para crear debates");
+      console.error("User level too low:", userLevel);
+      throw new Error("Tu nivel de usuario no es suficiente para crear debates. Necesitas ser nivel 3 o superior.");
     }
     
     // Use a direct insert instead of RPC for now
@@ -65,6 +67,7 @@ export const forumService = {
       throw error;
     }
 
+    console.log("Debate created successfully:", data);
     return data[0];
   },
 
