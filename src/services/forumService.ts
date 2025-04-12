@@ -51,7 +51,7 @@ export const forumService = {
         throw new Error("Tu nivel de usuario no es suficiente para crear debates. Necesitas ser nivel 3 o superior.");
       }
       
-      // Use a direct insert instead of RPC for now
+      // Directly insert into the debates table
       const { data, error } = await supabase
         .from("debates")
         .insert([{ 
@@ -64,18 +64,14 @@ export const forumService = {
 
       if (error) {
         console.error("Error creating debate:", error);
-        // Add more detailed error information
-        if (error.code === "42501") {
-          throw new Error("Error de permisos: No tienes permiso para crear debates. Contacta al administrador.");
-        }
-        throw error;
+        throw new Error(`Error al crear el debate: ${error.message || "Error desconocido"}`);
       }
 
       if (!data || data.length === 0) {
         throw new Error("No se pudo crear el debate. No se recibió confirmación del servidor.");
       }
 
-      console.log("Debate created successfully:", data);
+      console.log("Debate created successfully:", data[0]);
       return data[0];
     } catch (error: any) {
       console.error("Error in createDebate:", error);

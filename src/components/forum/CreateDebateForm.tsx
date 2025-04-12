@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { UserRole, canCreateForum } from "@/types/user";
 import RichTextEditor from "./RichTextEditor";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface CreateDebateFormProps {
   userRole: UserRole;
@@ -19,6 +21,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("General");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const categories = ["General", "Legal", "Tecnología", "Finanzas", "Salud", "Audiovisual", "Eventos"];
 
@@ -28,6 +31,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!userId) {
       toast({
@@ -39,6 +43,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
     }
 
     if (!canCreate) {
+      setError("Necesitas ser nivel 3 o superior para crear debates");
       toast({
         title: "Acceso denegado",
         description: "Necesitas ser nivel 3 o superior para crear debates",
@@ -48,6 +53,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
     }
 
     if (!title.trim()) {
+      setError("Por favor, ingresa un título para el debate");
       toast({
         title: "Título requerido",
         description: "Por favor, ingresa un título para el debate",
@@ -57,6 +63,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
     }
 
     if (!content.trim()) {
+      setError("Por favor, ingresa el contenido del debate");
       toast({
         title: "Contenido requerido",
         description: "Por favor, ingresa el contenido del debate",
@@ -76,14 +83,11 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
       setTitle("");
       setContent("");
       setCategory("General");
-      
-      toast({
-        title: "Debate creado",
-        description: "Tu debate ha sido publicado con éxito",
-      });
+      setError(null);
       
     } catch (error: any) {
       console.error("Error creating debate:", error);
+      setError(error.message || "No se pudo crear el debate");
       toast({
         title: "Error",
         description: error.message || "No se pudo crear el debate",
@@ -102,6 +106,14 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md mb-4">
           Necesitas ser nivel 3 o superior para crear debates. Continúa participando para subir de nivel.
         </div>
+      )}
+      
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
       
       <form onSubmit={handleSubmit}>

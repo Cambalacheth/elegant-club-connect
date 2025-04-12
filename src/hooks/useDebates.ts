@@ -48,24 +48,14 @@ export const useDebates = (selectedCategory: string | null) => {
       const newDebate = await forumService.createDebate(title, content, category, userId);
       console.log("Debate created:", newDebate);
       
-      // Make sure newDebate is valid before proceeding
-      if (!newDebate || typeof newDebate === 'number' || typeof newDebate === 'boolean') {
-        // Use the fetchDebates function to refresh the list as a fallback
-        const refreshedData = await forumService.fetchDebates(selectedCategory);
-        setDebates(refreshedData);
-        
-        toast({
-          title: "Estado incierto",
-          description: "No se pudo confirmar si el debate fue creado. La lista ha sido actualizada.",
-          variant: "destructive",
-        });
-        return false;
+      if (!newDebate || !newDebate.id) {
+        throw new Error("No se pudo crear el debate. Respuesta inválida del servidor.");
       }
 
-      // Fetch the complete debate with author info
+      // Fetch the complete debate with author info to ensure we have all the necessary data
       const completeDebate = await forumService.fetchNewDebate(newDebate.id);
       
-      // Update local state
+      // Update local state by adding the new debate to the beginning of the array
       setDebates(prevDebates => [completeDebate, ...prevDebates]);
       
       // Add experience points
@@ -81,27 +71,13 @@ export const useDebates = (selectedCategory: string | null) => {
       console.error("Error creating debate:", err);
       
       // More specific error handling messages
-      if (err.message?.includes("violates row-level security policy")) {
-        toast({
-          title: "Error de permisos",
-          description: "Hay un problema con los permisos en la base de datos. Por favor contacta al administrador del sistema.",
-          variant: "destructive",
-        });
-      } else if (err.message?.includes("Tu nivel de usuario no es suficiente")) {
-        toast({
-          title: "Nivel insuficiente",
-          description: err.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "No se pudo crear el debate: " + (err.message || "Error desconocido"),
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Error",
+        description: err.message || "No se pudo crear el debate",
+        variant: "destructive",
+      });
       
-      // Refresh debates as a fallback to ensure UI is in sync with DB
+      // Refresh debates to ensure UI is in sync with DB
       try {
         const refreshedData = await forumService.fetchDebates(selectedCategory);
         setDebates(refreshedData);
