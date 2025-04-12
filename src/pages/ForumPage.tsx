@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import ForumSidebar from "@/components/forum/ForumSidebar";
 import DebateList from "@/components/forum/DebateList";
@@ -22,7 +22,11 @@ const ForumPage = () => {
 
   const categories = ["General", "Legal", "Tecnología", "Finanzas", "Salud", "Audiovisual", "Eventos"];
 
-  // Handle debate creation
+  useEffect(() => {
+    console.log("ForumPage render - debates:", debates.length, "userRole:", userRole);
+  }, [debates, userRole]);
+
+  // Handle debate creation with additional logging and error handling
   const onCreateDebate = async (title: string, content: string, category: string) => {
     if (!user) {
       toast({
@@ -33,8 +37,23 @@ const ForumPage = () => {
       return;
     }
     
-    // Call handleCreateDebate, but ignore the return value to match Promise<void>
-    await handleCreateDebate(title, content, category, user.id);
+    console.log("Creating debate with user:", user.id, "Role:", userRole);
+    
+    try {
+      const success = await handleCreateDebate(title, content, category, user.id);
+      if (success) {
+        console.log("Debate created successfully");
+      } else {
+        console.error("Failed to create debate");
+      }
+    } catch (error) {
+      console.error("Error in onCreateDebate:", error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al crear el debate",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle vote

@@ -22,6 +22,10 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
 
   const categories = ["General", "Legal", "Tecnología", "Finanzas", "Salud", "Audiovisual", "Eventos"];
 
+  const canCreate = canCreateForum(userRole);
+
+  console.log("CreateDebateForm - userRole:", userRole, "canCreateForum:", canCreate);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -34,7 +38,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
       return;
     }
 
-    if (!canCreateForum(userRole)) {
+    if (!canCreate) {
       toast({
         title: "Acceso denegado",
         description: "Necesitas ser nivel 4 o superior para crear debates",
@@ -63,14 +67,16 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
 
     try {
       setIsSubmitting(true);
+      
+      console.log("Submitting debate - title:", title, "category:", category, "userId:", userId, "userRole:", userRole);
+      
       await onSubmit(title, content, category);
+      
+      // Clear form fields on successful submission
       setTitle("");
       setContent("");
       setCategory("General");
-      toast({
-        title: "Debate creado",
-        description: "Tu debate ha sido publicado con éxito",
-      });
+      
     } catch (error) {
       console.error("Error creating debate:", error);
       toast({
@@ -87,7 +93,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
     <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
       <h2 className="text-xl font-semibold text-club-brown mb-4">Crear nuevo debate</h2>
       
-      {!canCreateForum(userRole) && (
+      {!canCreate && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md mb-4">
           Necesitas ser nivel 4 o superior para crear debates. Continúa participando para subir de nivel.
         </div>
@@ -103,7 +109,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Escribe un título para tu debate"
-            disabled={!canCreateForum(userRole) || isSubmitting}
+            disabled={!canCreate || isSubmitting}
             maxLength={100}
           />
         </div>
@@ -115,7 +121,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
           <Select 
             value={category} 
             onValueChange={setCategory}
-            disabled={!canCreateContent(userRole) || isSubmitting}
+            disabled={!canCreate || isSubmitting}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecciona una categoría" />
@@ -139,7 +145,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
             onChange={setContent}
             placeholder="Escribe el contenido de tu debate. Puedes usar formato de texto."
             rows={5}
-            disabled={!canCreateContent(userRole) || isSubmitting}
+            disabled={!canCreate || isSubmitting}
             maxLength={5000}
           />
           <p className="text-xs text-gray-500 mt-1">
@@ -149,7 +155,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
         
         <Button 
           type="submit" 
-          disabled={!canCreateForum(userRole) || isSubmitting}
+          disabled={!canCreate || isSubmitting}
           className="w-full bg-club-orange hover:bg-club-terracotta text-white"
         >
           {isSubmitting ? "Publicando..." : "Publicar debate"}

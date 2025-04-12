@@ -47,6 +47,17 @@ export const useDebates = (selectedCategory: string | null) => {
     try {
       console.log("Creating debate:", { title, content, category, userId });
       
+      // First, validate inputs
+      if (!title.trim() || !content.trim() || !category || !userId) {
+        toast({
+          title: "Datos incompletos",
+          description: "Por favor completa todos los campos requeridos",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Insert the debate
       const { data, error } = await supabase
         .from("debates")
         .insert([
@@ -71,6 +82,30 @@ export const useDebates = (selectedCategory: string | null) => {
 
       console.log("Debate inserted, returned data:", data);
 
+      if (!data || data.length === 0) {
+        console.error("No data returned after insert");
+        toast({
+          title: "Error",
+          description: "Se creó el debate pero no se pudo obtener la información",
+          variant: "destructive",
+        });
+        // Refresh the list to ensure the new debate appears
+        const query = supabase
+          .from("debates_with_authors")
+          .select("*")
+          .order("created_at", { ascending: false });
+          
+        if (selectedCategory) {
+          query.eq("category", selectedCategory);
+        }
+        
+        const { data: refreshedData } = await query;
+        if (refreshedData) {
+          setDebates(refreshedData as Debate[]);
+        }
+        return true;
+      }
+
       // Fetch the newly created debate with author info
       const { data: newDebateWithAuthor, error: fetchError } = await supabase
         .from("debates_with_authors")
@@ -80,8 +115,23 @@ export const useDebates = (selectedCategory: string | null) => {
 
       if (fetchError) {
         console.error("Error fetching new debate:", fetchError);
+        // Refresh the list to ensure the new debate appears
+        const query = supabase
+          .from("debates_with_authors")
+          .select("*")
+          .order("created_at", { ascending: false });
+          
+        if (selectedCategory) {
+          query.eq("category", selectedCategory);
+        }
+        
+        const { data: refreshedData } = await query;
+        if (refreshedData) {
+          setDebates(refreshedData as Debate[]);
+        }
       } else {
         console.log("Fetched new debate with author:", newDebateWithAuthor);
+        // Update local state with the new debate
         setDebates([newDebateWithAuthor as Debate, ...debates]);
       }
       

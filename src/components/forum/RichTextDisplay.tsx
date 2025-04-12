@@ -11,6 +11,8 @@ interface RichTextDisplayProps {
 const RichTextDisplay: React.FC<RichTextDisplayProps> = ({ content, className }) => {
   // Process Markdown-like content
   const processContent = (text: string) => {
+    if (!text) return '';
+    
     let processed = text;
     
     // Convert line breaks to <br>
