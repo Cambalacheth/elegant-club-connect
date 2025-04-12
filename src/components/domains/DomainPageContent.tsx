@@ -1,4 +1,3 @@
-
 import React, { useMemo } from "react";
 import { Domain } from "@/hooks/useDomains";
 import DomainConcept from "@/components/domains/DomainConcept";
@@ -15,29 +14,31 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DomainPageContentProps {
-  domains: Domain[];
-  loading: boolean;
-  error: string | null;
-  isOffline: boolean;
-  currentLanguage: string;
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-  domainsByStatus: {
+  domains?: Domain[];
+  loading?: boolean;
+  error?: string | null;
+  isOffline?: boolean;
+  currentLanguage?: string;
+  searchQuery?: string;
+  setSearchQuery?: (query: string) => void;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  domainsByStatus?: {
     all: Domain[];
     available: Domain[];
     used: Domain[];
     reserved: Domain[];
   };
-  filteredDomains: Domain[];
-  handleDomainAction: (domain: Domain) => void;
-  getStatusColor: (status: string) => string;
-  currentPage: number;
-  totalPages: number;
-  handlePageChange: (page: number) => void;
-  isVerticalPage: boolean;
-  getVerticalName: () => string;
+  filteredDomains?: Domain[];
+  handleDomainAction?: (domain: Domain) => void;
+  getStatusColor?: (status: string) => string;
+  currentPage?: number;
+  totalPages?: number;
+  handlePageChange?: (page: number) => void;
+  isVerticalPage?: boolean;
+  getVerticalName?: () => string;
+  domainPath?: string;
+  isVerticalDomain?: boolean;
 }
 
 const DomainPageContent: React.FC<DomainPageContentProps> = ({
@@ -57,9 +58,10 @@ const DomainPageContent: React.FC<DomainPageContentProps> = ({
   totalPages,
   handlePageChange,
   isVerticalPage,
-  getVerticalName
+  getVerticalName,
+  domainPath,
+  isVerticalDomain
 }) => {
-  // Only calculate these values once unless dependencies change
   const conceptTitle = useMemo(() => 
     getConceptTitle(isVerticalPage, currentLanguage, getVerticalName), 
     [isVerticalPage, currentLanguage, getVerticalName]
@@ -80,7 +82,6 @@ const DomainPageContent: React.FC<DomainPageContentProps> = ({
     [currentLanguage]
   );
 
-  // Content for the loading state
   const renderLoadingState = () => (
     <>
       <Skeleton className="h-10 w-48 mb-4" />
