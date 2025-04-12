@@ -53,6 +53,16 @@ export const canAdminContent = (level: UserLevel | UserRole): boolean => {
   return level === 13; // Level 13 (admin) can delete content
 };
 
+// Add the missing canContribute function
+export const canContribute = (level: UserLevel | UserRole): boolean => {
+  if (typeof level === 'string') {
+    // If it's a string role, verified, moderator and admin can contribute
+    return ['verified', 'moderator', 'admin'].includes(level);
+  }
+  // Same logic as canCreateContent - level 2+ can contribute
+  return level >= 2;
+};
+
 export const canParticipateInInfluencerProgram = (level: UserLevel | UserRole): boolean => {
   if (typeof level === 'string') {
     // Any registered user can participate

@@ -1,6 +1,6 @@
 
 import { useLocation } from "react-router-dom";
-import { DomainPageContent } from "@/components/domains/DomainPageContent";
+import DomainPageContent from "@/components/domains/DomainPageContent";
 import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
 
 const DomainPage = () => {

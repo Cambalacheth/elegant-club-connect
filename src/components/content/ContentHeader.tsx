@@ -4,19 +4,24 @@ import { PlusCircle } from "lucide-react";
 import { canContribute } from "@/types/user";
 import { useUser } from "@/hooks/useUser";
 import { UserRole } from "@/types/user";
+import { ContentType } from "@/types/content";
 
 interface ContentHeaderProps {
-  title: string;
+  title?: string;
   description?: string;
   onAddContent?: () => void;
   showAddButton?: boolean;
+  selectedType?: ContentType;
+  onTypeChange?: (type: ContentType) => void;
 }
 
 const ContentHeader = ({
-  title,
+  title = "Recursos",
   description,
   onAddContent,
   showAddButton = true,
+  selectedType,
+  onTypeChange,
 }: ContentHeaderProps) => {
   const { userRole } = useUser();
   
