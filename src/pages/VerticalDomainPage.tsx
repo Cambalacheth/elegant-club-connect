@@ -6,8 +6,17 @@ import { VERTICAL_PATHS } from "@/hooks/useVerticalDomains";
 import { toast } from '@/components/ui/use-toast';
 
 const VerticalDomainPage = () => {
-  const { verticalPath } = useParams();
+  const { verticalPath, "*": remainingPath } = useParams();
   const navigate = useNavigate();
+  
+  // Special handling for forum links that should redirect to the main forum
+  useEffect(() => {
+    if (remainingPath === "foro") {
+      console.log("Redirecting from vertical forum path to main forum");
+      navigate("/forum", { replace: true });
+      return;
+    }
+  }, [remainingPath, navigate]);
   
   // Validate that the vertical path is valid
   useEffect(() => {

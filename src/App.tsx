@@ -93,12 +93,16 @@ function App() {
               <Route path="/tech" element={<VerticalPage />} />
               
               {/* Vertical domain routes for deeper paths */}
-              <Route path="/legal/*" element={<DomainPage />} />
-              <Route path="/arte/*" element={<DomainPage />} />
-              <Route path="/negocios/*" element={<DomainPage />} />
-              <Route path="/salud/*" element={<DomainPage />} />
-              <Route path="/comunidad/*" element={<DomainPage />} />
-              <Route path="/tech/*" element={<DomainPage />} />
+              <Route path="/legal/*" element={<VerticalDomainPage />} />
+              <Route path="/arte/*" element={<VerticalDomainPage />} />
+              <Route path="/negocios/*" element={<VerticalDomainPage />} />
+              <Route path="/salud/*" element={<VerticalDomainPage />} />
+              <Route path="/comunidad/*" element={<VerticalDomainPage />} />
+              <Route path="/tech/*" element={<VerticalDomainPage />} />
+              
+              {/* Domain-specific forum route redirects */}
+              <Route path="/dominio/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/dominio/foro/:id" element={<Navigate replace to="/forum/:id" />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
