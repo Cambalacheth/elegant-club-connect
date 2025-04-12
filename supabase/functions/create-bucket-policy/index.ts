@@ -36,29 +36,108 @@ serve(async (req) => {
       );
     }
 
-    // Execute SQL to create public bucket policy
-    const { data, error } = await supabase.rpc('create_public_bucket_policy', { 
-      bucket_name: bucketName 
-    });
+    // First, ensure the bucket exists
+    try {
+      const { data: bucketExists, error: checkError } = await supabase.storage.getBucket(bucketName);
+      
+      if (checkError && !bucketExists) {
+        // Create the bucket if it doesn't exist
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 10485760 // 10MB
+        });
 
-    if (error) {
-      console.error("Error creating bucket policy:", error);
+        if (createError) {
+          console.error("Error creating bucket:", createError);
+          return new Response(
+            JSON.stringify({ error: createError.message }),
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 500,
+            }
+          );
+        }
+      }
+    } catch (bucketError) {
+      console.error("Bucket check/creation error:", bucketError);
+    }
+
+    // Now create the public policies for the bucket
+    try {
+      // Allow any authenticated user to upload files
+      const { error: uploadPolicyError } = await supabase.rpc('create_storage_policy', {
+        bucket_name: bucketName,
+        policy_name: 'authenticated users can upload',
+        definition: `auth.role() = 'authenticated'`,
+        policy_action: 'INSERT'
+      });
+
+      if (uploadPolicyError) {
+        console.error("Error creating upload policy:", uploadPolicyError);
+      }
+
+      // Allow all users to read files
+      const { error: readPolicyError } = await supabase.rpc('create_storage_policy', {
+        bucket_name: bucketName,
+        policy_name: 'anyone can read',
+        definition: `true`,
+        policy_action: 'SELECT'
+      });
+
+      if (readPolicyError) {
+        console.error("Error creating read policy:", readPolicyError);
+      }
+
+      // Allow content creators to update their files
+      const { error: updatePolicyError } = await supabase.rpc('create_storage_policy', {
+        bucket_name: bucketName,
+        policy_name: 'authenticated users can update',
+        definition: `auth.role() = 'authenticated'`,
+        policy_action: 'UPDATE'
+      });
+
+      if (updatePolicyError) {
+        console.error("Error creating update policy:", updatePolicyError);
+      }
+
+      // Allow content creators to delete their files
+      const { error: deletePolicyError } = await supabase.rpc('create_storage_policy', {
+        bucket_name: bucketName,
+        policy_name: 'authenticated users can delete',
+        definition: `auth.role() = 'authenticated'`,
+        policy_action: 'DELETE'
+      });
+
+      if (deletePolicyError) {
+        console.error("Error creating delete policy:", deletePolicyError);
+      }
+
       return new Response(
-        JSON.stringify({ error: error.message }),
+        JSON.stringify({ 
+          success: true, 
+          message: `Public policies created for bucket: ${bucketName}`,
+          policies: {
+            insert: !uploadPolicyError,
+            select: !readPolicyError,
+            update: !updatePolicyError,
+            delete: !deletePolicyError
+          }
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    } catch (error) {
+      console.error("Error creating policies:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to create policies" }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 500,
         }
       );
     }
-
-    return new Response(
-      JSON.stringify({ success: true, message: `Public policy created for bucket: ${bucketName}` }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
-    );
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(

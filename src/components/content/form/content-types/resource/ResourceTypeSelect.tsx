@@ -8,6 +8,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ControllerRenderProps } from "react-hook-form";
+import { 
+  FileText, 
+  FileImage, 
+  Presentation, 
+  FileSpreadsheet, 
+  Code, 
+  Lightbulb, 
+  Laptop 
+} from "lucide-react";
 
 interface ResourceTypeSelectProps {
   field: ControllerRenderProps<any, "resourceType">;
@@ -23,19 +32,49 @@ export const ResourceTypeSelect = ({ field }: ResourceTypeSelectProps) => {
       >
         <FormControl>
           <SelectTrigger className="border-club-beige-dark focus:border-club-orange bg-white shadow-sm">
-            <SelectValue placeholder="Selecciona el tipo de recurso" />
+            <SelectValue placeholder="Selecciona un tipo de recurso" />
           </SelectTrigger>
         </FormControl>
         <SelectContent className="bg-white border-club-beige-dark shadow-lg z-[100]">
-          <SelectItem value="template" className="hover:bg-club-beige/20 font-medium">Template</SelectItem>
-          <SelectItem value="tool" className="hover:bg-club-beige/20 font-medium">Herramienta</SelectItem>
-          <SelectItem value="book" className="hover:bg-club-beige/20 font-medium">Libro</SelectItem>
-          <SelectItem value="course" className="hover:bg-club-beige/20 font-medium">Curso</SelectItem>
-          <SelectItem value="software" className="hover:bg-club-beige/20 font-medium">Software</SelectItem>
-          <SelectItem value="document" className="hover:bg-club-beige/20 font-medium">Documento</SelectItem>
-          <SelectItem value="presentation" className="hover:bg-club-beige/20 font-medium">Presentación</SelectItem>
-          <SelectItem value="spreadsheet" className="hover:bg-club-beige/20 font-medium">Hoja de cálculo</SelectItem>
-          <SelectItem value="other" className="hover:bg-club-beige/20 font-medium">Otro</SelectItem>
+          <SelectItem value="tool" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <Laptop className="mr-2 h-4 w-4" />
+            <span>Herramienta</span>
+          </SelectItem>
+          
+          <SelectItem value="template" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <FileText className="mr-2 h-4 w-4" />
+            <span>Plantilla</span>
+          </SelectItem>
+          
+          <SelectItem value="infographic" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <FileImage className="mr-2 h-4 w-4" />
+            <span>Infografía</span>
+          </SelectItem>
+          
+          <SelectItem value="document" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <FileText className="mr-2 h-4 w-4" />
+            <span>Documento</span>
+          </SelectItem>
+          
+          <SelectItem value="presentation" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <Presentation className="mr-2 h-4 w-4" />
+            <span>Presentación</span>
+          </SelectItem>
+          
+          <SelectItem value="spreadsheet" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            <span>Hoja de cálculo</span>
+          </SelectItem>
+          
+          <SelectItem value="code" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <Code className="mr-2 h-4 w-4" />
+            <span>Código/Snippet</span>
+          </SelectItem>
+          
+          <SelectItem value="course" className="hover:bg-club-beige/20 font-medium flex items-center">
+            <Lightbulb className="mr-2 h-4 w-4" />
+            <span>Curso</span>
+          </SelectItem>
         </SelectContent>
       </Select>
       <FormMessage />

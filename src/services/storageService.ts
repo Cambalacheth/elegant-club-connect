@@ -46,7 +46,7 @@ export const initializeStorageBuckets = async () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Get the anon key from the imported supabase client
+            // Get the anon key from environment or use fallback
             "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1bmx3eHBpemVubHNxY2doZmZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwOTYxODUsImV4cCI6MjA1NjY3MjE4NX0.2uq8y1VyujijueWQNplbyYindTx_fCgPXOwCb8EfCrg"}`
           },
           body: JSON.stringify({ bucketName: 'recursos' })

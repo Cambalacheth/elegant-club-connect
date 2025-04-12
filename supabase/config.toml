@@ -40,3 +40,4 @@ verify_jwt = false
 # Configuración para la función de creación de políticas de buckets públicos
 [functions.create-bucket-policy]
 verify_jwt = false
+
