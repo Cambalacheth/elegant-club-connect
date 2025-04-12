@@ -40,16 +40,24 @@ export const initializeStorageBuckets = async () => {
       
       console.log("Resources bucket created successfully");
       
-      // Try to create policies to allow public access to the bucket
+      // Try to create policies to allow public access to the bucket using the edge function
       try {
-        // This will only work for users with appropriate permissions
-        const { error: policyError } = await supabase.rpc('create_public_bucket_policy', { 
-          bucket_name: 'recursos' 
+        const response = await fetch("https://hunlwxpizenlsqcghffy.supabase.co/functions/v1/create-bucket-policy", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Use anon key for public function
+            "Authorization": `Bearer ${supabase.auth.anon_key}`
+          },
+          body: JSON.stringify({ bucketName: 'recursos' })
         });
         
-        if (policyError) {
-          console.error("Error creating bucket policy:", policyError);
+        if (!response.ok) {
+          throw new Error(`Error status: ${response.status}`);
         }
+        
+        const result = await response.json();
+        console.log("Bucket policy response:", result);
       } catch (policyError) {
         console.error("Could not create bucket policy:", policyError);
       }
