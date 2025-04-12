@@ -26,6 +26,7 @@ import EventDetail from "./pages/EventDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import DomainPage from "./pages/DomainPage";
 import VerticalDomainPage from "./pages/VerticalDomainPage";
+import VerticalPage from "./pages/VerticalPage";
 import ElFotographerPage from "./pages/ElFotographerPage";
 import Feedback from "./pages/Feedback";
 import VotePage from "./pages/VotePage";
@@ -83,7 +84,15 @@ function App() {
               <Route path="/vote" element={<VotePage />} />
               <Route path="/influencers" element={<InfluencersPage />} />
               
-              {/* Vertical domain routes */}
+              {/* Vertical pages with dedicated routes */}
+              <Route path="/legal" element={<VerticalPage />} />
+              <Route path="/arte" element={<VerticalPage />} />
+              <Route path="/negocios" element={<VerticalPage />} />
+              <Route path="/salud" element={<VerticalPage />} />
+              <Route path="/comunidad" element={<VerticalPage />} />
+              <Route path="/tech" element={<VerticalPage />} />
+              
+              {/* Vertical domain routes for deeper paths */}
               <Route path="/legal/*" element={<DomainPage />} />
               <Route path="/arte/*" element={<DomainPage />} />
               <Route path="/negocios/*" element={<DomainPage />} />

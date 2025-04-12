@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection";
-import VerticalsSection from "../components/VerticalsSection";
+import VerticalsCarousel from "../components/home/VerticalsCarousel";
 import CtaSection from "../components/home/CtaSection";
 
 const Home = () => {
@@ -24,7 +24,7 @@ const Home = () => {
     <main className="relative min-h-screen overflow-x-hidden">
       <Navbar currentLanguage={language} />
       <AboutSection />
-      <VerticalsSection />
+      <VerticalsCarousel />
       <CtaSection language={language} />
     </main>
   );
