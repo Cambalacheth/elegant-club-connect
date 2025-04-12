@@ -103,6 +103,12 @@ function App() {
               {/* Domain-specific forum route redirects */}
               <Route path="/dominio/foro" element={<Navigate replace to="/forum" />} />
               <Route path="/dominio/foro/:id" element={<Navigate replace to="/forum/:id" />} />
+              <Route path="/legal/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/arte/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/negocios/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/salud/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/comunidad/foro" element={<Navigate replace to="/forum" />} />
+              <Route path="/tech/foro" element={<Navigate replace to="/forum" />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
