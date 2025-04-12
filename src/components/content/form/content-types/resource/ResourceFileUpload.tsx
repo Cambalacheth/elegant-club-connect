@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FormControl, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, FileText, Upload, RefreshCw, CheckCircle } from "lucide-react";
+import { AlertTriangle, FileText, Upload, RefreshCw, CheckCircle, Link as LinkIcon } from "lucide-react";
 import { ControllerRenderProps, UseFormReturn } from "react-hook-form";
 import { useFileUpload } from "./useFileUpload";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,10 +22,18 @@ export const ResourceFileUpload = ({ field, form }: ResourceFileUploadProps) => 
   } = useFileUpload({ form });
 
   const [showRetryTips, setShowRetryTips] = useState(false);
+  const [isManualInput, setIsManualInput] = useState(!!field.value && !field.value.includes("supabase"));
 
   // Helper to determine if there's an error or success in the upload status
   const hasError = uploadStatus?.includes('Error') || uploadStatus?.includes('error');
   const hasSuccess = uploadStatus?.includes('éxito') || uploadStatus?.includes('success');
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    field.onChange(e.target.value);
+    if (e.target.value) {
+      setIsManualInput(true);
+    }
+  };
 
   return (
     <FormItem>
@@ -35,6 +43,7 @@ export const ResourceFileUpload = ({ field, form }: ResourceFileUploadProps) => 
           <Input 
             placeholder="https://... o sube un archivo" 
             {...field} 
+            onChange={handleUrlChange}
             className={`border-club-beige-dark focus:border-club-orange ${hasError ? 'border-red-300' : hasSuccess ? 'border-green-300' : ''}`}
           />
         </FormControl>
@@ -59,6 +68,18 @@ export const ResourceFileUpload = ({ field, form }: ResourceFileUploadProps) => 
             )}
             {isUploading ? 'Subiendo...' : hasError ? 'Reintentar' : hasSuccess ? 'Archivo subido' : 'Subir archivo'}
           </Button>
+          
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            onClick={() => setIsManualInput(true)}
+          >
+            <LinkIcon className="h-4 w-4 mr-1" />
+            Usar URL externa
+          </Button>
+          
           <input
             id="file-upload"
             type="file"
@@ -67,10 +88,11 @@ export const ResourceFileUpload = ({ field, form }: ResourceFileUploadProps) => 
             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.svg,.webp,.zip,.rar,.7z,.txt,.rtf,.csv,.mp4,.mp3,.wav,.ogg"
             disabled={isUploading}
           />
+          
           {field.value && !isUploading && !hasError && (
             <div className="flex items-center text-sm text-green-600">
               <FileText className="h-4 w-4 mr-1" />
-              Archivo adjunto
+              {isManualInput ? 'URL externa' : 'Archivo adjunto'}
             </div>
           )}
           
@@ -90,14 +112,15 @@ export const ResourceFileUpload = ({ field, form }: ResourceFileUploadProps) => 
         
         {showRetryTips && (
           <Alert className="bg-amber-50 border-amber-200">
+            <AlertTitle className="text-amber-800 font-medium">Consejos para resolver problemas de carga</AlertTitle>
             <AlertDescription className="text-sm text-amber-800">
-              <p className="font-medium">Consejos para resolver problemas de carga:</p>
+              <p className="mt-1">Puedes intentar:</p>
               <ul className="list-disc pl-5 mt-1 space-y-1">
-                <li>Intenta con un archivo más pequeño (menos de 5MB).</li>
-                <li>Espera unos segundos e intenta nuevamente.</li>
-                <li>Prueba con otro formato de archivo.</li>
-                <li>Intenta refrescar la página y luego intentar nuevamente.</li>
-                <li>Si continúa el problema, puedes ingresar una URL externa en su lugar.</li>
+                <li>Usa una URL externa en lugar de subir un archivo</li>
+                <li>Intenta con un archivo más pequeño (menos de 5MB)</li>
+                <li>Espera unos segundos e intenta nuevamente</li>
+                <li>Prueba con otro formato de archivo</li>
+                <li>Intenta refrescar la página y luego intentar nuevamente</li>
               </ul>
             </AlertDescription>
           </Alert>

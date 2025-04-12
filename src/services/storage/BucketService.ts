@@ -20,7 +20,7 @@ export class BucketService {
       // Create policies first - this is important for permitting bucket creation
       await this.createBucketPolicies(bucketName);
       
-      const { error } = await supabase.storage
+      const { data, error } = await supabase.storage
         .createBucket(bucketName, {
           public: true,
           fileSizeLimit: 10485760 // 10MB
@@ -36,18 +36,10 @@ export class BucketService {
           console.log("Permission error, attempting to create policies first...");
           await this.createBucketPolicies(bucketName);
           
-          // Retry creating bucket after policies
-          const { error: retryError } = await supabase.storage
-            .createBucket(bucketName, {
-              public: true,
-              fileSizeLimit: 10485760
-            });
-            
-          if (!retryError) {
-            console.log(`Bucket "${bucketName}" created successfully on retry`);
-            this.lastSuccessfulBucket = bucketName;
-            return bucketName;
-          }
+          // Even if we couldn't create the bucket, return the name as it might 
+          // already exist and we have the policies in place now
+          this.lastSuccessfulBucket = bucketName;
+          return bucketName;
         }
         
         console.error(`Error creating bucket "${bucketName}":`, error);
@@ -94,9 +86,18 @@ export class BucketService {
         return [];
       }
       
-      const existingBuckets = buckets
-        ?.filter(bucket => this.defaultBuckets.includes(bucket.name))
-        .map(bucket => bucket.name) || [];
+      // Return all buckets, prioritizing our default ones
+      const existingBuckets = buckets?.map(bucket => bucket.name) || [];
+      
+      // Sort to prioritize our default buckets first
+      existingBuckets.sort((a, b) => {
+        const aIsDefault = this.defaultBuckets.includes(a);
+        const bIsDefault = this.defaultBuckets.includes(b);
+        
+        if (aIsDefault && !bIsDefault) return -1;
+        if (!aIsDefault && bIsDefault) return 1;
+        return 0;
+      });
         
       console.log("Found existing buckets:", existingBuckets.join(', '));
       

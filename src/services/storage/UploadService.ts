@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { bucketService } from "./BucketService";
-import { sleep } from "./StorageUtils";
+import { sleep, calculateBackoffDelay } from "./StorageUtils";
 
 /**
  * Service class for handling file uploads
@@ -68,17 +68,26 @@ export class UploadService {
   public async uploadFileWithRetry(
     file: File, 
     fileName: string, 
-    maxAttempts = 3
+    maxAttempts = 5
   ): Promise<string> {
+    // 0. First check if we already have existing buckets to use
     if (!this.currentBucket) {
-      this.currentBucket = (await bucketService.getExistingBuckets())[0] || bucketService.getDefaultBuckets()[0];
+      const existingBuckets = await bucketService.getExistingBuckets();
+      
+      if (existingBuckets.length > 0) {
+        this.currentBucket = existingBuckets[0];
+        console.log(`Using existing bucket: ${this.currentBucket}`);
+      } else {
+        this.currentBucket = bucketService.getDefaultBuckets()[0];
+        console.log(`No existing buckets found, using default: ${this.currentBucket}`);
+      }
     }
     
     // Options for file upload
     const defaultBuckets = bucketService.getDefaultBuckets();
     let lastError: Error | null = null;
     
-    // 1. Try with primary bucket
+    // 1. Try with current bucket with retries
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         console.log(`Uploading to ${this.currentBucket}, attempt ${attempt + 1}...`);
@@ -91,13 +100,10 @@ export class UploadService {
           return publicUrl;
         }
         
-        // Permission errors are common during first uploads
-        console.log("Permission error, recreating policies...");
-        await bucketService.createBucketPolicies(this.currentBucket!);
-        
         // Wait before retrying
         if (attempt < maxAttempts - 1) {
-          const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+          const delay = calculateBackoffDelay(attempt);
+          console.log(`Retrying upload in ${delay}ms...`);
           await sleep(delay);
         }
       } catch (error: any) {
@@ -105,32 +111,52 @@ export class UploadService {
         lastError = error;
         
         if (attempt < maxAttempts - 1) {
-          const delay = Math.pow(2, attempt) * 1000;
+          const delay = calculateBackoffDelay(attempt);
           console.log(`Retrying in ${delay}ms...`);
           await sleep(delay);
         }
       }
     }
     
-    // 2. If primary bucket fails, try fallback buckets
-    for (const fallbackBucket of defaultBuckets.filter(b => b !== this.currentBucket)) {
+    // 2. If primary bucket fails, try all existing buckets first
+    const existingBuckets = await bucketService.getExistingBuckets();
+    
+    for (const bucketName of existingBuckets.filter(b => b !== this.currentBucket)) {
       try {
-        console.log(`Trying fallback bucket "${fallbackBucket}"...`);
+        console.log(`Trying existing bucket "${bucketName}"...`);
         
-        // Create policies for fallback bucket
-        await bucketService.createBucketPolicies(fallbackBucket);
+        // Create policies for the bucket
+        await bucketService.createBucketPolicies(bucketName);
         
-        const publicUrl = await this.uploadFileToBucket(file, fileName, fallbackBucket);
+        const publicUrl = await this.uploadFileToBucket(file, fileName, bucketName);
         if (publicUrl) {
-          this.currentBucket = fallbackBucket;
+          this.currentBucket = bucketName;
           return publicUrl;
         }
       } catch (fallbackError) {
-        console.error(`Error with fallback bucket "${fallbackBucket}":`, fallbackError);
+        console.error(`Error with existing bucket "${bucketName}":`, fallbackError);
       }
     }
     
-    // 3. If user had a successful upload before, try that bucket specifically
+    // 3. If existing buckets fail, try fallback buckets
+    for (const bucketName of defaultBuckets.filter(b => !existingBuckets.includes(b) && b !== this.currentBucket)) {
+      try {
+        console.log(`Trying fallback bucket "${bucketName}"...`);
+        
+        // Create bucket and policies
+        await bucketService.createBucket(bucketName);
+        
+        const publicUrl = await this.uploadFileToBucket(file, fileName, bucketName);
+        if (publicUrl) {
+          this.currentBucket = bucketName;
+          return publicUrl;
+        }
+      } catch (fallbackError) {
+        console.error(`Error with fallback bucket "${bucketName}":`, fallbackError);
+      }
+    }
+    
+    // 4. If user had a successful upload before, try that bucket specifically
     const lastSuccessfulBucket = bucketService.getLastSuccessfulBucket();
     if (lastSuccessfulBucket && lastSuccessfulBucket !== this.currentBucket) {
       try {

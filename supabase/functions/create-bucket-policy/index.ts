@@ -36,16 +36,44 @@ serve(async (req) => {
     
     console.log(`Setting up policies for bucket: ${bucketName}`)
     
+    // Get the list of existing buckets before trying to create policies
+    const { data: existingBuckets, error: listError } = await supabase.storage.listBuckets()
+    
+    if (listError) {
+      console.error("Error listing buckets:", listError.message)
+    } else {
+      console.log("Found buckets:", existingBuckets.map(b => b.name).join(', '))
+    }
+    
     // Apply specific policies for the requested bucket
     await createBucketPoliciesViaSQL(bucketName, supabase)
     
     // Additionally, apply common policies to standard buckets to increase success rate
-    const commonBuckets = ['resources', 'uploads', 'files', 'images', 'avatars']
+    const commonBuckets = ['resources', 'uploads', 'files', 'images', 'avatars', 'recursos']
     for (const bucket of commonBuckets) {
       try {
         await applyCommonPolicies(bucket, supabase)
       } catch (e) {
         console.log(`Error applying common policies to ${bucket}: ${e.message}`)
+      }
+    }
+    
+    // Attempt to create the bucket if it doesn't exist
+    // We don't rely on this succeeding because some users may not have privileges
+    if (!existingBuckets?.find(b => b.name === bucketName)) {
+      try {
+        const { data, error } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 10485760 // 10MB
+        })
+        
+        if (error) {
+          console.log(`Could not create bucket ${bucketName}, but policies were set: ${error.message}`)
+        } else {
+          console.log(`Created bucket ${bucketName} successfully`)
+        }
+      } catch (err) {
+        console.log(`Error creating bucket ${bucketName}: ${err.message}`)
       }
     }
     

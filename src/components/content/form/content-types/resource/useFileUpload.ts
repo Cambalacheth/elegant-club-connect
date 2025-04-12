@@ -53,8 +53,39 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
         console.warn("Storage initialization issue, continuing with upload:", initError);
       }
       
-      // Upload file using our service
-      const publicUrl = await uploadToResourcesBucket(file, fileName);
+      // Create safe fallback for direct URL input
+      let publicUrl = "";
+      
+      // Try upload up to 3 times, with different strategies
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          publicUrl = await uploadToResourcesBucket(file, fileName);
+          if (publicUrl) break;
+        } catch (uploadError) {
+          console.error(`Upload attempt ${attempt + 1} failed:`, uploadError);
+          
+          // On last attempt, allow fallback to direct link input
+          if (attempt === 2) {
+            notifyPermissionError();
+            setIsUploading(false);
+            return;
+          }
+          
+          // Wait before retrying
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Try to reinitialize storage before retrying
+          try {
+            await initializeStorage();
+          } catch (e) {
+            console.error("Failed to re-initialize storage for retry:", e);
+          }
+        }
+      }
+      
+      if (!publicUrl) {
+        throw new Error("No se pudo obtener la URL pública del archivo");
+      }
       
       // Set form values
       form.setValue('resourceUrl', publicUrl);
