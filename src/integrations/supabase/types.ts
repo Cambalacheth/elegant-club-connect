@@ -112,10 +112,17 @@ export type Database = {
           content: string | null
           created_at: string
           description: string | null
+          difficulty: string | null
+          download_url: string | null
+          duration: string | null
+          external_url: string | null
           id: string
           image_url: string | null
+          price: string | null
           published: boolean
+          resource_type: string | null
           resource_url: string | null
+          source: string | null
           title: string
           type: string
           updated_at: string
@@ -127,10 +134,17 @@ export type Database = {
           content?: string | null
           created_at?: string
           description?: string | null
+          difficulty?: string | null
+          download_url?: string | null
+          duration?: string | null
+          external_url?: string | null
           id?: string
           image_url?: string | null
+          price?: string | null
           published?: boolean
+          resource_type?: string | null
           resource_url?: string | null
+          source?: string | null
           title: string
           type: string
           updated_at?: string
@@ -142,10 +156,17 @@ export type Database = {
           content?: string | null
           created_at?: string
           description?: string | null
+          difficulty?: string | null
+          download_url?: string | null
+          duration?: string | null
+          external_url?: string | null
           id?: string
           image_url?: string | null
+          price?: string | null
           published?: boolean
+          resource_type?: string | null
           resource_url?: string | null
+          source?: string | null
           title?: string
           type?: string
           updated_at?: string
