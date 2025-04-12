@@ -733,6 +733,15 @@ export type Database = {
         }
         Returns: number
       }
+      create_debate: {
+        Args: {
+          _title: string
+          _content: string
+          _category: string
+          _author_id: string
+        }
+        Returns: string
+      }
       is_admin: {
         Args: { user_id: string }
         Returns: boolean
