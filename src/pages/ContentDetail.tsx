@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "@/integrations/supabase/client";
-import { ContentItem } from "@/types/content";
+import { ContentItem, ContentType } from "@/types/content";
 import Navbar from "@/components/Navbar";
 import { extractYoutubeVideoId } from "@/services/contentService";
 import ContentDetailSkeleton from "@/components/content/detail/ContentDetailSkeleton";
@@ -40,7 +40,8 @@ const ContentDetail = () => {
           description: data.description || "",
           content: data.content || undefined,
           imageUrl: data.image_url || "",
-          type: data.type,
+          // Fix: Convert the string type to ContentType by validating it as a valid content type
+          type: validateContentType(data.type),
           author_id: data.author_id,
           author_username: data.author?.username || "Usuario",
           author_role: data.author?.level,
@@ -78,6 +79,14 @@ const ContentDetail = () => {
 
     fetchContent();
   }, [id]);
+
+  // Helper function to validate content type
+  const validateContentType = (type: string): ContentType => {
+    const validTypes: ContentType[] = ['article', 'video', 'guide', 'resource'];
+    return validTypes.includes(type as ContentType) 
+      ? (type as ContentType) 
+      : 'article'; // Default to article if invalid type
+  };
 
   // SEO Title and Description based on content
   const pageTitle = content 
