@@ -49,21 +49,23 @@ export const forumService = {
       throw new Error("Tu nivel de usuario no es suficiente para crear debates");
     }
     
-    // Insert the debate with RPC call instead of direct insert
-    // This ensures the RLS policies are properly applied
-    const { data, error } = await supabase.rpc('create_debate', {
-      _title: title,
-      _content: content,
-      _category: category,
-      _author_id: userId
-    });
+    // Use a direct insert instead of RPC for now until the RPC function is properly created
+    const { data, error } = await supabase
+      .from("debates")
+      .insert([{ 
+        title, 
+        content, 
+        category, 
+        author_id: userId 
+      }])
+      .select();
 
     if (error) {
       console.error("Error creating debate:", error);
       throw error;
     }
 
-    return data;
+    return data[0];
   },
 
   // Fetch a newly created debate with author info

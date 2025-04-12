@@ -48,8 +48,8 @@ export const useDebates = (selectedCategory: string | null) => {
       const newDebate = await forumService.createDebate(title, content, category, userId);
       console.log("Debate created:", newDebate);
       
-      // If newDebate is not an object with id, handle the error gracefully
-      if (!newDebate || !newDebate.id) {
+      // Make sure newDebate is valid before proceeding
+      if (!newDebate) {
         // Use the fetchDebates function to refresh the list as a fallback
         const refreshedData = await forumService.fetchDebates(selectedCategory);
         setDebates(refreshedData);
