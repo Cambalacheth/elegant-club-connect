@@ -25,6 +25,7 @@ const Content = () => {
 
   // Refetch content when type or category changes
   useEffect(() => {
+    console.log("Content type or category changed, refetching content:", selectedType, selectedCategory);
     refetch();
   }, [selectedType, selectedCategory, refetch]);
 
@@ -32,6 +33,8 @@ const Content = () => {
   const filteredContent = selectedCategory === "all" 
     ? contentItems 
     : contentItems.filter(item => item.category === selectedCategory);
+
+  console.log("Rendering ContentGrid with items:", filteredContent.length);
 
   return (
     <div className="min-h-screen bg-club-beige-light">

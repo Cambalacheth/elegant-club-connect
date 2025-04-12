@@ -56,7 +56,10 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
     // Upload the file to the "recursos" bucket (user created)
     const { data, error } = await supabase.storage
       .from('recursos')
-      .upload(filePath, file);
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
     
     if (error) {
       throw error;

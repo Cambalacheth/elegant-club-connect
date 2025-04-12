@@ -52,13 +52,13 @@ export const ResourceFields = ({ form }: ResourceFieldsProps) => {
       setIsUploading(true);
       setUploadStatus('Subiendo archivo...');
       
-      // Create unique filename
-      const fileName = `${Date.now()}-${file.name}`;
-      const filePath = `${fileName}`;
+      // Create safe filename by removing spaces and special characters
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileName = `${Date.now()}-${safeFileName}`;
       
       // Import and use the uploadToResourcesBucket function
       const { uploadToResourcesBucket } = await import('@/services/storageService');
-      const publicUrl = await uploadToResourcesBucket(file, filePath);
+      const publicUrl = await uploadToResourcesBucket(file, fileName);
       
       // Set form values
       form.setValue('resourceUrl', publicUrl);

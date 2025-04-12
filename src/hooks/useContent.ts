@@ -23,6 +23,7 @@ export const useContent = (type?: ContentType) => {
 
     try {
       const transformedData = await fetchPublishedContent(type);
+      console.log("Fetched published content:", transformedData.length, "items");
       setContentItems(transformedData);
     } catch (error: any) {
       console.error("Error fetching content:", error);
@@ -47,6 +48,7 @@ export const useContent = (type?: ContentType) => {
 
     try {
       const transformedData = await fetchAllContentData(type);
+      console.log("Fetched all content:", transformedData.length, "items");
       setContentItems(transformedData);
     } catch (error: any) {
       console.error("Error fetching all content:", error);

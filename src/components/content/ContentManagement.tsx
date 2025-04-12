@@ -33,6 +33,7 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   // Fetch all content including unpublished when component mounts or tab changes
   useEffect(() => {
     if (canManageContent(userRole)) {
+      console.log("ContentManagement: Fetching all content for type:", activeTab);
       fetchAllContent();
     }
   }, [fetchAllContent, userRole, activeTab]);
@@ -40,8 +41,12 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   const handleCreateContent = async (data: Partial<ContentItem>) => {
     try {
       setIsSubmitting(true);
-      await createContent(data);
-      fetchAllContent();
+      const createdItem = await createContent(data);
+      console.log("Content created successfully:", createdItem);
+      
+      // Explicitly fetch all content again to ensure the UI is updated
+      await fetchAllContent();
+      
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error creating content:", error);
@@ -53,8 +58,11 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   const handleUpdateContent = async (id: string, data: Partial<ContentItem>) => {
     try {
       setIsSubmitting(true);
-      await updateContent(id, data);
-      fetchAllContent();
+      const updatedItem = await updateContent(id, data);
+      console.log("Content updated successfully:", updatedItem);
+      
+      // Explicitly fetch all content again to ensure the UI is updated
+      await fetchAllContent();
     } catch (error) {
       console.error("Error updating content:", error);
     } finally {
@@ -65,7 +73,10 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   const handleDeleteContent = async (id: string) => {
     try {
       await deleteContent(id);
-      fetchAllContent();
+      console.log("Content deleted successfully:", id);
+      
+      // Explicitly fetch all content again to ensure the UI is updated
+      await fetchAllContent();
     } catch (error) {
       console.error("Error deleting content:", error);
     }
