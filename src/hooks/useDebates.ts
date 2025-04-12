@@ -1,133 +1,9 @@
 
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Debate } from "@/types/forum";
 import { useToast } from "@/hooks/use-toast";
-
-// Separate service functions to make the hook cleaner
-const forumService = {
-  // Fetch debates with optional category filter
-  fetchDebates: async (selectedCategory: string | null) => {
-    let query = supabase
-      .from("debates_with_authors")
-      .select("*");
-
-    if (selectedCategory) {
-      query = query.eq("category", selectedCategory);
-    }
-
-    const { data, error } = await query.order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching debates:", error);
-      throw error;
-    }
-
-    return data as Debate[];
-  },
-
-  // Create a new debate
-  createDebate: async (title: string, content: string, category: string, userId: string) => {
-    console.log("Creating debate:", { title, content, category, userId });
-    
-    // Insert the debate
-    const { data, error } = await supabase
-      .from("debates")
-      .insert([
-        { 
-          title, 
-          content, 
-          category, 
-          author_id: userId 
-        }
-      ])
-      .select();
-
-    if (error) {
-      console.error("Error creating debate:", error);
-      throw error;
-    }
-
-    return data[0];
-  },
-
-  // Fetch a newly created debate with author info
-  fetchNewDebate: async (debateId: string) => {
-    const { data, error } = await supabase
-      .from("debates_with_authors")
-      .select("*")
-      .eq("id", debateId)
-      .single();
-
-    if (error) {
-      console.error("Error fetching new debate:", error);
-      throw error;
-    }
-
-    return data as Debate;
-  },
-
-  // Add experience points for creating a debate
-  addDebateXp: async (userId: string, title: string) => {
-    const { error } = await supabase.rpc('add_user_xp', { 
-      _user_id: userId,
-      _action_name: 'create_debate',
-      _custom_description: `Creación de debate: ${title}`
-    });
-    
-    if (error) {
-      console.error("Error adding XP:", error);
-    }
-  },
-
-  // Register a vote on a debate
-  registerVote: async (debateId: string, voteType: "up" | "down", userId: string) => {
-    const { error } = await supabase
-      .from("votes")
-      .insert([
-        { 
-          user_id: userId, 
-          reference_id: debateId, 
-          reference_type: "debate", 
-          vote_type: voteType 
-        }
-      ]);
-
-    if (error) {
-      // Handle unique constraint violation
-      if (error.code === "23505") {
-        throw new Error("duplicate_vote");
-      }
-      throw error;
-    }
-  },
-
-  // Add XP for voting
-  addVoteXp: async (userId: string) => {
-    const { error } = await supabase.rpc('add_user_xp', { 
-      _user_id: userId,
-      _action_name: 'vote_forum',
-      _custom_description: `Voto en debate`
-    });
-    
-    if (error) {
-      console.error("Error adding XP:", error);
-    }
-  },
-
-  // Delete a debate
-  deleteDebate: async (debateId: string) => {
-    const { error } = await supabase
-      .from("debates")
-      .delete()
-      .eq("id", debateId);
-
-    if (error) {
-      console.error("Error deleting debate:", error);
-      throw error;
-    }
-  }
-};
+import { forumService } from "@/services/forumService";
+import { experienceService } from "@/services/experienceService";
 
 export const useDebates = (selectedCategory: string | null) => {
   const { toast } = useToast();
@@ -179,7 +55,7 @@ export const useDebates = (selectedCategory: string | null) => {
       setDebates([completeDebate, ...debates]);
       
       // Add experience points
-      await forumService.addDebateXp(userId, title);
+      await experienceService.addDebateXp(userId, title);
 
       toast({
         title: "Debate creado",
@@ -235,7 +111,7 @@ export const useDebates = (selectedCategory: string | null) => {
       }));
 
       // Add experience points
-      await forumService.addVoteXp(userId);
+      await experienceService.addVoteXp(userId);
 
       toast({
         title: "Voto registrado",
