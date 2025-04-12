@@ -47,6 +47,20 @@ export const useDebates = (selectedCategory: string | null) => {
       // Create the debate
       const newDebate = await forumService.createDebate(title, content, category, userId);
       console.log("Debate created:", newDebate);
+      
+      // If newDebate is not an object with id, handle the error gracefully
+      if (!newDebate || !newDebate.id) {
+        // Use the fetchDebates function to refresh the list as a fallback
+        const refreshedData = await forumService.fetchDebates(selectedCategory);
+        setDebates(refreshedData);
+        
+        toast({
+          title: "Estado incierto",
+          description: "No se pudo confirmar si el debate fue creado. La lista ha sido actualizada.",
+          variant: "destructive",
+        });
+        return false;
+      }
 
       // Fetch the complete debate with author info
       const completeDebate = await forumService.fetchNewDebate(newDebate.id);
@@ -66,11 +80,17 @@ export const useDebates = (selectedCategory: string | null) => {
     } catch (err: any) {
       console.error("Error creating debate:", err);
       
-      // Specific error handling for RLS violations
+      // More specific error handling messages
       if (err.message?.includes("violates row-level security policy")) {
         toast({
           title: "Error de permisos",
-          description: "No tienes permisos para crear debates",
+          description: "Hay un problema con los permisos en la base de datos. Por favor contacta al administrador del sistema.",
+          variant: "destructive",
+        });
+      } else if (err.message?.includes("Tu nivel de usuario no es suficiente")) {
+        toast({
+          title: "Nivel insuficiente",
+          description: err.message,
           variant: "destructive",
         });
       } else {

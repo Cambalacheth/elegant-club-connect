@@ -29,25 +29,41 @@ export const forumService = {
   createDebate: async (title: string, content: string, category: string, userId: string) => {
     console.log("Creating debate:", { title, content, category, userId });
     
-    // Insert the debate
-    const { data, error } = await supabase
-      .from("debates")
-      .insert([
-        { 
-          title, 
-          content, 
-          category, 
-          author_id: userId 
-        }
-      ])
-      .select();
+    // First check if the user has the correct level in profiles
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("level_numeric")
+      .eq("id", userId)
+      .single();
+    
+    if (profileError) {
+      console.error("Error fetching user profile:", profileError);
+      throw new Error("No se pudo verificar tu nivel de usuario");
+    }
+    
+    const userLevel = profileData?.level_numeric || 1;
+    console.log("User level:", userLevel);
+    
+    // Verify minimum level requirement
+    if (userLevel < 3) {
+      throw new Error("Tu nivel de usuario no es suficiente para crear debates");
+    }
+    
+    // Insert the debate with RPC call instead of direct insert
+    // This ensures the RLS policies are properly applied
+    const { data, error } = await supabase.rpc('create_debate', {
+      _title: title,
+      _content: content,
+      _category: category,
+      _author_id: userId
+    });
 
     if (error) {
       console.error("Error creating debate:", error);
       throw error;
     }
 
-    return data[0];
+    return data;
   },
 
   // Fetch a newly created debate with author info
