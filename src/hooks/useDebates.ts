@@ -44,6 +44,8 @@ export const useDebates = (selectedCategory: string | null) => {
         return false;
       }
 
+      console.log("Creating debate:", { title, content, category, userId });
+      
       // Create the debate
       const newDebate = await forumService.createDebate(title, content, category, userId);
       console.log("Debate created:", newDebate);

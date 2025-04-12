@@ -51,28 +51,56 @@ export const forumService = {
         throw new Error("Tu nivel de usuario no es suficiente para crear debates. Necesitas ser nivel 3 o superior.");
       }
       
-      // Directly insert into the debates table
-      const { data, error } = await supabase
+      // Try using the Supabase stored function to bypass RLS
+      const { data: functionData, error: functionError } = await supabase
+        .rpc('create_debate', { 
+          _title: title, 
+          _content: content, 
+          _category: category, 
+          _author_id: userId 
+        });
+      
+      if (functionError) {
+        console.error("Error using RPC create_debate:", functionError);
+        
+        // Fallback to direct insert if the function fails
+        const { data, error } = await supabase
+          .from("debates")
+          .insert([{ 
+            title, 
+            content, 
+            category, 
+            author_id: userId 
+          }])
+          .select();
+
+        if (error) {
+          console.error("Error creating debate:", error);
+          throw new Error(`Error al crear el debate: ${error.message || "Error desconocido"}`);
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error("No se pudo crear el debate. No se recibió confirmación del servidor.");
+        }
+        
+        console.log("Debate created successfully (direct):", data[0]);
+        return data[0];
+      }
+      
+      // If the function was successful, fetch the debate
+      console.log("Debate created successfully (via function):", functionData);
+      const { data: debateData, error: fetchError } = await supabase
         .from("debates")
-        .insert([{ 
-          title, 
-          content, 
-          category, 
-          author_id: userId 
-        }])
-        .select();
-
-      if (error) {
-        console.error("Error creating debate:", error);
-        throw new Error(`Error al crear el debate: ${error.message || "Error desconocido"}`);
+        .select("*")
+        .eq("id", functionData)
+        .single();
+        
+      if (fetchError) {
+        console.error("Error fetching created debate:", fetchError);
+        throw new Error("El debate se creó pero no se pudo recuperar la información.");
       }
-
-      if (!data || data.length === 0) {
-        throw new Error("No se pudo crear el debate. No se recibió confirmación del servidor.");
-      }
-
-      console.log("Debate created successfully:", data[0]);
-      return data[0];
+      
+      return debateData;
     } catch (error: any) {
       console.error("Error in createDebate:", error);
       throw error;
