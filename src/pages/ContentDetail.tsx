@@ -135,7 +135,7 @@ const ContentDetail = () => {
           getPriceLabel={getPriceLabel}
         />
 
-        <ContentDetailBody content={content} />
+        <ContentDetailBody item={content} />
       </article>
     </div>
   );
