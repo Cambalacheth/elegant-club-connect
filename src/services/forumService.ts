@@ -29,46 +29,50 @@ export const forumService = {
   createDebate: async (title: string, content: string, category: string, userId: string) => {
     console.log("Creating debate:", { title, content, category, userId });
     
-    // First check if the user has the correct level in profiles
-    const { data: profileData, error: profileError } = await supabase
-      .from("profiles")
-      .select("level_numeric")
-      .eq("id", userId)
-      .single();
-    
-    if (profileError) {
-      console.error("Error fetching user profile:", profileError);
-      throw new Error("No se pudo verificar tu nivel de usuario");
-    }
-    
-    const userLevel = profileData?.level_numeric || 1;
-    console.log("User level:", userLevel);
-    
-    // Allow any user with level 3 or higher, or admin users (level 13) to create debates
-    // The condition was modified to be more permissive
-    if (userLevel < 3 && userLevel !== 13) {
-      console.error("User level too low:", userLevel);
-      throw new Error("Tu nivel de usuario no es suficiente para crear debates. Necesitas ser nivel 3 o superior.");
-    }
-    
-    // Use a direct insert instead of RPC for now
-    const { data, error } = await supabase
-      .from("debates")
-      .insert([{ 
-        title, 
-        content, 
-        category, 
-        author_id: userId 
-      }])
-      .select();
+    try {
+      // First check if the user has the correct level in profiles
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("level_numeric")
+        .eq("id", userId)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError);
+        throw new Error("No se pudo verificar tu nivel de usuario");
+      }
+      
+      const userLevel = profileData?.level_numeric || 1;
+      console.log("User level:", userLevel);
+      
+      // Allow any user with level 3 or higher, or admin users (level 13) to create debates
+      if (userLevel < 3 && userLevel !== 13) {
+        console.error("User level too low:", userLevel);
+        throw new Error("Tu nivel de usuario no es suficiente para crear debates. Necesitas ser nivel 3 o superior.");
+      }
+      
+      // Use a direct insert instead of RPC for now
+      const { data, error } = await supabase
+        .from("debates")
+        .insert([{ 
+          title, 
+          content, 
+          category, 
+          author_id: userId 
+        }])
+        .select();
 
-    if (error) {
-      console.error("Error creating debate:", error);
+      if (error) {
+        console.error("Error creating debate:", error);
+        throw error;
+      }
+
+      console.log("Debate created successfully:", data);
+      return data[0];
+    } catch (error) {
+      console.error("Error in createDebate:", error);
       throw error;
     }
-
-    console.log("Debate created successfully:", data);
-    return data[0];
   },
 
   // Fetch a newly created debate with author info

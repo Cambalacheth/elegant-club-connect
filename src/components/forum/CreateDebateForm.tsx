@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { UserRole, canCreateContent, canCreateForum } from "@/types/user";
+import { UserRole, canCreateForum } from "@/types/user";
 import RichTextEditor from "./RichTextEditor";
 
 interface CreateDebateFormProps {
@@ -76,11 +77,16 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
       setContent("");
       setCategory("General");
       
-    } catch (error) {
+      toast({
+        title: "Debate creado",
+        description: "Tu debate ha sido publicado con éxito",
+      });
+      
+    } catch (error: any) {
       console.error("Error creating debate:", error);
       toast({
         title: "Error",
-        description: "No se pudo crear el debate",
+        description: error.message || "No se pudo crear el debate",
         variant: "destructive",
       });
     } finally {
