@@ -8,6 +8,15 @@ import { storageService } from "./storage/StorageService";
  */
 export const initializeStorageBuckets = async () => {
   try {
+    console.log("Initializing storage buckets via service...");
+    
+    // Verificar si ya existe algún bucket antes de intentar crear uno nuevo
+    const { data: existingBuckets } = await supabase.storage.listBuckets();
+    
+    if (existingBuckets && existingBuckets.length > 0) {
+      console.log("Found existing buckets:", existingBuckets.map(b => b.name).join(', '));
+    }
+    
     return await storageService.initializeBuckets();
   } catch (error) {
     console.error("Error initializing storage buckets:", error);

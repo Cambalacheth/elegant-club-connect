@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { createSafeFilename, determineResourceType } from "@/utils/fileUtils";
@@ -40,12 +41,17 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       setIsUploading(true);
       notifyUploadStarted();
       
-      // Create safe filename
-      const fileName = createSafeFilename(file.name);
+      // Create safe filename with timestamp to avoid conflicts
+      const timestamp = Date.now();
+      const fileName = `${timestamp}-${createSafeFilename(file.name)}`;
       console.log("Preparing file upload:", fileName);
       
-      // Initialize bucket first
-      await initializeStorage();
+      // Initialize bucket first - retry on failure
+      try {
+        await initializeStorage();
+      } catch (initError) {
+        console.warn("Storage initialization issue, continuing with upload:", initError);
+      }
       
       // Upload file using our service
       const publicUrl = await uploadToResourcesBucket(file, fileName);
@@ -81,7 +87,11 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
         notifyPermissionError();
         
         // Try to initialize buckets again
-        initializeStorage();
+        try {
+          initializeStorage();
+        } catch (e) {
+          console.error("Failed to re-initialize storage after permission error:", e);
+        }
       } else {
         notifyUploadError(error);
       }

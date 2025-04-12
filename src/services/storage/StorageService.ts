@@ -6,8 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
  * Provides methods for bucket management, file uploads, and permissions
  */
 export class StorageService {
-  private readonly defaultBuckets = ['recursos', 'resources', 'uploads', 'files'];
+  private readonly defaultBuckets = ['recursos', 'resources', 'uploads', 'files', 'images', 'avatars'];
   private currentBucket: string | null = null;
+  private lastSuccessfulBucket: string | null = null;
 
   /**
    * Initialize storage buckets ensuring at least one bucket is available
@@ -22,6 +23,7 @@ export class StorageService {
       
       if (listError) {
         console.error("Error checking buckets:", listError);
+        await this.createBucketPolicies(this.defaultBuckets[0]);
         throw listError;
       }
       
@@ -30,13 +32,16 @@ export class StorageService {
         this.defaultBuckets.includes(bucket.name)
       ) || [];
       
+      console.log("Found existing buckets:", existingBuckets.map(b => b.name).join(', '));
+      
       // If we have existing buckets, use the first one
       if (existingBuckets.length > 0) {
         this.currentBucket = existingBuckets[0].name;
+        this.lastSuccessfulBucket = this.currentBucket;
         console.log(`Using existing bucket: ${this.currentBucket}`);
         
         // Ensure the bucket has proper public access
-        this.updateBucketToPublic(this.currentBucket);
+        await this.updateBucketToPublic(this.currentBucket);
         
         // Create policies for existing bucket
         await this.createBucketPolicies(this.currentBucket);
@@ -48,7 +53,30 @@ export class StorageService {
       return await this.createNewBucket();
     } catch (error) {
       console.error("Error initializing storage buckets:", error);
-      throw error;
+      
+      // Fallar hacia un valor predeterminado si todo lo demás falla
+      if (!this.currentBucket) {
+        this.currentBucket = this.defaultBuckets[0];
+        console.warn(`Setting default bucket to ${this.currentBucket} after error`);
+      }
+      
+      // Ensure policies are created even if we fail
+      await this.createBucketPoliciesForAll();
+      
+      return this.currentBucket;
+    }
+  }
+  
+  /**
+   * Create policies for all default buckets as a fallback
+   */
+  private async createBucketPoliciesForAll(): Promise<void> {
+    for (const bucketName of this.defaultBuckets) {
+      try {
+        await this.createBucketPolicies(bucketName);
+      } catch (error) {
+        console.error(`Error creating policies for ${bucketName}:`, error);
+      }
     }
   }
   
@@ -64,6 +92,9 @@ export class StorageService {
       if (!this.currentBucket) {
         await this.initializeBuckets();
       }
+      
+      // Create policies before attempting upload
+      await this.createBucketPoliciesForAll();
       
       // Retry logic will be handled by the upload function
       return await this.uploadFileWithRetry(file, fileName);
@@ -127,6 +158,9 @@ export class StorageService {
       try {
         console.log(`Attempting to create bucket: ${bucketName}`);
         
+        // Create policies first - this is important for permitting bucket creation
+        await this.createBucketPolicies(bucketName);
+        
         const { error } = await supabase.storage
           .createBucket(bucketName, {
             public: true,
@@ -136,10 +170,7 @@ export class StorageService {
         if (!error) {
           console.log(`Bucket "${bucketName}" created successfully`);
           this.currentBucket = bucketName;
-          
-          // Create policies for the new bucket
-          await this.createBucketPolicies(bucketName);
-          
+          this.lastSuccessfulBucket = bucketName;
           return bucketName;
         } else {
           if (error.message?.includes("row-level security policy") || 
@@ -157,6 +188,7 @@ export class StorageService {
             if (!retryError) {
               console.log(`Bucket "${bucketName}" created successfully on retry`);
               this.currentBucket = bucketName;
+              this.lastSuccessfulBucket = bucketName;
               return bucketName;
             }
           }
@@ -172,6 +204,10 @@ export class StorageService {
     // (the upload might still work if policies are correct)
     console.warn("Could not create any bucket. Using fallback.");
     this.currentBucket = this.defaultBuckets[0];
+    
+    // Create policies for fallback bucket
+    await this.createBucketPolicies(this.currentBucket);
+    
     return this.currentBucket;
   }
   
@@ -248,6 +284,9 @@ export class StorageService {
           .from(this.currentBucket)
           .getPublicUrl(fileName);
         
+        // Remember successful bucket
+        this.lastSuccessfulBucket = this.currentBucket;
+        
         return publicUrlData.publicUrl;
       } catch (error: any) {
         console.error(`Upload attempt ${attempt + 1} failed:`, error);
@@ -284,11 +323,37 @@ export class StorageService {
           
           // Update current bucket to the one that worked
           this.currentBucket = fallbackBucket;
+          this.lastSuccessfulBucket = fallbackBucket;
           
           return fallbackUrlData.publicUrl;
         }
       } catch (fallbackError) {
         console.error(`Error with fallback bucket "${fallbackBucket}":`, fallbackError);
+      }
+    }
+    
+    // If user had a successful upload before, try that bucket specifically
+    if (this.lastSuccessfulBucket && this.lastSuccessfulBucket !== this.currentBucket) {
+      try {
+        console.log(`Trying previously successful bucket "${this.lastSuccessfulBucket}"...`);
+        await this.createBucketPolicies(this.lastSuccessfulBucket);
+        
+        const lastSuccessResult = await supabase.storage
+          .from(this.lastSuccessfulBucket)
+          .upload(fileName, file, options);
+          
+        if (!lastSuccessResult.error) {
+          const { data: successUrlData } = supabase.storage
+            .from(this.lastSuccessfulBucket)
+            .getPublicUrl(fileName);
+            
+          // Update current bucket
+          this.currentBucket = this.lastSuccessfulBucket;
+          
+          return successUrlData.publicUrl;
+        }
+      } catch (error) {
+        console.error(`Error with last successful bucket "${this.lastSuccessfulBucket}":`, error);
       }
     }
     

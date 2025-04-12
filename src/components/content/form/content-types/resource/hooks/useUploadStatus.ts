@@ -42,17 +42,24 @@ export const useUploadStatus = (): UseUploadStatusResult => {
   const notifyUploadSuccess = (fileName: string) => {
     setUploadStatus('Archivo subido con éxito: ' + fileName);
     toast({
-      title: "Archivo subido con éxito",
+      title: "¡Archivo subido con éxito!",
       description: fileName,
       variant: "default",
     });
   };
 
   const notifyUploadError = (error: Error) => {
-    setUploadStatus(`Error al subir el archivo: ${error.message || 'Error desconocido'}`);
+    const errorMessage = error.message || 'Error desconocido';
+    setUploadStatus(`Error al subir el archivo: ${errorMessage}`);
+    
+    let description = errorMessage;
+    if (errorMessage.length > 100) {
+      description = errorMessage.substring(0, 100) + '...';
+    }
+    
     toast({
       title: "Error al subir el archivo",
-      description: error.message || "Error desconocido",
+      description,
       variant: "destructive",
     });
   };
@@ -61,7 +68,7 @@ export const useUploadStatus = (): UseUploadStatusResult => {
     setUploadStatus('Error de permisos: Intentando resolver el problema automáticamente, por favor intenta de nuevo en unos segundos.');
     toast({
       title: "Error de permisos",
-      description: "Intentaremos resolver este problema automáticamente, por favor intenta de nuevo.",
+      description: "Estamos preparando el almacenamiento para esta cuenta. Por favor, intenta de nuevo en unos segundos.",
       variant: "destructive",
     });
     
