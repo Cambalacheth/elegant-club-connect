@@ -1,4 +1,3 @@
-
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { FileText, Upload } from "lucide-react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ContentTypeFieldsProps {
   form: UseFormReturn<any>;
@@ -19,6 +22,69 @@ interface ContentTypeFieldsProps {
 }
 
 export const ContentTypeFields = ({ form, contentType }: ContentTypeFieldsProps) => {
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    // Check file type
+    const validFileTypes = [
+      'application/pdf', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // docx
+      'application/msword', // doc
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // xlsx
+      'application/vnd.ms-excel', // xls
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // pptx
+      'application/vnd.ms-powerpoint' // ppt
+    ];
+    
+    if (!validFileTypes.includes(file.type)) {
+      setUploadStatus('Tipo de archivo no válido. Por favor, sube un archivo PDF, Word, Excel o PowerPoint.');
+      return;
+    }
+    
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadStatus('El archivo es demasiado grande. El tamaño máximo es 10MB.');
+      return;
+    }
+    
+    try {
+      setIsUploading(true);
+      setUploadStatus('Subiendo archivo...');
+      
+      // Create resources bucket if it doesn't exist
+      const fileName = `${Date.now()}-${file.name}`;
+      const filePath = `resources/${fileName}`;
+      
+      // Upload file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('resources')
+        .upload(filePath, file);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('resources')
+        .getPublicUrl(filePath);
+      
+      // Set form values
+      form.setValue('resourceUrl', publicUrlData.publicUrl);
+      setUploadStatus('Archivo subido con éxito: ' + file.name);
+      
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      setUploadStatus(`Error al subir el archivo: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+  
   if (contentType === 'article') {
     return (
       <div className="space-y-4">
@@ -94,7 +160,6 @@ export const ContentTypeFields = ({ form, contentType }: ContentTypeFieldsProps)
                   {...field} 
                   className="border-club-beige-dark focus:border-club-orange"
                   onBlur={(e) => {
-                    // Extract video ID on blur and update the thumbnail if no image is set
                     const videoId = extractYoutubeVideoId(e.target.value);
                     if (videoId && !form.getValues('imageUrl')) {
                       form.setValue('imageUrl', `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`);
@@ -311,6 +376,9 @@ export const ContentTypeFields = ({ form, contentType }: ContentTypeFieldsProps)
                 <SelectItem value="book">Libro</SelectItem>
                 <SelectItem value="course">Curso</SelectItem>
                 <SelectItem value="software">Software</SelectItem>
+                <SelectItem value="document">Documento</SelectItem>
+                <SelectItem value="presentation">Presentación</SelectItem>
+                <SelectItem value="spreadsheet">Hoja de cálculo</SelectItem>
                 <SelectItem value="other">Otro</SelectItem>
               </SelectContent>
             </Select>
@@ -342,15 +410,54 @@ export const ContentTypeFields = ({ form, contentType }: ContentTypeFieldsProps)
         name="resourceUrl"
         render={({ field }) => (
           <FormItem>
-            <FormLabel className="text-club-brown font-medium">Enlace al recurso o descarga</FormLabel>
-            <FormControl>
-              <Input 
-                placeholder="https://..." 
-                {...field} 
-                className="border-club-beige-dark focus:border-club-orange" 
-              />
-            </FormControl>
+            <FormLabel className="text-club-brown font-medium">Recurso</FormLabel>
+            <div className="space-y-2">
+              <FormControl>
+                <Input 
+                  placeholder="https://... o sube un archivo" 
+                  {...field} 
+                  className="border-club-beige-dark focus:border-club-orange"
+                />
+              </FormControl>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                  disabled={isUploading}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isUploading ? 'Subiendo...' : 'Subir archivo'}
+                </Button>
+                <input
+                  id="file-upload"
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                  disabled={isUploading}
+                />
+                {form.watch('resourceUrl') && !isUploading && (
+                  <div className="flex items-center text-sm text-green-600">
+                    <FileText className="h-4 w-4 mr-1" />
+                    Archivo adjunto
+                  </div>
+                )}
+              </div>
+              
+              {uploadStatus && (
+                <div className={`text-sm ${uploadStatus.includes('Error') ? 'text-red-500' : 'text-green-600'}`}>
+                  {uploadStatus}
+                </div>
+              )}
+            </div>
             <FormMessage />
+            <p className="text-xs text-gray-500 mt-1">
+              Sube un archivo (PDF, Word, Excel, PowerPoint) o ingresa una URL externa
+            </p>
           </FormItem>
         )}
       />

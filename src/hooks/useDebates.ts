@@ -66,7 +66,7 @@ export const useDebates = (selectedCategory: string | null) => {
       const completeDebate = await forumService.fetchNewDebate(newDebate.id);
       
       // Update local state
-      setDebates([completeDebate, ...debates]);
+      setDebates(prevDebates => [completeDebate, ...prevDebates]);
       
       // Add experience points
       await experienceService.addDebateXp(userId, title);

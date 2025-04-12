@@ -64,12 +64,20 @@ export const forumService = {
 
       if (error) {
         console.error("Error creating debate:", error);
+        // Add more detailed error information
+        if (error.code === "42501") {
+          throw new Error("Error de permisos: No tienes permiso para crear debates. Contacta al administrador.");
+        }
         throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error("No se pudo crear el debate. No se recibió confirmación del servidor.");
       }
 
       console.log("Debate created successfully:", data);
       return data[0];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in createDebate:", error);
       throw error;
     }
