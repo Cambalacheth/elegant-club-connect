@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText, Video, BookOpen, Newspaper } from "lucide-react";
@@ -31,11 +31,11 @@ export const ContentManagement = ({ userId, userRole }: ContentManagementProps) 
   } = useContent(activeTab);
 
   // Fetch all content including unpublished when component mounts or tab changes
-  useState(() => {
+  useEffect(() => {
     if (canManageContent(userRole)) {
       fetchAllContent();
     }
-  });
+  }, [fetchAllContent, userRole, activeTab]);
 
   const handleCreateContent = async (data: Partial<ContentItem>) => {
     try {

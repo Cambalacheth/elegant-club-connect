@@ -12,14 +12,17 @@ export const initializeStorageBuckets = async () => {
       return;
     }
     
-    const resourcesBucketExists = buckets?.some(bucket => bucket.name === 'resources');
+    // Check for both "resources" and "recursos" (user-created bucket)
+    const resourcesBucketExists = buckets?.some(bucket => 
+      bucket.name === 'resources' || bucket.name === 'recursos'
+    );
     
     if (!resourcesBucketExists) {
       console.log("Creating resources storage bucket...");
       
       // Create the resources bucket with public access
       const { error } = await supabase.storage
-        .createBucket('resources', {
+        .createBucket('recursos', {
           public: true,
           fileSizeLimit: 10485760 // 10MB
         });
@@ -50,9 +53,9 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
     // First ensure the bucket exists
     await initializeStorageBuckets();
     
-    // Upload the file
+    // Upload the file to the "recursos" bucket (user created)
     const { data, error } = await supabase.storage
-      .from('resources')
+      .from('recursos')
       .upload(filePath, file);
     
     if (error) {
@@ -61,7 +64,7 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
     
     // Get the public URL
     const { data: publicUrlData } = supabase.storage
-      .from('resources')
+      .from('recursos')
       .getPublicUrl(filePath);
     
     return publicUrlData.publicUrl;

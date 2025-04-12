@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { ContentItem, ContentType } from "@/types/content";
 import { useToast } from "@/hooks/use-toast";
@@ -63,10 +64,15 @@ export const useContent = (type?: ContentType) => {
   const createContent = async (newContent: Partial<ContentItem>) => {
     try {
       const createdItem = await createContentItem(newContent);
+      
+      // Update local state by adding the new item
+      setContentItems(prevItems => [createdItem, ...prevItems]);
+      
       toast({
         title: "Éxito",
         description: "Contenido creado correctamente",
       });
+      
       return createdItem;
     } catch (error: any) {
       console.error("Error creating content:", error);
@@ -82,10 +88,17 @@ export const useContent = (type?: ContentType) => {
   const updateContent = async (id: string, updates: Partial<ContentItem>) => {
     try {
       const updatedItem = await updateContentItem(id, updates);
+      
+      // Update local state by replacing the updated item
+      setContentItems(prevItems => 
+        prevItems.map(item => item.id === id ? updatedItem : item)
+      );
+      
       toast({
         title: "Éxito",
         description: "Contenido actualizado correctamente",
       });
+      
       return updatedItem;
     } catch (error: any) {
       console.error("Error updating content:", error);
@@ -101,11 +114,11 @@ export const useContent = (type?: ContentType) => {
   const deleteContent = async (id: string) => {
     try {
       await deleteContentItem(id);
+      setContentItems(filterContentById(contentItems, id));
       toast({
         title: "Éxito",
         description: "Contenido eliminado correctamente",
       });
-      setContentItems(filterContentById(contentItems, id));
     } catch (error: any) {
       console.error("Error deleting content:", error);
       toast({
