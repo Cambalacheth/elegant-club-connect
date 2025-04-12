@@ -6,6 +6,7 @@ import { UserRole, canModerateContent } from "@/types/user";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import RichTextDisplay from "./RichTextDisplay";
 
 interface CommentCardProps {
   comment: Comment;
@@ -94,7 +95,7 @@ const CommentCard = ({ comment, userRole, userId, onVote, onDelete }: CommentCar
       </div>
       
       <div className="mb-3">
-        <p className="text-gray-700">{comment.content}</p>
+        <RichTextDisplay content={comment.content} className="text-gray-700 text-sm" />
       </div>
       
       <div className="flex justify-end items-center space-x-4">

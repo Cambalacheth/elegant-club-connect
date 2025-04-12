@@ -7,6 +7,7 @@ import { UserRole, canModerateContent } from "@/types/user";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import RichTextDisplay from "./RichTextDisplay";
 
 interface DebateCardProps {
   debate: Debate;
@@ -62,6 +63,11 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
     });
   };
 
+  // Prepare preview - first 250 characters of content
+  const contentPreview = debate.content.length > 250 
+    ? debate.content.substring(0, 250) + "..." 
+    : debate.content;
+
   // Render role badge
   const renderRoleBadge = () => {
     switch (debate.author_role) {
@@ -86,8 +92,10 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
           <span className="text-xs text-gray-500">{formatDate(debate.created_at)}</span>
         </div>
         
-        <div className="mb-4">
-          <p className="text-gray-700 line-clamp-3">{debate.content}</p>
+        <div className="mb-4 text-gray-700 overflow-hidden">
+          <div className="line-clamp-3">
+            <RichTextDisplay content={contentPreview} className="text-sm" />
+          </div>
         </div>
         
         <div className="flex justify-between items-center">

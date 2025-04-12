@@ -1,9 +1,9 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole, canCreateContent } from "@/types/user";
+import RichTextEditor from "./RichTextEditor";
 
 interface CommentFormProps {
   debateId: string;
@@ -79,12 +79,13 @@ const CommentForm = ({ debateId, userRole, userId, onSubmit }: CommentFormProps)
       
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <Textarea
+          <RichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Escribe tu comentario"
+            onChange={setContent}
+            placeholder="Escribe tu comentario. Puedes usar formato de texto."
             rows={3}
             disabled={!canCreateContent(userRole) || isSubmitting}
+            maxLength={1000}
           />
         </div>
         

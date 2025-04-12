@@ -74,7 +74,7 @@ export const LEVEL_THRESHOLDS = [
   5500,   // Level 10: 5500 XP (can manage)
   7500,   // Level 11: 7500 XP
   10000,  // Level 12: 10000 XP (max regular level)
-  Infinity // Level 13: Admin only
+  999999  // Level 13: Admin only (cambiado de Infinity a 999999)
 ];
 
 export const getLevelInfo = (xp: number): { level: UserLevel, currentXP: number, nextLevelXP: number, progress: number } => {
@@ -90,7 +90,7 @@ export const getLevelInfo = (xp: number): { level: UserLevel, currentXP: number,
   
   const currentLevelIndex = level - 1;
   const currentLevelXP = LEVEL_THRESHOLDS[currentLevelIndex];
-  const nextLevelXP = level < 13 ? LEVEL_THRESHOLDS[currentLevelIndex + 1] : Infinity;
+  const nextLevelXP = level < 13 ? LEVEL_THRESHOLDS[currentLevelIndex + 1] : 999999;
   
   const xpInCurrentLevel = xp - currentLevelXP;
   const xpRequiredForNextLevel = nextLevelXP - currentLevelXP;

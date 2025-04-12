@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Clock, Tag, Trash2 } from "lucide-react";
 import { Debate } from "@/types/forum";
 import { canModerateContent, UserRole, UserLevel } from "@/types/user";
+import RichTextDisplay from "./RichTextDisplay";
 
 interface DebateContentProps {
   debate: Debate;
@@ -57,10 +58,8 @@ const DebateContent: React.FC<DebateContentProps> = ({
           <span>{debate.category}</span>
         </div>
         
-        <div className="prose max-w-none mb-6">
-          {debate.content.split('\n').map((paragraph, index) => (
-            <p key={index} className="mb-4">{paragraph}</p>
-          ))}
+        <div className="mb-6">
+          <RichTextDisplay content={debate.content} className="text-gray-700" />
         </div>
         
         <div className="flex justify-between items-center pt-4 border-t border-gray-100">

@@ -2,10 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { UserRole, canCreateContent, canCreateForum } from "@/types/user";
+import RichTextEditor from "./RichTextEditor";
 
 interface CreateDebateFormProps {
   userRole: UserRole;
@@ -134,14 +134,17 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
           <label htmlFor="debateContent" className="block text-sm font-medium text-gray-700 mb-1">
             Contenido
           </label>
-          <Textarea
-            id="debateContent"
+          <RichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Escribe el contenido de tu debate"
+            onChange={setContent}
+            placeholder="Escribe el contenido de tu debate. Puedes usar formato de texto."
             rows={5}
             disabled={!canCreateContent(userRole) || isSubmitting}
+            maxLength={5000}
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Usa los botones para dar formato a tu texto: negrita, itálica, enlaces, etc.
+          </p>
         </div>
         
         <Button 
