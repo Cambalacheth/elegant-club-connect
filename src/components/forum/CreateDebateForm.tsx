@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,7 +40,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
     if (!canCreate) {
       toast({
         title: "Acceso denegado",
-        description: "Necesitas ser nivel 4 o superior para crear debates",
+        description: "Necesitas ser nivel 3 o superior para crear debates",
         variant: "destructive",
       });
       return;
@@ -95,7 +94,7 @@ const CreateDebateForm = ({ userRole, userId, onSubmit }: CreateDebateFormProps)
       
       {!canCreate && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 p-3 rounded-md mb-4">
-          Necesitas ser nivel 4 o superior para crear debates. Continúa participando para subir de nivel.
+          Necesitas ser nivel 3 o superior para crear debates. Continúa participando para subir de nivel.
         </div>
       )}
       

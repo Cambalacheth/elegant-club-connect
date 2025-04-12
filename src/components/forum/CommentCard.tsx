@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { ThumbsUp, ThumbsDown, Trash2, AlertCircle } from "lucide-react";
 import { Comment } from "@/types/forum";
-import { canModerateContent, UserRole } from "@/types/user";
+import { canAdminContent, UserRole } from "@/types/user";
 import RichTextDisplay from "./RichTextDisplay";
 import { 
   AlertDialog,
@@ -58,7 +57,6 @@ const CommentCard: React.FC<CommentCardProps> = ({
           <div>
             <div className="flex items-center">
               <span className="font-medium text-gray-700">{comment.author_username}</span>
-              {/* Render role badge using the new format */}
               {renderRoleBadge(comment.author_role) && (
                 <span className={renderRoleBadge(comment.author_role)?.className || ""}>
                   {renderRoleBadge(comment.author_role)?.text}
@@ -99,7 +97,7 @@ const CommentCard: React.FC<CommentCardProps> = ({
           </div>
         </div>
         
-        {(canModerateContent(userRole) || userId === comment.author_id) && (
+        {(canAdminContent(userRole) || userId === comment.author_id) && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button

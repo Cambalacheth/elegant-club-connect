@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Clock, Tag, Trash2, AlertCircle } from "lucide-react";
 import { Debate } from "@/types/forum";
-import { canModerateContent, UserRole, UserLevel } from "@/types/user";
+import { canAdminContent, UserRole, UserLevel } from "@/types/user";
 import RichTextDisplay from "./RichTextDisplay";
 import { 
   AlertDialog,
@@ -47,7 +47,7 @@ const DebateContent: React.FC<DebateContentProps> = ({
         <div className="flex justify-between items-start mb-4">
           <h1 className="text-2xl font-bold text-club-brown">{debate.title}</h1>
           
-          {(canModerateContent(typedUserRole) || userId === debate.author_id) && (
+          {(canAdminContent(typedUserRole) || userId === debate.author_id) && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button

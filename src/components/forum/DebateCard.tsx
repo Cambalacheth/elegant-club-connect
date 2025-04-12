@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ThumbsUp, ThumbsDown, MessageSquare, Trash2, AlertCircle } from "lucide-react";
 import { Debate } from "@/types/forum";
-import { UserRole, canModerateContent } from "@/types/user";
+import { UserRole, canAdminContent } from "@/types/user";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -74,12 +73,10 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
     });
   };
 
-  // Prepare preview - first 250 characters of content
   const contentPreview = debate.content.length > 250 
     ? debate.content.substring(0, 250) + "..." 
     : debate.content;
 
-  // Render role badge
   const renderRoleBadge = () => {
     switch (debate.author_role) {
       case "verified":
@@ -148,7 +145,7 @@ const DebateCard = ({ debate, userRole, userId, onVote, onDelete }: DebateCardPr
               <span className="text-sm">{debate.comments_count}</span>
             </div>
             
-            {(canModerateContent(userRole) || userId === debate.author_id) && (
+            {(canAdminContent(userRole) || userId === debate.author_id) && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <button

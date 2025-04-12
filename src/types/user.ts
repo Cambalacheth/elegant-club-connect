@@ -18,7 +18,7 @@ export const canCreateContent = (level: UserLevel | UserRole): boolean => {
     // Convert UserRole to UserLevel for backward compatibility
     return ['verified', 'moderator', 'admin'].includes(level);
   }
-  return level >= 5; // Changed from 2 to 5 - Level 5+ can create content
+  return level >= 2; // Changed from 5 to 2 - Level 2+ can create content (comments)
 };
 
 export const canCreateForum = (level: UserLevel | UserRole): boolean => {
@@ -26,7 +26,7 @@ export const canCreateForum = (level: UserLevel | UserRole): boolean => {
     // Convert UserRole to UserLevel based on previous implementation
     return ['moderator', 'admin'].includes(level);
   }
-  return level >= 4; // Level 4+ can create forum posts
+  return level >= 3; // Changed from 4 to 3 - Level 3+ can create forum posts
 };
 
 export const canModerateContent = (level: UserLevel | UserRole): boolean => {
@@ -50,7 +50,7 @@ export const canAdminContent = (level: UserLevel | UserRole): boolean => {
     // Convert UserRole to UserLevel
     return level === 'admin';
   }
-  return level === 13;
+  return level === 13; // Level 13 (admin) can delete content
 };
 
 export const canParticipateInInfluencerProgram = (level: UserLevel | UserRole): boolean => {

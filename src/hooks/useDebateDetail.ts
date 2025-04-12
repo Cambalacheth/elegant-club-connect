@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Debate, Comment } from "@/types/forum";
@@ -6,7 +5,7 @@ import { useUser } from "@/hooks/useUser";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
-import { canModerateContent } from "@/types/user";
+import { canModerateContent, canAdminContent } from "@/types/user";
 import { useNavigate } from "react-router-dom";
 
 // Separate service for cleaner code organization
@@ -308,10 +307,10 @@ export const useDebateDetail = (debateId: string) => {
   const handleDeleteDebate = async () => {
     if (!user || !debate || isDeleting) return;
 
-    if (!canModerateContent(userRole) && user.id !== debate.author_id) {
+    if (!canAdminContent(userRole) && user.id !== debate.author_id) {
       toast({
         title: "Acceso denegado",
-        description: "No tienes permisos para eliminar este debate",
+        description: "Solo los administradores pueden eliminar debates de otros usuarios",
         variant: "destructive",
       });
       return;
@@ -346,10 +345,10 @@ export const useDebateDetail = (debateId: string) => {
     const comment = comments.find(c => c.id === commentId);
     if (!comment) return;
 
-    if (!canModerateContent(userRole) && user.id !== comment.author_id) {
+    if (!canAdminContent(userRole) && user.id !== comment.author_id) {
       toast({
         title: "Acceso denegado",
-        description: "No tienes permisos para eliminar este comentario",
+        description: "Solo los administradores pueden eliminar comentarios de otros usuarios",
         variant: "destructive",
       });
       return;
