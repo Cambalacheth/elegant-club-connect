@@ -39,6 +39,20 @@ export const initializeStorageBuckets = async () => {
       }
       
       console.log("Resources bucket created successfully");
+      
+      // Try to create policies to allow public access to the bucket
+      try {
+        // This will only work for users with appropriate permissions
+        const { error: policyError } = await supabase.rpc('create_public_bucket_policy', { 
+          bucket_name: 'recursos' 
+        });
+        
+        if (policyError) {
+          console.error("Error creating bucket policy:", policyError);
+        }
+      } catch (policyError) {
+        console.error("Could not create bucket policy:", policyError);
+      }
     } else {
       console.log("Resources bucket already exists");
     }
@@ -72,8 +86,6 @@ export const uploadToResourcesBucket = async (file: File, filePath: string) => {
     if (error) {
       console.error("Error in file upload:", error);
       throw { 
-        statusCode: error.statusCode || "403", 
-        error: error.name || "Unauthorized", 
         message: error.message || "Error uploading file" 
       };
     }

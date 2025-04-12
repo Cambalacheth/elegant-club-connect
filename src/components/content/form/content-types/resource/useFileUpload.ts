@@ -58,7 +58,13 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       
     } catch (error: any) {
       console.error('Error uploading file:', error);
-      setUploadStatus(`Error al subir el archivo: ${error.message || 'Error desconocido'}`);
+      
+      // Handle specific error for row-level security policy
+      if (error.message && error.message.includes('row-level security policy')) {
+        setUploadStatus('Error de permisos: No tienes autorización para subir archivos. Por favor, contacta al administrador.');
+      } else {
+        setUploadStatus(`Error al subir el archivo: ${error.message || 'Error desconocido'}`);
+      }
     } finally {
       setIsUploading(false);
     }
