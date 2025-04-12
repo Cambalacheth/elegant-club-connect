@@ -49,7 +49,7 @@ export const useDebates = (selectedCategory: string | null) => {
       console.log("Debate created:", newDebate);
       
       // Make sure newDebate is valid before proceeding
-      if (!newDebate) {
+      if (!newDebate || typeof newDebate === 'number' || typeof newDebate === 'boolean') {
         // Use the fetchDebates function to refresh the list as a fallback
         const refreshedData = await forumService.fetchDebates(selectedCategory);
         setDebates(refreshedData);

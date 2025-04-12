@@ -44,12 +44,12 @@ export const forumService = {
     const userLevel = profileData?.level_numeric || 1;
     console.log("User level:", userLevel);
     
-    // Verify minimum level requirement
-    if (userLevel < 3) {
+    // Allow admin users (level 13) to bypass the level check
+    if (userLevel < 3 && userLevel !== 13) {
       throw new Error("Tu nivel de usuario no es suficiente para crear debates");
     }
     
-    // Use a direct insert instead of RPC for now until the RPC function is properly created
+    // Use a direct insert instead of RPC for now
     const { data, error } = await supabase
       .from("debates")
       .insert([{ 

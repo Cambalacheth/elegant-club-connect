@@ -9,6 +9,8 @@ import { BasicInfoFields } from "./form/BasicInfoFields";
 import { ContentTypeFields } from "./form/ContentTypeFields";
 import { ImageUploadField } from "./form/ImageUploadField";
 import { PublishSwitch } from "./form/PublishSwitch";
+import { FileText, Video, BookOpen, Newspaper } from "lucide-react";
+import { DialogTitle } from "@/components/ui/dialog";
 
 interface ContentFormProps {
   initialData?: Partial<ContentItem>;
@@ -71,32 +73,88 @@ export const ContentForm = ({
     }
     return `${action} ${typeName}`;
   };
+  
+  // Get icon for content type
+  const getContentTypeIcon = () => {
+    switch(contentType) {
+      case 'article': return <FileText className="h-5 w-5 mr-2" />;
+      case 'video': return <Video className="h-5 w-5 mr-2" />;
+      case 'guide': return <BookOpen className="h-5 w-5 mr-2" />;
+      case 'resource': return <Newspaper className="h-5 w-5 mr-2" />;
+      default: return <FileText className="h-5 w-5 mr-2" />;
+    }
+  };
+  
+  // Get color for content type
+  const getContentTypeColor = () => {
+    switch(contentType) {
+      case 'article': return "from-blue-500 to-blue-700";
+      case 'video': return "from-red-500 to-red-700";
+      case 'guide': return "from-green-500 to-green-700";
+      case 'resource': return "from-purple-500 to-purple-700";
+      default: return "from-club-orange to-club-terracotta";
+    }
+  };
+  
+  // Get description for content type
+  const getContentTypeDescription = () => {
+    switch(contentType) {
+      case 'article': 
+        return "Crea un artículo informativo con texto formateado, imágenes y enlaces.";
+      case 'video': 
+        return "Comparte un video de YouTube o similar con una descripción y metadatos.";
+      case 'guide': 
+        return "Crea una guía paso a paso o tutorial sobre algún tema.";
+      case 'resource': 
+        return "Comparte una herramienta, plantilla, curso u otro recurso útil.";
+      default: 
+        return "";
+    }
+  };
 
   return (
     <Card className="w-full border-0 shadow-none">
-      <CardHeader className="bg-gradient-to-r from-club-orange to-club-terracotta text-white rounded-t-lg py-5">
-        <CardTitle className="text-xl font-semibold">
+      <CardHeader className={`bg-gradient-to-r ${getContentTypeColor()} text-white rounded-t-lg py-5`}>
+        <DialogTitle className="text-xl font-semibold flex items-center">
+          {getContentTypeIcon()}
           {getFormTitle()}
-        </CardTitle>
+        </DialogTitle>
+        <p className="text-white/80 text-sm mt-1">{getContentTypeDescription()}</p>
       </CardHeader>
       <CardContent className="p-6 bg-white">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-6 bg-gray-50 p-4 rounded-md border border-gray-100">
-                <BasicInfoFields form={form} categories={categories} />
-                <ContentTypeFields form={form} contentType={contentType} />
+              <div className="space-y-6">
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                    {getContentTypeIcon()}
+                    Información básica
+                  </h3>
+                  <BasicInfoFields form={form} categories={categories} />
+                </div>
+                <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Detalles específicos</h3>
+                  <ContentTypeFields form={form} contentType={contentType} />
+                </div>
               </div>
 
               <div className="space-y-6">
                 <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Imagen destacada</h3>
                   <ImageUploadField 
                     initialImage={initialData?.imageUrl} 
                     onChange={(url) => setImagePreview(url)} 
                   />
                 </div>
                 <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
+                  <h3 className="text-lg font-medium text-gray-800 mb-4">Publicación</h3>
                   <PublishSwitch form={form} />
+                  <p className="text-sm text-gray-500 mt-2">
+                    {form.watch('published') 
+                      ? 'Este contenido será visible para todos los usuarios.' 
+                      : 'Este contenido quedará guardado como borrador.'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -105,7 +163,7 @@ export const ContentForm = ({
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-club-orange to-club-terracotta hover:opacity-90 text-white font-medium shadow-md transition-all"
+                className={`bg-gradient-to-r ${getContentTypeColor()} hover:opacity-90 text-white font-medium shadow-md transition-all`}
               >
                 {isSubmitting 
                   ? "Guardando..." 
