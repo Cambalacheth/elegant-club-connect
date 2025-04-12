@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +31,7 @@ import ElFotographerPage from "./pages/ElFotographerPage";
 import Feedback from "./pages/Feedback";
 import VotePage from "./pages/VotePage";
 import InfluencersPage from "./pages/InfluencersPage";
+import ChatbotPage from "./pages/ChatbotPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,6 +84,7 @@ function App() {
               <Route path="/feedback" element={<Feedback />} />
               <Route path="/vote" element={<VotePage />} />
               <Route path="/influencers" element={<InfluencersPage />} />
+              <Route path="/chatbot" element={<ChatbotPage />} />
               
               {/* Vertical pages with dedicated routes */}
               <Route path="/legal" element={<VerticalPage />} />
