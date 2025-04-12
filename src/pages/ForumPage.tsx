@@ -26,7 +26,6 @@ const ForumPage = () => {
     console.log("ForumPage render - debates:", debates.length, "userRole:", userRole);
   }, [debates, userRole]);
 
-  // Handle debate creation with additional logging and error handling
   const onCreateDebate = async (title: string, content: string, category: string) => {
     if (!user) {
       toast({
@@ -56,7 +55,6 @@ const ForumPage = () => {
     }
   };
 
-  // Handle vote
   const onVote = async (debateId: string, voteType: "up" | "down") => {
     if (!user) {
       toast({

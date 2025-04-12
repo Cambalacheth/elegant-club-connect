@@ -1,10 +1,21 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ThumbsUp, ThumbsDown, Clock, Tag, Trash2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Clock, Tag, Trash2, AlertCircle } from "lucide-react";
 import { Debate } from "@/types/forum";
 import { canModerateContent, UserRole, UserLevel } from "@/types/user";
 import RichTextDisplay from "./RichTextDisplay";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface DebateContentProps {
   debate: Debate;
@@ -37,16 +48,39 @@ const DebateContent: React.FC<DebateContentProps> = ({
           <h1 className="text-2xl font-bold text-club-brown">{debate.title}</h1>
           
           {(canModerateContent(typedUserRole) || userId === debate.author_id) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onDelete}
-              disabled={isDeleting}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 size={18} className="mr-1" />
-              Eliminar
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={isDeleting}
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 size={18} className="mr-1" />
+                  Eliminar
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center">
+                    <AlertCircle className="h-5 w-5 text-red-500 mr-2" />
+                    ¿Eliminar debate?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción no se puede deshacer. El debate será eliminado permanentemente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={onDelete}
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                  >
+                    {isDeleting ? "Eliminando..." : "Eliminar"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           )}
         </div>
         

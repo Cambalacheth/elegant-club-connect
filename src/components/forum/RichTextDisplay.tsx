@@ -28,16 +28,18 @@ const RichTextDisplay: React.FC<RichTextDisplayProps> = ({ content, className })
     processed = processed.replace(/__(.*?)__/g, '<u>$1</u>');
     
     // Process code
-    processed = processed.replace(/`(.*?)`/g, '<code>$1</code>');
+    processed = processed.replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>');
     
     // Process links [text](url)
-    processed = processed.replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-club-orange hover:underline">$1</a>');
+    processed = processed.replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g, 
+      '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-club-orange hover:underline">$1</a>');
     
     // Process numbered lists
     processed = processed.replace(/^\d+\.\s(.*?)$/gm, '<li>$1</li>');
     
     // Process Terreta domain references (#domain)
-    processed = processed.replace(/#([a-zA-Z0-9_-]+)/g, '<a href="/dominios/$1" class="text-club-terracotta font-medium hover:underline">#$1</a>');
+    processed = processed.replace(/#([a-zA-Z0-9_-]+)/g, 
+      '<a href="/dominios/$1" class="text-club-terracotta font-medium hover:underline">#$1</a>');
     
     return processed;
   };
