@@ -44,19 +44,14 @@ export const VerticalsDropdown = ({ currentLanguage, handleClick }: VerticalsDro
             <ul className="grid w-[220px] gap-2 p-2 bg-club-beige">
               {verticalDomains.map((domain, index) => (
                 <li key={index}>
-                  {/* Changed to use NavigationMenuLink directly instead of with asChild */}
-                  <NavigationMenuLink 
-                    className="flex items-center gap-2 px-3 py-2 text-club-brown hover:text-club-terracotta hover:bg-club-beige-dark rounded-md"
+                  <Link 
+                    to={domain.path}
+                    className="flex items-center gap-2 px-3 py-2 text-club-brown hover:text-club-terracotta hover:bg-club-beige-dark rounded-md block"
                     onClick={handleClick}
-                    href={domain.path}
-                    // This component will render an <a> tag with href, we need to suppress default to use React Router
-                    onSelect={(event) => {
-                      event.preventDefault();
-                    }}
                   >
                     {getIconForPath(domain.path)}
                     {domain.name}
-                  </NavigationMenuLink>
+                  </Link>
                 </li>
               ))}
             </ul>
