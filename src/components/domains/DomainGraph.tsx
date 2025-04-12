@@ -35,10 +35,12 @@ const getNodeColor = (status: string) => {
   }
 };
 
-const getNodeSize = (name: string, path: string, description: string) => {
+const getNodeSize = (name: string, path: string, description: string, status: string) => {
   const contentLength = (name.length + path.length + (description?.length || 0));
   // Base size on content length, with min/max size bounds
-  return Math.min(Math.max(contentLength / 4, 100), 250);
+  // Make used domains slightly larger
+  const baseSize = Math.min(Math.max(contentLength / 4, 100), 250);
+  return status === 'used' ? baseSize * 1.2 : baseSize;
 };
 
 const DomainGraph: React.FC<DomainGraphProps> = ({ domains, currentLanguage, onNodeClick }) => {
@@ -51,7 +53,7 @@ const DomainGraph: React.FC<DomainGraphProps> = ({ domains, currentLanguage, onN
 
     // Create nodes from domains
     const domainNodes: Node[] = domains.map((domain, index) => {
-      const nodeSize = getNodeSize(domain.name, domain.path, domain.description);
+      const nodeSize = getNodeSize(domain.name, domain.path, domain.description, domain.status);
       return {
         id: domain.id,
         data: { 
@@ -74,11 +76,13 @@ const DomainGraph: React.FC<DomainGraphProps> = ({ domains, currentLanguage, onN
           justifyContent: 'center',
           alignItems: 'center',
           color: '#ffffff',
-          border: '2px solid white',
+          border: domain.status === 'used' ? '4px solid white' : '2px solid white',
           fontSize: Math.min(14 + domain.name.length / 10, 22),
           fontWeight: 'bold',
           textAlign: 'center',
-          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          boxShadow: domain.status === 'used' 
+            ? '0 8px 16px -2px rgb(0 0 0 / 0.2), 0 4px 8px -2px rgb(0 0 0 / 0.2)'
+            : '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         }
       };
     });
@@ -117,7 +121,10 @@ const DomainGraph: React.FC<DomainGraphProps> = ({ domains, currentLanguage, onN
       target: domain.id,
       type: 'straight',
       animated: domain.status === 'used',
-      style: { stroke: getNodeColor(domain.status), strokeWidth: 2 },
+      style: { 
+        stroke: getNodeColor(domain.status), 
+        strokeWidth: domain.status === 'used' ? 3 : 2 
+      },
       markerEnd: {
         type: MarkerType.Arrow,
         color: getNodeColor(domain.status),
@@ -128,12 +135,22 @@ const DomainGraph: React.FC<DomainGraphProps> = ({ domains, currentLanguage, onN
     const relatedEdges: Edge[] = [];
     domains.forEach((domainA, indexA) => {
       domains.forEach((domainB, indexB) => {
-        // Create a connection if domains seem related (using some arbitrary logic)
-        // In a real app, you might have actual relationship data
-        if (indexA < indexB && 
+        // Create connections between used domains
+        if (indexA < indexB && domainA.status === 'used' && domainB.status === 'used') {
+          relatedEdges.push({
+            id: `e-${domainA.id}-${domainB.id}`,
+            source: domainA.id,
+            target: domainB.id,
+            type: 'straight',
+            animated: true,
+            style: { stroke: '#60a5fa', strokeWidth: 2, opacity: 0.8 },
+          });
+        } 
+        // Create some other random connections
+        else if (indexA < indexB && 
             (domainA.name.charAt(0) === domainB.name.charAt(0) || 
              domainA.status === domainB.status) &&
-            Math.random() > 0.7) { // Randomly create some connections
+            Math.random() > 0.7) {
           relatedEdges.push({
             id: `e-${domainA.id}-${domainB.id}`,
             source: domainA.id,
