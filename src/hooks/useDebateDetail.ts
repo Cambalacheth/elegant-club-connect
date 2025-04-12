@@ -1,139 +1,13 @@
+
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Debate, Comment } from "@/types/forum";
 import { useUser } from "@/hooks/useUser";
 import { useToast } from "@/hooks/use-toast";
-import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
-import { canModerateContent, canAdminContent } from "@/types/user";
+import { canAdminContent } from "@/types/user";
 import { useNavigate } from "react-router-dom";
-
-// Separate service for cleaner code organization
-const debateDetailService = {
-  // Fetch a single debate with author info
-  fetchDebate: async (debateId: string) => {
-    const { data, error } = await supabase
-      .from("debates_with_authors")
-      .select("*")
-      .eq("id", debateId)
-      .single();
-
-    if (error) throw error;
-    return data as Debate;
-  },
-  
-  // Fetch comments for a debate
-  fetchComments: async (debateId: string) => {
-    const { data, error } = await supabase
-      .from("comments_with_authors")
-      .select("*")
-      .eq("debate_id", debateId)
-      .order("created_at", { ascending: true });
-
-    if (error) throw error;
-    return data as Comment[];
-  },
-  
-  // Register a vote on a debate
-  registerDebateVote: async (debateId: string, voteType: "up" | "down", userId: string) => {
-    const { error } = await supabase
-      .from("votes")
-      .insert([
-        { 
-          user_id: userId, 
-          reference_id: debateId, 
-          reference_type: "debate", 
-          vote_type: voteType 
-        }
-      ]);
-
-    if (error) {
-      if (error.code === "23505") {
-        throw new Error("duplicate_vote");
-      }
-      throw error;
-    }
-  },
-  
-  // Register a vote on a comment
-  registerCommentVote: async (commentId: string, voteType: "up" | "down", userId: string) => {
-    const { error } = await supabase
-      .from("votes")
-      .insert([
-        { 
-          user_id: userId, 
-          reference_id: commentId, 
-          reference_type: "comment", 
-          vote_type: voteType 
-        }
-      ]);
-
-    if (error) {
-      if (error.code === "23505") {
-        throw new Error("duplicate_vote");
-      }
-      throw error;
-    }
-  },
-  
-  // Delete a debate
-  deleteDebate: async (debateId: string) => {
-    const { error } = await supabase
-      .from("debates")
-      .delete()
-      .eq("id", debateId);
-
-    if (error) throw error;
-  },
-  
-  // Delete a comment
-  deleteComment: async (commentId: string) => {
-    const { error } = await supabase
-      .from("comments")
-      .delete()
-      .eq("id", commentId);
-
-    if (error) throw error;
-  },
-  
-  // Create a new comment
-  createComment: async (debateId: string, content: string, userId: string) => {
-    const { data, error } = await supabase
-      .from("comments")
-      .insert([
-        { 
-          debate_id: debateId, 
-          content, 
-          author_id: userId 
-        }
-      ])
-      .select();
-
-    if (error) throw error;
-    return data[0];
-  },
-  
-  // Fetch a newly created comment with author info
-  fetchNewComment: async (commentId: string) => {
-    const { data, error } = await supabase
-      .from("comments_with_authors")
-      .select("*")
-      .eq("id", commentId)
-      .single();
-
-    if (error) throw error;
-    return data as Comment;
-  },
-  
-  // Add experience points
-  addXp: async (userId: string, actionName: string, description: string) => {
-    await supabase.rpc('add_user_xp', { 
-      _user_id: userId,
-      _action_name: actionName,
-      _custom_description: description
-    });
-  }
-};
+import { debateDetailService } from "@/services/debateDetailService";
+import { formatDate, renderRoleBadge } from "@/utils/forumUtils";
+import { experienceService } from "@/services/experienceService";
 
 export const useDebateDetail = (debateId: string) => {
   const { toast } = useToast();
@@ -144,14 +18,6 @@ export const useDebateDetail = (debateId: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Format date helper function
-  const formatDate = (dateString: string) => {
-    return formatDistanceToNow(new Date(dateString), {
-      addSuffix: true,
-      locale: es,
-    });
-  };
 
   // Fetch debate and comments
   useEffect(() => {
@@ -211,7 +77,7 @@ export const useDebateDetail = (debateId: string) => {
       }
 
       // Add XP
-      await debateDetailService.addXp(
+      await experienceService.addXp(
         user.id, 
         'vote_forum', 
         `Voto en debate: ${debate.title}`
@@ -275,7 +141,7 @@ export const useDebateDetail = (debateId: string) => {
       }));
 
       // Add XP
-      await debateDetailService.addXp(
+      await experienceService.addXp(
         user.id, 
         'vote_forum', 
         `Voto en comentario`
@@ -399,7 +265,7 @@ export const useDebateDetail = (debateId: string) => {
       setDebate({ ...debate, comments_count: debate.comments_count + 1 });
 
       // Add XP
-      await debateDetailService.addXp(
+      await experienceService.addXp(
         user.id, 
         'create_comment', 
         `Comentario en debate: ${debate.title}`
@@ -416,29 +282,6 @@ export const useDebateDetail = (debateId: string) => {
         description: "No se pudo crear el comentario",
         variant: "destructive",
       });
-    }
-  };
-
-  // Modified to return a badge type instead of JSX directly
-  const renderRoleBadge = (role: string) => {
-    switch (role) {
-      case "verified":
-        return {
-          className: "bg-club-orange/20 text-club-orange text-xs px-2 py-0.5 rounded-full ml-2",
-          text: "Verificado"
-        };
-      case "moderator":
-        return {
-          className: "bg-club-green/20 text-club-green text-xs px-2 py-0.5 rounded-full ml-2",
-          text: "Moderador"
-        };
-      case "admin":
-        return {
-          className: "bg-club-brown/20 text-club-brown text-xs px-2 py-0.5 rounded-full ml-2",
-          text: "Admin"
-        };
-      default:
-        return null;
     }
   };
 

@@ -6,6 +6,7 @@ import DebateContent from "@/components/forum/DebateContent";
 import CommentSection from "@/components/forum/CommentSection";
 import DebateLoadingState from "@/components/forum/DebateLoadingState";
 import { useDebateDetail } from "@/hooks/useDebateDetail";
+import { formatDate, renderRoleBadge } from "@/utils/forumUtils";
 
 const DebateDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,8 +18,6 @@ const DebateDetailPage = () => {
     isDeleting,
     user,
     userRole,
-    formatDate,
-    renderRoleBadge,
     handleDebateVote,
     handleCommentVote,
     handleDeleteDebate,

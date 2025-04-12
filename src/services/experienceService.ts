@@ -1,31 +1,32 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-// Experience-related operations
+// Experience-related API service
 export const experienceService = {
-  // Add experience points for creating a debate
-  addDebateXp: async (userId: string, title: string) => {
-    const { error } = await supabase.rpc('add_user_xp', { 
+  // Add XP to a user
+  addXp: async (userId: string, actionName: string, description: string) => {
+    await supabase.rpc('add_user_xp', { 
       _user_id: userId,
-      _action_name: 'create_debate',
-      _custom_description: `Creación de debate: ${title}`
+      _action_name: actionName,
+      _custom_description: description
     });
-    
-    if (error) {
-      console.error("Error adding XP:", error);
-    }
+  },
+
+  // Add XP for creating a debate
+  addDebateXp: async (userId: string, debateTitle: string) => {
+    return experienceService.addXp(
+      userId,
+      'create_forum',
+      `Creación de debate: ${debateTitle}`
+    );
   },
 
   // Add XP for voting
   addVoteXp: async (userId: string) => {
-    const { error } = await supabase.rpc('add_user_xp', { 
-      _user_id: userId,
-      _action_name: 'vote_forum',
-      _custom_description: `Voto en debate`
-    });
-    
-    if (error) {
-      console.error("Error adding XP:", error);
-    }
+    return experienceService.addXp(
+      userId,
+      'vote_forum',
+      'Voto en el foro'
+    );
   }
 };
