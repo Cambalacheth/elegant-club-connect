@@ -18,7 +18,7 @@ serve(async (req) => {
 
   try {
     // Create Supabase admin client with SERVICE_ROLE key
-    const supabase = createClient(
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       { auth: { persistSession: false } }
@@ -36,112 +36,152 @@ serve(async (req) => {
       );
     }
 
-    // First, ensure the bucket exists
+    console.log(`Setting up policies for bucket: ${bucketName}`);
+
+    // First, try direct SQL approach to create policies which is more reliable
     try {
-      const { data: bucketExists, error: checkError } = await supabase.storage.getBucket(bucketName);
-      
-      if (checkError && !bucketExists) {
-        // Create the bucket if it doesn't exist
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 10485760 // 10MB
+      // Create the bucket if it doesn't exist
+      try {
+        const { data, error } = await supabaseAdmin.rpc('create_storage_bucket_if_not_exists', {
+          bucket_id: bucketName,
+          public_policy: true
         });
+        
+        console.log("Create bucket result:", data, error);
+      } catch (bucketError) {
+        console.log("Could not create bucket with RPC, trying alternative method", bucketError);
+        
+        // Try to ensure bucket exists using storage API
+        const { data: bucketExists, error: checkError } = await supabaseAdmin.storage.getBucket(bucketName);
+        
+        if (checkError && !bucketExists) {
+          // Create the bucket if it doesn't exist
+          const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
+            public: true,
+            fileSizeLimit: 10485760 // 10MB
+          });
 
-        if (createError) {
-          console.error("Error creating bucket:", createError);
-          return new Response(
-            JSON.stringify({ error: createError.message }),
-            {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-              status: 500,
-            }
-          );
-        }
-      }
-    } catch (bucketError) {
-      console.error("Bucket check/creation error:", bucketError);
-    }
-
-    // Now create the public policies for the bucket
-    try {
-      // Allow any authenticated user to upload files
-      const { error: uploadPolicyError } = await supabase.rpc('create_storage_policy', {
-        bucket_name: bucketName,
-        policy_name: 'authenticated users can upload',
-        definition: `auth.role() = 'authenticated'`,
-        policy_action: 'INSERT'
-      });
-
-      if (uploadPolicyError) {
-        console.error("Error creating upload policy:", uploadPolicyError);
-      }
-
-      // Allow all users to read files
-      const { error: readPolicyError } = await supabase.rpc('create_storage_policy', {
-        bucket_name: bucketName,
-        policy_name: 'anyone can read',
-        definition: `true`,
-        policy_action: 'SELECT'
-      });
-
-      if (readPolicyError) {
-        console.error("Error creating read policy:", readPolicyError);
-      }
-
-      // Allow content creators to update their files
-      const { error: updatePolicyError } = await supabase.rpc('create_storage_policy', {
-        bucket_name: bucketName,
-        policy_name: 'authenticated users can update',
-        definition: `auth.role() = 'authenticated'`,
-        policy_action: 'UPDATE'
-      });
-
-      if (updatePolicyError) {
-        console.error("Error creating update policy:", updatePolicyError);
-      }
-
-      // Allow content creators to delete their files
-      const { error: deletePolicyError } = await supabase.rpc('create_storage_policy', {
-        bucket_name: bucketName,
-        policy_name: 'authenticated users can delete',
-        definition: `auth.role() = 'authenticated'`,
-        policy_action: 'DELETE'
-      });
-
-      if (deletePolicyError) {
-        console.error("Error creating delete policy:", deletePolicyError);
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: `Public policies created for bucket: ${bucketName}`,
-          policies: {
-            insert: !uploadPolicyError,
-            select: !readPolicyError,
-            update: !updatePolicyError,
-            delete: !deletePolicyError
+          if (createError) {
+            console.error("Error creating bucket:", createError);
+          } else {
+            console.log(`Bucket ${bucketName} created successfully`);
           }
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
         }
-      );
-    } catch (error) {
-      console.error("Error creating policies:", error);
-      return new Response(
-        JSON.stringify({ error: "Failed to create policies" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 500,
+      }
+
+      // Now create storage policies using raw SQL which is more reliable
+      const { error: policiesError } = await supabaseAdmin.rpc('create_public_bucket_policies', { 
+        bucket_id: bucketName 
+      });
+      
+      if (policiesError) {
+        console.error("Error creating policies with RPC:", policiesError);
+        
+        // Try direct SQL execution as fallback
+        const { error: sqlError } = await supabaseAdmin.sql`
+          -- Allow public access to read objects
+          CREATE POLICY IF NOT EXISTS "Allow public read access" 
+          ON storage.objects 
+          FOR SELECT USING (bucket_id = ${bucketName});
+          
+          -- Allow authenticated users to insert objects
+          CREATE POLICY IF NOT EXISTS "Allow authenticated insert access" 
+          ON storage.objects 
+          FOR INSERT WITH CHECK (bucket_id = ${bucketName} AND auth.role() = 'authenticated');
+          
+          -- Allow authenticated users to update their own objects
+          CREATE POLICY IF NOT EXISTS "Allow authenticated update access" 
+          ON storage.objects 
+          FOR UPDATE USING (bucket_id = ${bucketName} AND auth.role() = 'authenticated');
+          
+          -- Allow authenticated users to delete their own objects
+          CREATE POLICY IF NOT EXISTS "Allow authenticated delete access" 
+          ON storage.objects 
+          FOR DELETE USING (bucket_id = ${bucketName} AND auth.role() = 'authenticated');
+        `;
+        
+        if (sqlError) {
+          console.error("Error executing SQL directly:", sqlError);
+        } else {
+          console.log("Successfully created policies with direct SQL");
         }
-      );
+      } else {
+        console.log("Successfully created policies with RPC");
+      }
+    } catch (sqlError) {
+      console.error("Error with SQL approach:", sqlError);
+      
+      // Fallback to using the storage API if SQL approach fails
+      try {
+        // Create policies using the API method
+        console.log("Attempting to create policies using API method...");
+        
+        // Allow anyone to read files (SELECT)
+        const { error: readPolicyError } = await supabaseAdmin
+          .from('storage.policies')
+          .insert({
+            name: 'anyone can read',
+            definition: 'TRUE',
+            bucket_id: bucketName,
+            operation: 'SELECT'
+          });
+          
+        if (readPolicyError) console.error("Error creating read policy:", readPolicyError);
+        
+        // Allow authenticated users to upload files (INSERT)
+        const { error: uploadPolicyError } = await supabaseAdmin
+          .from('storage.policies')
+          .insert({
+            name: 'authenticated users can upload',
+            definition: "auth.role() = 'authenticated'",
+            bucket_id: bucketName,
+            operation: 'INSERT'
+          });
+          
+        if (uploadPolicyError) console.error("Error creating upload policy:", uploadPolicyError);
+        
+        // Allow authenticated users to update files (UPDATE)
+        const { error: updatePolicyError } = await supabaseAdmin
+          .from('storage.policies')
+          .insert({
+            name: 'authenticated users can update',
+            definition: "auth.role() = 'authenticated'",
+            bucket_id: bucketName,
+            operation: 'UPDATE'
+          });
+          
+        if (updatePolicyError) console.error("Error creating update policy:", updatePolicyError);
+        
+        // Allow authenticated users to delete files (DELETE)
+        const { error: deletePolicyError } = await supabaseAdmin
+          .from('storage.policies')
+          .insert({
+            name: 'authenticated users can delete',
+            definition: "auth.role() = 'authenticated'",
+            bucket_id: bucketName,
+            operation: 'DELETE'
+          });
+          
+        if (deletePolicyError) console.error("Error creating delete policy:", deletePolicyError);
+      } catch (apiError) {
+        console.error("Error creating policies with API method:", apiError);
+      }
     }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: `Public policies created for bucket: ${bucketName}`
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Internal server error", details: error.message }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

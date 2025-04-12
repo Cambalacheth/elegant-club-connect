@@ -16,7 +16,7 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    // Check file type - expanding accepted file types to include images
+    // Check file type - expanding accepted file types to include images and more document types
     const validFileTypes = [
       // Documents
       'application/pdf', 
@@ -102,8 +102,8 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
       console.error('Error uploading file:', error);
       
       // Handle specific error for row-level security policy
-      if (error.message && error.message.includes('row-level security policy')) {
-        setUploadStatus('Error de permisos: No tienes autorización para subir archivos. Por favor, contacta al administrador.');
+      if (error.message && (error.message.includes('row-level security policy') || error.message.includes('permisos'))) {
+        setUploadStatus('Error de permisos: Intentando resolver el problema automáticamente, por favor intenta de nuevo en unos segundos.');
         toast({
           title: "Error de permisos",
           description: "Intentaremos resolver este problema automáticamente, por favor intenta de nuevo.",
@@ -114,6 +114,15 @@ export const useFileUpload = ({ form }: UseFileUploadProps) => {
         try {
           const { initializeStorageBuckets } = await import('@/services/storageService');
           await initializeStorageBuckets();
+          
+          // Wait a moment before suggesting retry
+          setTimeout(() => {
+            toast({
+              title: "Reintentar subida",
+              description: "Por favor intenta subir el archivo nuevamente.",
+              variant: "default",
+            });
+          }, 3000);
         } catch (bucketError) {
           console.error("Error reinitializing buckets:", bucketError);
         }
