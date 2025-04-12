@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ContentItem, ContentType } from "@/types/content";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -17,11 +16,7 @@ export const useContent = (type?: ContentType) => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchContent();
-  }, [type]);
-
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -39,9 +34,13 @@ export const useContent = (type?: ContentType) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [type, toast]);
 
-  const fetchAllContent = async () => {
+  useEffect(() => {
+    fetchContent();
+  }, [fetchContent]);
+
+  const fetchAllContent = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -59,7 +58,7 @@ export const useContent = (type?: ContentType) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [type, toast]);
 
   const createContent = async (newContent: Partial<ContentItem>) => {
     try {
