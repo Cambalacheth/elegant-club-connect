@@ -27,11 +27,6 @@ const NavLinks = ({ currentLanguage, userRole, isMobile = false, onMobileClick =
       icon: <FileCode size={16} />
     },
     {
-      name: currentLanguage === "en" ? "Resources" : "Recursos",
-      path: "/recursos",
-      icon: <FileCode size={16} />
-    },
-    {
       name: currentLanguage === "en" ? "Forum" : "Foro",
       path: "/forum",
       icon: <MessageSquare size={16} />
