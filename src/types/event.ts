@@ -10,4 +10,6 @@ export interface Event {
   event_date?: string;
   created_at: string;
   updated_at: string;
+  capacity?: string;
+  category?: string;
 }

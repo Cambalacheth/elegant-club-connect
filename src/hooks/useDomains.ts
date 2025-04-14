@@ -128,7 +128,7 @@ export const useDomains = ({
     domains,
     domainsByStatus,
     loading,
-    error: error as string | null,
+    error: error as unknown as string | null,
     isOffline,
     filteredDomains: domains || [],
     handleDomainAction,
