@@ -1,31 +1,12 @@
 
 import React from "react";
 import { ContentItem } from "@/types/content";
-import { ResourceViewer } from "@/components/content/resource-viewer/ResourceViewer";
 
 interface ContentDetailBodyProps {
   item: ContentItem;
 }
 
 const ContentDetailBody: React.FC<ContentDetailBodyProps> = ({ item }) => {
-  // For resources
-  if (item.type === "resource" && item.resourceUrl) {
-    return (
-      <div className="space-y-6">
-        {item.description && (
-          <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: item.description }} />
-        )}
-        
-        <div className="mt-6">
-          <ResourceViewer 
-            url={item.resourceUrl} 
-            type={item.resourceType}
-          />
-        </div>
-      </div>
-    );
-  }
-  
   // For videos
   if (item.type === "video" && item.videoId) {
     return (
