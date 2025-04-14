@@ -1,4 +1,3 @@
-
 export type ContentType = 'article' | 'video' | 'guide' | 'resource';
 export type DifficultyLevel = 'basic' | 'intermediate' | 'advanced' | string;
 

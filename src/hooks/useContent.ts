@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { ContentItem, ContentType } from "@/types/content";
 import { useToast } from "@/hooks/use-toast";

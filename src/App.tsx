@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,7 +7,6 @@ import { HelmetProvider } from "react-helmet-async";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
-import Content from "./pages/Content";
 import Events from "./pages/Events";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
@@ -21,7 +19,6 @@ import DebateDetailPage from "./pages/DebateDetailPage";
 import AdminPage from "./pages/AdminPage";
 import AsadoRegistration from "./pages/AsadoRegistration";
 import SearchPage from './pages/SearchPage';
-import ContentDetail from "./pages/ContentDetail";
 import EventDetail from "./pages/EventDetail";
 import ProjectDetail from "./pages/ProjectDetail";
 import DomainPage from "./pages/DomainPage";
@@ -59,13 +56,13 @@ function App() {
               <Route path="/projects" element={<Projects />} />
               <Route path="/projects/:id" element={<ProjectDetail />} />
               
-              {/* Redirect from /content to /recursos */}
-              <Route path="/content" element={<Navigate replace to="/recursos" />} />
-              <Route path="/content/:type/:id" element={<Navigate replace to="/recursos/:type/:id" />} />
+              {/* Remove routes for /recursos and redirect any access to home */}
+              <Route path="/recursos" element={<Navigate replace to="/home" />} />
+              <Route path="/recursos/:type/:id" element={<Navigate replace to="/home" />} />
               
-              {/* New routes for /recursos */}
-              <Route path="/recursos" element={<Content />} />
-              <Route path="/recursos/:type/:id" element={<ContentDetail />} />
+              {/* Remove routes for /content and redirect any access to home */}
+              <Route path="/content" element={<Navigate replace to="/home" />} />
+              <Route path="/content/:type/:id" element={<Navigate replace to="/home" />} />
               
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetail />} />

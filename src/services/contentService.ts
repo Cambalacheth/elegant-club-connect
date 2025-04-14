@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ContentItem, ContentType } from "@/types/content";
 
@@ -62,11 +61,6 @@ export const createContentItem = async (newContent: Partial<ContentItem>) => {
       video_url: newContent.videoUrl,
       duration: newContent.duration,
       
-      // Resource fields
-      resource_url: newContent.resourceUrl,
-      resource_type: newContent.resourceType,
-      price: newContent.price,
-      
       // Guide fields
       difficulty: newContent.difficulty,
       download_url: newContent.downloadUrl,
@@ -101,11 +95,6 @@ export const updateContentItem = async (id: string, updates: Partial<ContentItem
       // Video fields
       video_url: updates.videoUrl,
       duration: updates.duration,
-      
-      // Resource fields
-      resource_url: updates.resourceUrl,
-      resource_type: updates.resourceType,
-      price: updates.price,
       
       // Guide fields
       difficulty: updates.difficulty,
@@ -196,11 +185,6 @@ const mapContentData = (data: any[]): ContentItem[] => {
       videoUrl: item.video_url || undefined,
       videoId: videoId, // Add the extracted videoId
       duration: item.duration || undefined,
-      
-      // Resource fields
-      resourceUrl: item.resource_url || undefined,
-      resourceType: item.resource_type || undefined,
-      price: item.price || undefined,
       
       // Guide fields
       difficulty: item.difficulty || undefined,
