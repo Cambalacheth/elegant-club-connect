@@ -1,34 +1,42 @@
 
-import { Dispatch, SetStateAction } from 'react';
+import React from 'react';
+
+interface CategoryItem {
+  original: string;
+  translated: string;
+}
 
 interface ProjectCategoriesProps {
-  categories: string[];
+  categories: CategoryItem[];
   selectedCategory: string;
-  setSelectedCategory: Dispatch<SetStateAction<string>>;
+  setSelectedCategory: (category: string) => void;
+  currentLanguage: string;
 }
 
 const ProjectCategories = ({ 
   categories, 
   selectedCategory, 
-  setSelectedCategory 
+  setSelectedCategory,
+  currentLanguage
 }: ProjectCategoriesProps) => {
+  // Translation
+  const filterByText = currentLanguage === "en" ? "Filter by category" : "Filtrar por categoría";
+
   return (
-    <div className="mb-8 md:mb-10">
-      <h2 className="text-lg md:text-xl font-medium text-club-brown mb-3 md:mb-4">
-        Filtrar por categoría:
-      </h2>
-      <div className="flex overflow-x-auto pb-2 md:flex-wrap gap-2 scrollbar-hide">
+    <div className="mb-8">
+      <h2 className="text-lg font-medium text-club-brown mb-3">{filterByText}</h2>
+      <div className="flex flex-wrap gap-2">
         {categories.map((category) => (
           <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full transition-colors whitespace-nowrap ${
-              selectedCategory === category
+            key={category.original}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              selectedCategory === category.original
                 ? 'bg-club-orange text-white'
-                : 'bg-white border border-club-olive text-club-brown hover:bg-club-beige-dark'
+                : 'bg-white text-club-brown hover:bg-club-beige'
             }`}
+            onClick={() => setSelectedCategory(category.original)}
           >
-            {category === 'all' ? 'Todos' : category}
+            {category.translated}
           </button>
         ))}
       </div>

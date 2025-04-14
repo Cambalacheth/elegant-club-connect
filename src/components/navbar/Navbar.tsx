@@ -1,27 +1,33 @@
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import AuthButton from "./AuthButton";
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import { useUser } from "@/hooks/useUser";
 import SearchBar from "../SearchBar";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-interface NavbarProps {
-  currentLanguage: string;
-}
-
-interface NavbarState {
-  isMenuOpen: boolean;
-  toggleMenu: () => void;
-  closeMenu: () => void;
-  handleAuthOrProfile: () => void;
-}
-
-const useNavbarState = (): NavbarState => {
+const Navbar = ({ currentLanguage = "es" }: { currentLanguage?: string }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, userRole } = useUser();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { currentLanguage: contextLanguage, setCurrentLanguage } = useLanguage();
 
+  // Use provided language prop or fallback to context (for backward compatibility)
+  const effectiveLanguage = currentLanguage || contextLanguage || "es";
+  
+  // Check for language parameter in URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const langParam = searchParams.get("lang");
+    if (langParam && (langParam === "es" || langParam === "en")) {
+      setCurrentLanguage(langParam);
+    }
+  }, [location.search, setCurrentLanguage]);
+  
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -29,24 +35,6 @@ const useNavbarState = (): NavbarState => {
   const closeMenu = () => {
     setIsMenuOpen(false);
   };
-
-  const handleAuthOrProfile = () => {
-    // Placeholder function, replace with actual logic
-    console.log("Auth or Profile button clicked");
-  };
-
-  return {
-    isMenuOpen,
-    toggleMenu,
-    closeMenu,
-    handleAuthOrProfile,
-  };
-};
-
-const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
-  const { isMenuOpen, toggleMenu, closeMenu } = useNavbarState();
-  const { user, userRole } = useUser();
-  const navigate = useNavigate();
   
   const handleAuthOrProfile = () => {
     if (user) {
@@ -67,14 +55,14 @@ const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
           </div>
           
           <nav className="hidden md:flex items-center space-x-6">
-            <NavLinks currentLanguage={currentLanguage} userRole={userRole} />
+            <NavLinks currentLanguage={effectiveLanguage} userRole={userRole} />
           </nav>
           
           <div className="flex items-center space-x-4">
-            <SearchBar currentLanguage={currentLanguage} />
+            <SearchBar currentLanguage={effectiveLanguage} />
             
             <AuthButton 
-              currentLanguage={currentLanguage}
+              currentLanguage={effectiveLanguage}
               user={user}
               userRole={userRole}
               onClick={handleAuthOrProfile}
@@ -83,7 +71,10 @@ const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
             <button
               onClick={toggleMenu}
               className="md:hidden bg-transparent p-1 rounded-full text-club-terracotta hover:bg-club-beige-dark"
-              aria-label={isMenuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-label={isMenuOpen ? 
+                (effectiveLanguage === "en" ? "Close menu" : "Cerrar menú") : 
+                (effectiveLanguage === "en" ? "Open menu" : "Abrir menú")
+              }
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -93,7 +84,7 @@ const Navbar = ({ currentLanguage }: { currentLanguage: string }) => {
       
       <MobileMenu 
         isOpen={isMenuOpen} 
-        currentLanguage={currentLanguage} 
+        currentLanguage={effectiveLanguage} 
         userRole={userRole} 
         user={user}
         handleAuthOrProfile={handleAuthOrProfile}

@@ -4,11 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import HeroSection from "../components/HeroSection";
 import LanguageSelectionModal from "../components/LanguageSelectionModal";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Index = () => {
   const navigate = useNavigate();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const { currentLanguage, setCurrentLanguage } = useLanguage();
 
   useEffect(() => {
     // Check if user just logged in (presence of success message in URL)
@@ -65,21 +67,26 @@ const Index = () => {
     setShowLanguageModal(true);
   };
 
+  // Success message text based on language
+  const successTitle = currentLanguage === "en" ? "Login successful" : "Inicio de sesión exitoso";
+  const welcomeText = currentLanguage === "en" ? "Welcome to Terreta Hub" : "Bienvenido a Terreta Hub";
+
   return (
     <main className="relative min-h-screen overflow-x-hidden">
-      <HeroSection handleIngresar={handleIngresarClick} />
+      <HeroSection handleIngresar={handleIngresarClick} language={currentLanguage} />
       
       {/* Language selection modal */}
       <LanguageSelectionModal 
         isOpen={showLanguageModal} 
         onClose={() => setShowLanguageModal(false)} 
+        currentLanguage={currentLanguage}
       />
       
       {/* Login success message */}
       {showSuccessMessage && (
         <div className="fixed bottom-5 right-5 bg-white rounded-lg shadow-md p-4 z-50 border-l-4 border-green-500 max-w-xs">
-          <h3 className="font-medium text-green-800">Inicio de sesión exitoso</h3>
-          <p className="text-sm text-gray-600">Bienvenido a Terreta Hub</p>
+          <h3 className="font-medium text-green-800">{successTitle}</h3>
+          <p className="text-sm text-gray-600">{welcomeText}</p>
         </div>
       )}
     </main>

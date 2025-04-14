@@ -5,9 +5,10 @@ import { useNavigate } from "react-router-dom";
 
 interface HeroSectionProps {
   handleIngresar?: () => void;
+  language?: string;
 }
 
-const HeroSection = ({ handleIngresar }: HeroSectionProps) => {
+const HeroSection = ({ handleIngresar, language = "es" }: HeroSectionProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
 
@@ -57,7 +58,7 @@ const HeroSection = ({ handleIngresar }: HeroSectionProps) => {
               onClick={handleIngresarClick}
               className="inline-flex items-center gap-2 bg-club-orange text-club-white px-8 py-4 rounded-full text-lg font-medium btn-hover-effect hover:bg-club-terracota transition-colors"
             >
-              Ingresar
+              {language === "en" ? "Enter" : "Ingresar"}
               <ArrowRight size={20} />
             </button>
           </div>
@@ -68,7 +69,7 @@ const HeroSection = ({ handleIngresar }: HeroSectionProps) => {
             }`}
           >
             <p className="text-xl md:text-2xl text-white/90 mt-10 max-w-2xl mx-auto">
-              Builders Club en Valencia
+              {language === "en" ? "Builders Club in Valencia" : "Builders Club en Valencia"}
             </p>
           </div>
         </div>
