@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { LanguageProvider } from "./contexts/LanguageContext";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
@@ -44,65 +45,67 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <HelmetProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/index" element={<Navigate replace to="/home" />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/:id" element={<ProjectDetail />} />
-              
-              {/* Remove routes for /recursos and redirect any access to home */}
-              <Route path="/recursos" element={<Navigate replace to="/home" />} />
-              <Route path="/recursos/:type/:id" element={<Navigate replace to="/home" />} />
-              
-              {/* Remove routes for /content and redirect any access to home */}
-              <Route path="/content" element={<Navigate replace to="/home" />} />
-              <Route path="/content/:type/:id" element={<Navigate replace to="/home" />} />
-              
-              <Route path="/events" element={<Events />} />
-              <Route path="/events/:id" element={<EventDetail />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/user/me" element={<MeRedirect />} />
-              <Route path="/user/:username" element={<UserProfile />} />
-              <Route path="/members" element={<Members />} />
-              <Route path="/forum" element={<ForumPage />} />
-              <Route path="/forum/:id" element={<DebateDetailPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/asado" element={<AsadoRegistration />} />
-              <Route path="/search" element={<SearchPage />} />
-              <Route path="/dominio" element={<DomainPage />} />
-              <Route path="/ElFotographer" element={<ElFotographerPage />} />
-              <Route path="/feedback" element={<Feedback />} />
-              <Route path="/vote" element={<VotePage />} />
-              <Route path="/influencers" element={<InfluencersPage />} />
-              <Route path="/chatbot" element={<ChatbotPage />} />
-              
-              {/* Vertical pages with dedicated routes */}
-              <Route path="/legal" element={<VerticalPage />} />
-              <Route path="/arte" element={<VerticalPage />} />
-              <Route path="/negocios" element={<VerticalPage />} />
-              <Route path="/salud" element={<VerticalPage />} />
-              <Route path="/comunidad" element={<VerticalPage />} />
-              <Route path="/tech" element={<VerticalPage />} />
-              
-              {/* Generic route for any domain that might be tagged with hashtag */}
-              <Route path="/:domainName" element={<DomainPage />} />
-              
-              {/* Only keep the forum redirects for backward compatibility */}
-              <Route path="/*/foro" element={<Navigate replace to="/forum" />} />
-              <Route path="/*/foro/:id" element={<Navigate replace to="/forum/:id" />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </HelmetProvider>
+      <LanguageProvider>
+        <HelmetProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/index" element={<Navigate replace to="/home" />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:id" element={<ProjectDetail />} />
+                
+                {/* Remove routes for /recursos and redirect any access to home */}
+                <Route path="/recursos" element={<Navigate replace to="/home" />} />
+                <Route path="/recursos/:type/:id" element={<Navigate replace to="/home" />} />
+                
+                {/* Remove routes for /content and redirect any access to home */}
+                <Route path="/content" element={<Navigate replace to="/home" />} />
+                <Route path="/content/:type/:id" element={<Navigate replace to="/home" />} />
+                
+                <Route path="/events" element={<Events />} />
+                <Route path="/events/:id" element={<EventDetail />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/auth/callback" element={<AuthCallback />} />
+                <Route path="/user/me" element={<MeRedirect />} />
+                <Route path="/user/:username" element={<UserProfile />} />
+                <Route path="/members" element={<Members />} />
+                <Route path="/forum" element={<ForumPage />} />
+                <Route path="/forum/:id" element={<DebateDetailPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/asado" element={<AsadoRegistration />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/dominio" element={<DomainPage />} />
+                <Route path="/ElFotographer" element={<ElFotographerPage />} />
+                <Route path="/feedback" element={<Feedback />} />
+                <Route path="/vote" element={<VotePage />} />
+                <Route path="/influencers" element={<InfluencersPage />} />
+                <Route path="/chatbot" element={<ChatbotPage />} />
+                
+                {/* Vertical pages with dedicated routes */}
+                <Route path="/legal" element={<VerticalPage />} />
+                <Route path="/arte" element={<VerticalPage />} />
+                <Route path="/negocios" element={<VerticalPage />} />
+                <Route path="/salud" element={<VerticalPage />} />
+                <Route path="/comunidad" element={<VerticalPage />} />
+                <Route path="/tech" element={<VerticalPage />} />
+                
+                {/* Generic route for any domain that might be tagged with hashtag */}
+                <Route path="/:domainName" element={<DomainPage />} />
+                
+                {/* Only keep the forum redirects for backward compatibility */}
+                <Route path="/*/foro" element={<Navigate replace to="/forum" />} />
+                <Route path="/*/foro/:id" element={<Navigate replace to="/forum/:id" />} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </HelmetProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

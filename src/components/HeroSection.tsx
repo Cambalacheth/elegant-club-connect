@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  handleIngresar?: () => void;
+}
+
+const HeroSection = ({ handleIngresar }: HeroSectionProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
 
@@ -11,8 +15,12 @@ const HeroSection = () => {
     setIsVisible(true);
   }, []);
 
-  const handleIngresar = () => {
-    navigate("/auth");
+  const handleIngresarClick = () => {
+    if (handleIngresar) {
+      handleIngresar();
+    } else {
+      navigate("/auth");
+    }
   };
 
   return (
@@ -46,7 +54,7 @@ const HeroSection = () => {
             }`}
           >
             <button 
-              onClick={handleIngresar}
+              onClick={handleIngresarClick}
               className="inline-flex items-center gap-2 bg-club-orange text-club-white px-8 py-4 rounded-full text-lg font-medium btn-hover-effect hover:bg-club-terracota transition-colors"
             >
               Ingresar

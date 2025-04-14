@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import HeroSection from "../components/HeroSection";
+import LanguageSelectionModal from "../components/LanguageSelectionModal";
 
 const Index = () => {
   const navigate = useNavigate();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   useEffect(() => {
     // Check if user just logged in (presence of success message in URL)
@@ -59,9 +61,19 @@ const Index = () => {
     }
   }, [navigate]);
 
+  const handleIngresarClick = () => {
+    setShowLanguageModal(true);
+  };
+
   return (
     <main className="relative min-h-screen overflow-x-hidden">
-      <HeroSection />
+      <HeroSection handleIngresar={handleIngresarClick} />
+      
+      {/* Language selection modal */}
+      <LanguageSelectionModal 
+        isOpen={showLanguageModal} 
+        onClose={() => setShowLanguageModal(false)} 
+      />
       
       {/* Login success message */}
       {showSuccessMessage && (

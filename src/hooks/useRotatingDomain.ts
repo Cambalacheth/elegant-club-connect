@@ -1,7 +1,11 @@
 
-import { useState, useEffect, useRef } from "react";
-import { useDomains } from "./useDomains";
-import { VERTICAL_PATHS } from "./useVerticalDomains";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface DomainItem {
+  name: string;
+  path: string;
+}
 
 interface UseRotatingDomainProps {
   currentLanguage: string;
@@ -9,46 +13,50 @@ interface UseRotatingDomainProps {
 }
 
 export const useRotatingDomain = ({ currentLanguage, fixedPaths }: UseRotatingDomainProps) => {
-  const [rotatingDomain, setRotatingDomain] = useState<{ name: string; path: string } | null>(null);
-  const { domains } = useDomains();
-  // Add a ref to track initialization
-  const initialized = useRef(false);
+  const [rotatingDomain, setRotatingDomain] = useState<DomainItem | null>(null);
 
-  // Update rotating domain only once on initial render or when domains change
   useEffect(() => {
-    // Only set a new random domain if we haven't initialized yet or domains change
-    if (domains.length > 0 && !initialized.current) {
-      // Filter domains to exclude those in fixed links, verticals, and elfotographer
-      const availableDomains = domains
-        .filter(domain => {
-          // Exclude domains that match any fixed link path, vertical path, or elfotographer
-          return !fixedPaths.some(path => path === domain.path) && 
-                 !VERTICAL_PATHS.includes(domain.path) &&
-                 domain.name.toLowerCase() !== "elfotographer";
-        })
-        .map(domain => ({ name: domain.name, path: domain.path }));
-      
-      // Add additional domains that might not be in the useDomains hook
-      const additionalDomains = [
-        { name: currentLanguage === "en" ? "Content" : "Contenido", path: "/content" },
-        { name: currentLanguage === "en" ? "Events" : "Eventos", path: "/events" },
-        { name: currentLanguage === "en" ? "Members" : "Miembros", path: "/members" },
-        { name: currentLanguage === "en" ? "Feedback" : "Opiniones", path: "/feedback" },
-        { name: "Asado", path: "/asado" },
-        { name: currentLanguage === "en" ? "Vote" : "Votación", path: "/vote" }
-      ].filter(domain => !fixedPaths.some(path => path === domain.path));
-      
-      const allDomains = [...availableDomains, ...additionalDomains];
-      
-      if (allDomains.length > 0) {
-        // Pick a random domain from the available ones
-        const randomIndex = Math.floor(Math.random() * allDomains.length);
-        setRotatingDomain(allDomains[randomIndex]);
-        // Mark as initialized so we don't change it again
-        initialized.current = true;
+    const fetchDomains = async () => {
+      try {
+        // Get all domains
+        const { data, error } = await supabase
+          .from('domains')
+          .select('name, slug, name_en')
+          .eq('is_active', true)
+          .limit(10);
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Filter out domains that already have fixed links
+          const availableDomains = data.filter(domain => 
+            !fixedPaths.includes(`/${domain.slug}`)
+          );
+          
+          if (availableDomains.length > 0) {
+            // Select a random domain
+            const randomIndex = Math.floor(Math.random() * availableDomains.length);
+            const randomDomain = availableDomains[randomIndex];
+            
+            // Use the appropriate language name
+            const domainName = currentLanguage === "en" && randomDomain.name_en 
+              ? randomDomain.name_en 
+              : randomDomain.name;
+              
+            setRotatingDomain({
+              name: domainName,
+              path: `/${randomDomain.slug}`
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching rotating domain:", error);
+        setRotatingDomain(null);
       }
-    }
-  }, [domains, currentLanguage, fixedPaths]);
-
+    };
+    
+    fetchDomains();
+  }, [fixedPaths, currentLanguage]);
+  
   return rotatingDomain;
 };
