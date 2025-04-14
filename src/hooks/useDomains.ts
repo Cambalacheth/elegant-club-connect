@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { UseDomainProps } from "@/types/domain";
+import { formatDomains, getFallbackDomains } from "@/utils/domainUtils";
 
 export interface Domain {
   id: string;
@@ -14,12 +16,14 @@ export interface Domain {
   owner?: string | null;
 }
 
-export const useDomains = (initialStatus = "all", language = "es") => {
-  const [activeTab, setActiveTab] = useState(initialStatus);
+export const useDomains = ({ 
+  pageSize = 15, 
+  randomize = false, 
+  prioritizePaths = [],
+  filterStatus = []
+}: UseDomainProps = {}) => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
-  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [domainsPerPage] = useState(15);
   
   // Listen for online/offline status
   useEffect(() => {
@@ -35,16 +39,39 @@ export const useDomains = (initialStatus = "all", language = "es") => {
     };
   }, []);
   
-  const { data: domains, isLoading, error } = useQuery({
-    queryKey: ['domains'],
+  const { data: domains, isLoading: loading, error } = useQuery({
+    queryKey: ['domains', pageSize, randomize, filterStatus],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('domains')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Domain[];
+      try {
+        let query = supabase
+          .from('domains')
+          .select('*');
+        
+        if (filterStatus && filterStatus.length > 0) {
+          query = query.in('status', filterStatus);
+        }
+        
+        if (randomize) {
+          // Add randomization if needed
+          query = query.order('id', { ascending: false });
+        } else {
+          query = query.order('created_at', { ascending: false });
+        }
+        
+        if (pageSize) {
+          query = query.limit(pageSize);
+        }
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        return formatDomains(data || [], prioritizePaths);
+      } catch (error) {
+        console.error("Error fetching domains:", error);
+        // Return fallback domains in case of error
+        return getFallbackDomains(prioritizePaths);
+      }
     },
   });
 
@@ -54,13 +81,11 @@ export const useDomains = (initialStatus = "all", language = "es") => {
     available: domains.filter(domain => domain.status === 'available'),
     used: domains.filter(domain => domain.status === 'used'),
     reserved: domains.filter(domain => domain.status === 'reserved'),
-  } : undefined;
-  
-  // Status texts by language
-  const statusLabels = {
-    available: language === "en" ? "Available" : "Disponible",
-    used: language === "en" ? "In Use" : "En Uso",
-    reserved: language === "en" ? "Reserved" : "Reservado"
+  } : {
+    all: [],
+    available: [],
+    used: [],
+    reserved: []
   };
   
   // Helper function to get status color
@@ -77,21 +102,8 @@ export const useDomains = (initialStatus = "all", language = "es") => {
     }
   };
   
-  // Filter domains based on active tab and search query
-  const filteredDomains = domainsByStatus?.[activeTab as keyof typeof domainsByStatus]?.filter(domain => {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return (
-      domain.name.toLowerCase().includes(lowerCaseQuery) ||
-      (domain.description?.toLowerCase().includes(lowerCaseQuery)) ||
-      domain.path.toLowerCase().includes(lowerCaseQuery)
-    );
-  }) || [];
-  
   // Pagination
-  const indexOfLastDomain = currentPage * domainsPerPage;
-  const indexOfFirstDomain = indexOfLastDomain - domainsPerPage;
-  const currentDomains = filteredDomains.slice(indexOfFirstDomain, indexOfLastDomain);
-  const totalPages = Math.ceil(filteredDomains.length / domainsPerPage);
+  const totalPages = domains ? Math.ceil(domains.length / pageSize) : 1;
   
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -113,20 +125,16 @@ export const useDomains = (initialStatus = "all", language = "es") => {
   };
   
   return {
+    domains,
     domainsByStatus,
-    loading: isLoading,
-    error,
+    loading,
+    error: error as string | null,
     isOffline,
-    activeTab,
-    setActiveTab,
-    filteredDomains: currentDomains,
-    totalDomains: filteredDomains.length,
+    filteredDomains: domains || [],
     handleDomainAction,
     getStatusColor,
-    statusLabels,
-    searchQuery,
-    setSearchQuery,
     currentPage,
+    setCurrentPage,
     totalPages,
     handlePageChange
   };

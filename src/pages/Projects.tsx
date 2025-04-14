@@ -50,6 +50,7 @@ const Projects = () => {
           {/* Search Bar - Optimized for mobile */}
           <div className="mb-6 max-w-full sm:max-w-md mx-auto">
             <SearchBar 
+              currentLanguage={currentLanguage}
               placeholder={searchPlaceholder} 
               onSearch={handleSearch}
             />

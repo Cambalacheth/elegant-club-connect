@@ -6,6 +6,16 @@ interface VerticalDomain {
   name: string;
 }
 
+// Export the vertical paths as a constant
+export const VERTICAL_PATHS = [
+  "/legal",
+  "/arte",
+  "/negocios", 
+  "/salud",
+  "/comunidad",
+  "/tech"
+];
+
 export const useVerticalDomains = () => {
   const { currentLanguage } = useLanguage();
   

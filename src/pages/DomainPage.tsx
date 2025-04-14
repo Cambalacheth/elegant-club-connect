@@ -22,43 +22,37 @@ const DomainPage = () => {
   // Determine if this is a vertical domain (legal, arte, etc.)
   const isVerticalDomain = VERTICAL_PATHS.includes(domainPath);
   
-  // Fetch domains data - get all domains for the graph view
+  // Fetch domains data using our hook
   const {
     domains,
+    domainsByStatus,
     loading,
     error,
+    isOffline,
+    getStatusColor,
     currentPage,
     setCurrentPage,
     totalPages,
-    isOffline
+    handlePageChange
   } = useDomains({
-    pageSize: viewMode === "graph" ? 100 : 12, // Load more domains for graph view
+    pageSize: viewMode === "graph" ? 100 : 12, 
     randomize: false,
-    filterStatus: [], // Get all domains for graph
+    filterStatus: []
   });
   
   // Get domain helper functions
   const {
-    getStatusColor,
     handleDomainAction,
     setHoveredDomain,
     hoveredDomain
   } = useDomainHelpers(currentLanguage);
-  
-  // Group domains by status
-  const domainsByStatus = domains ? {
-    all: domains,
-    available: domains.filter(d => d.status === "available"),
-    used: domains.filter(d => d.status === "used"),
-    reserved: domains.filter(d => d.status === "reserved")
-  } : undefined;
   
   // Filter domains based on search query and active tab
   const filteredDomains = domains ? domains.filter(domain => {
     // Filter by search query if provided
     const matchesSearch = searchQuery.trim() === "" || 
       domain.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      domain.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      (domain.description?.toLowerCase() || "").includes(searchQuery.toLowerCase());
     
     // Filter by status tab
     const matchesTab = activeTab === "all" || domain.status === activeTab;
@@ -129,7 +123,7 @@ const DomainPage = () => {
           getStatusColor={getStatusColor}
           currentPage={currentPage}
           totalPages={totalPages}
-          handlePageChange={setCurrentPage}
+          handlePageChange={handlePageChange}
           domainPath={domainPath} 
           isVerticalDomain={isVerticalDomain} 
         />
