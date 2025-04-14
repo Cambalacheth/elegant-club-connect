@@ -18,6 +18,10 @@ interface VerticalProps {
   path: string;
 }
 
+interface VerticalsCarouselProps {
+  language?: string;
+}
+
 const VerticalCard = ({ image, title, description, delay, isVisible, path }: VerticalProps) => {
   return (
     <Link 
@@ -40,7 +44,7 @@ const VerticalCard = ({ image, title, description, delay, isVisible, path }: Ver
   );
 };
 
-const VerticalsCarousel = () => {
+const VerticalsCarousel = ({ language = "es" }: VerticalsCarouselProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -67,46 +71,67 @@ const VerticalsCarousel = () => {
     };
   }, []);
 
+  // Translations
+  const ourVerticals = language === "en" ? "Our Verticals" : "Nuestras Verticales";
+  const sixAreas = language === "en"
+    ? "Six areas of knowledge, infinite possibilities"
+    : "Seis áreas de conocimiento, infinitas posibilidades";
+  const description = language === "en"
+    ? "Each vertical represents a pillar of our community, where experts share knowledge and create synergies between disciplines."
+    : "Cada vertical representa un pilar de nuestra comunidad, donde expertos comparten conocimientos y crean sinergias entre disciplinas.";
+
   const verticals = [
     {
       image: "/lovable-uploads/89461e1d-3378-4375-86b6-c6d7130d20bf.png",
-      title: "Tecnología",
-      description: "Innovadores y visionarios tecnológicos comparten perspectivas sobre transformación digital y tecnologías emergentes.",
+      title: language === "en" ? "Technology" : "Tecnología",
+      description: language === "en" 
+        ? "Innovators and tech visionaries share perspectives on digital transformation and emerging technologies."
+        : "Innovadores y visionarios tecnológicos comparten perspectivas sobre transformación digital y tecnologías emergentes.",
       delay: 100,
       path: "/tech"
     },
     {
       image: "/lovable-uploads/38415027-1a0b-4427-a514-ed9f57475d6b.png",
-      title: "Arte",
-      description: "Un espacio para artistas, coleccionistas y entusiastas que valoran la expresión creativa y su impacto en la sociedad contemporánea.",
+      title: language === "en" ? "Art" : "Arte",
+      description: language === "en"
+        ? "A space for artists, collectors and enthusiasts who value creative expression and its impact on contemporary society."
+        : "Un espacio para artistas, coleccionistas y entusiastas que valoran la expresión creativa y su impacto en la sociedad contemporánea.",
       delay: 200,
       path: "/arte"
     },
     {
       image: "/lovable-uploads/444e9024-ca73-44d5-beb0-03e0794ffed5.png",
-      title: "Comunidad",
-      description: "Fomentamos conexiones significativas entre líderes de opinión comprometidos con el desarrollo social y comunitario.",
+      title: language === "en" ? "Community" : "Comunidad",
+      description: language === "en"
+        ? "We foster meaningful connections among opinion leaders committed to social and community development."
+        : "Fomentamos conexiones significativas entre líderes de opinión comprometidos con el desarrollo social y comunitario.",
       delay: 300,
       path: "/comunidad"
     },
     {
       image: "/lovable-uploads/5996e8d4-20aa-4b4c-8776-8c3c3e60e75a.png",
-      title: "Finanzas",
-      description: "Conectamos a los principales inversores y líderes financieros para intercambiar perspectivas sobre mercados globales y oportunidades de inversión.",
+      title: language === "en" ? "Finance" : "Finanzas",
+      description: language === "en"
+        ? "We connect leading investors and financial leaders to exchange perspectives on global markets and investment opportunities."
+        : "Conectamos a los principales inversores y líderes financieros para intercambiar perspectivas sobre mercados globales y oportunidades de inversión.",
       delay: 400,
       path: "/negocios"
     },
     {
       image: "/lovable-uploads/ff2754af-03fe-4db7-bdd5-ac1532cdce5c.png",
-      title: "Derecho",
-      description: "Expertos legales comparten conocimientos sobre tendencias jurídicas, desafíos regulatorios e implicaciones legales de nuevas tecnologías.",
+      title: language === "en" ? "Law" : "Derecho",
+      description: language === "en"
+        ? "Legal experts share knowledge on legal trends, regulatory challenges and legal implications of new technologies."
+        : "Expertos legales comparten conocimientos sobre tendencias jurídicas, desafíos regulatorios e implicaciones legales de nuevas tecnologías.",
       delay: 500,
       path: "/legal"
     },
     {
       image: "/lovable-uploads/18c52db6-ebed-4c95-b8c3-c1324a653957.png",
-      title: "Salud",
-      description: "Reunimos a profesionales médicos, investigadores e innovadores para discutir avances científicos y el futuro de la medicina.",
+      title: language === "en" ? "Health" : "Salud",
+      description: language === "en"
+        ? "We bring together medical professionals, researchers and innovators to discuss scientific advances and the future of medicine."
+        : "Reunimos a profesionales médicos, investigadores e innovadores para discutir avances científicos y el futuro de la medicina.",
       delay: 600,
       path: "/salud"
     },
@@ -128,7 +153,7 @@ const VerticalsCarousel = () => {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
-            Nuestras Verticales
+            {ourVerticals}
           </span>
           
           <h2 
@@ -136,7 +161,7 @@ const VerticalsCarousel = () => {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
-            Seis áreas de conocimiento, infinitas posibilidades
+            {sixAreas}
           </h2>
           
           <p 
@@ -144,7 +169,7 @@ const VerticalsCarousel = () => {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
             }`}
           >
-            Cada vertical representa un pilar de nuestra comunidad, donde expertos comparten conocimientos y crean sinergias entre disciplinas.
+            {description}
           </p>
         </div>
         

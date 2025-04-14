@@ -1,9 +1,11 @@
 
 import { useState, useEffect, useRef } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const AboutSection = () => {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const { currentLanguage } = useLanguage();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -27,6 +29,21 @@ const AboutSection = () => {
       observer.disconnect();
     };
   }, []);
+
+  // Translations based on current language
+  const aboutClub = currentLanguage === "en" ? "About the Club" : "Sobre el Club";
+  const title = currentLanguage === "en" 
+    ? "An exclusive community of leaders and innovators" 
+    : "Una comunidad exclusiva de líderes e innovadores";
+  const description1 = currentLanguage === "en"
+    ? "Founded with the vision of bringing together extraordinary people, our club offers an environment where the exchange of ideas transcends conventional boundaries."
+    : "Fundado con la visión de unir a personas extraordinarias, nuestro club ofrece un entorno donde el intercambio de ideas trasciende los límites convencionales.";
+  const description2 = currentLanguage === "en"
+    ? "Here, knowledge and experience from different fields converge to create unique opportunities, unexpected collaborations, and lasting friendships."
+    : "Aquí, el conocimiento y la experiencia de diferentes ámbitos convergen para crear oportunidades únicas, colaboraciones inesperadas y amistades duraderas.";
+  const discoverVerticals = currentLanguage === "en"
+    ? "Discover our verticals"
+    : "Descubre nuestras verticales";
 
   return (
     <section 
@@ -57,7 +74,7 @@ const AboutSection = () => {
                         <div className="w-16 h-16 mx-auto border-2 border-club-olive/70 rounded-full flex items-center justify-center mb-4">
                           <div className="w-10 h-10 bg-club-olive/70 rounded-full"></div>
                         </div>
-                        <p className="font-serif">Imagen del Club</p>
+                        <p className="font-serif">{currentLanguage === "en" ? "Club Image" : "Imagen del Club"}</p>
                       </div>
                     </div>
                   </div>
@@ -72,7 +89,7 @@ const AboutSection = () => {
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                 }`}
               >
-                Sobre el Club
+                {aboutClub}
               </span>
               
               <h2 
@@ -80,7 +97,7 @@ const AboutSection = () => {
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                 }`}
               >
-                Una comunidad exclusiva de líderes e innovadores
+                {title}
               </h2>
               
               <p 
@@ -88,7 +105,7 @@ const AboutSection = () => {
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                 }`}
               >
-                Fundado con la visión de unir a personas extraordinarias, nuestro club ofrece un entorno donde el intercambio de ideas trasciende los límites convencionales.
+                {description1}
               </p>
               
               <p 
@@ -96,7 +113,7 @@ const AboutSection = () => {
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
                 }`}
               >
-                Aquí, el conocimiento y la experiencia de diferentes ámbitos convergen para crear oportunidades únicas, colaboraciones inesperadas y amistades duraderas.
+                {description2}
               </p>
               
               <div 
@@ -108,7 +125,7 @@ const AboutSection = () => {
                   href="#verticals" 
                   className="inline-flex items-center font-medium text-club-terracotta hover:text-club-brown transition-colors duration-300"
                 >
-                  Descubre nuestras verticales
+                  {discoverVerticals}
                   <svg className="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                   </svg>
