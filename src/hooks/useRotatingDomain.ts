@@ -18,11 +18,11 @@ export const useRotatingDomain = ({ currentLanguage, fixedPaths }: UseRotatingDo
   useEffect(() => {
     const fetchDomains = async () => {
       try {
-        // Get all domains
+        // Get all domains that are used (active)
         const { data, error } = await supabase
           .from('domains')
-          .select('name, slug, name_en')
-          .eq('is_active', true)
+          .select('name, path')
+          .eq('status', 'used')
           .limit(10);
           
         if (error) throw error;
@@ -30,7 +30,7 @@ export const useRotatingDomain = ({ currentLanguage, fixedPaths }: UseRotatingDo
         if (data && data.length > 0) {
           // Filter out domains that already have fixed links
           const availableDomains = data.filter(domain => 
-            !fixedPaths.includes(`/${domain.slug}`)
+            !fixedPaths.includes(domain.path)
           );
           
           if (availableDomains.length > 0) {
@@ -38,14 +38,10 @@ export const useRotatingDomain = ({ currentLanguage, fixedPaths }: UseRotatingDo
             const randomIndex = Math.floor(Math.random() * availableDomains.length);
             const randomDomain = availableDomains[randomIndex];
             
-            // Use the appropriate language name
-            const domainName = currentLanguage === "en" && randomDomain.name_en 
-              ? randomDomain.name_en 
-              : randomDomain.name;
-              
+            // Use domain name based on current language (in the future we could add translations)
             setRotatingDomain({
-              name: domainName,
-              path: `/${randomDomain.slug}`
+              name: randomDomain.name,
+              path: randomDomain.path
             });
           }
         }
